@@ -4,10 +4,12 @@ library(leaflet)
 library(glue)
 library(shinydashboard)
 library(plotly)
+library(sf)
 
-# load your data
-q <- quakes
+# paths
+dir_gdata <- "~/Google Drive"
+abnj_shp <- file.path(dir_gdata, "projects/Pew BBNJ/data/derived/Caroline - high seas layer/high_seas_final.shp")
 
-add <- function(a, b){
-  a + b
-}
+abnj <- read_sf(abnj_shp) %>%
+  st_buffer(dist=0)
+
