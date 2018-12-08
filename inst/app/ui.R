@@ -8,6 +8,11 @@ dashboardPage(
       menuItem("Map", tabName = "tab_map", icon = icon("map")),
       menuItem("Histogram", tabName = "tab_hist", icon = icon("bar-chart"))),
 
+    selectInput(
+      "select_var", label = "Variable to plot",
+      choices = list(
+        "Global Fishing Watch" = tbl_gfw$name)),
+
     sliderInput(
       "slider_mag", label = "Magnitude",
       min = min(quakes$mag), max = max(quakes$mag), step = 0.2,
@@ -16,13 +21,7 @@ dashboardPage(
     sliderInput(
       "slider_depth", label = "Depth",
       min = min(quakes$depth), max = max(quakes$depth), step = 50,
-      value = c(min(quakes$depth), max = max(quakes$depth))),
-
-    selectInput(
-      "select_var", label = "Variable to plot",
-      choices = c(
-        "Magnitude" = "mag",
-        "Depth" = "depth"))),
+      value = c(min(quakes$depth), max = max(quakes$depth)))),
 
   dashboardBody(
     tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),

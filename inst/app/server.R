@@ -29,9 +29,28 @@ shinyServer(function(input, output, session) {
 
   output$map <- renderLeaflet({
 
-    leaflet(abnj) %>%
-      addProviderTiles(providers$Stamen.TonerLite) %>%
-      addPolygons() %>%
+    #input = list(select_var = tbl_gfw$name[1])
+    tif <- tbl_gfw %>% filter(name == input$select_var) %>% pull(tif)
+    r <- raster(tif)
+
+    rng <- range(values(r), na.rm=T)
+    pal <- colorNumeric(
+      "inferno", rng, na.color = "transparent", reverse=T)
+
+    leaflet() %>%
+      addProviderTiles(providers$Esri.OceanBasemap, group="ESRI Ocean Basemap") %>%
+      addProviderTiles(providers$Stamen.TonerLite, group="Stamen TonerLite") %>%
+      addRasterImage(r, colors = pal, opacity = 0.8, group="Global Fishing Watch") %>%
+      addPolygons(data=abnj, group = "High Seas Area") %>%
+      addLayersControl(
+        baseGroups = c("Stamen TonerLite", "ESRI Ocean Basemap"),
+        overlayGroups = c("High Seas Area", "Global Fishing Watch"),
+        options = layersControlOptions(collapsed = T)) %>%
+      addLegend(
+        group = "Global Fishing Watch", pal = pal,
+        position = "bottomright",
+        values = rng,
+        title = input$select_var) %>%
       fitBounds(-150, -60, 150, 60)
 
   })

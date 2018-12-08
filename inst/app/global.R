@@ -7,9 +7,15 @@ library(plotly)
 library(sf)
 
 # paths
-dir_gdata <- "~/Google Drive"
-abnj_shp <- file.path(dir_gdata, "projects/Pew BBNJ/data/derived/Caroline - high seas layer/high_seas_final.shp")
+dir_gdata <- "~/Google Drive/projects/Pew BBNJ/data"
+abnj_shp  <- file.path(dir_gdata, "derived/Caroline - high seas layer/high_seas_final.shp")
+dir_gfw   <- file.path(dir_gdata, "derived/fishing")
 
 abnj <- read_sf(abnj_shp) %>%
   st_buffer(dist=0)
+
+tbl_gfw <- tibble(
+  tif = list.files(dir_gfw, ".*\\.tif$", full.names = T),
+  name = str_replace(tif, "(.*)/gfw_(.*).tif$", "\\2"))
+
 

@@ -16,3 +16,5 @@ dir_data_gdrive <- "/Users/bbest/Google Drive/projects/Pew BBNJ/data"
 elev_nc         <- file.path(dir_data_gdrive, "raw/gebco.net_depth/GEBCO_2014_2D.nc")
 eez_land_shp    <- file.path(dir_data_gdrive, "raw/marineregions.org_boundaries/EEZ_land_union_v2_201410/EEZ_land_v2_201410.shp")
 eez_shp         <- file.path(dir_data_gdrive, "raw/marineregions.org_boundaries/World_EEZ_v10_20180221/eez_v10.shp")
+gfw_csv         <- file.path(dir_data_gdrive, "raw/Sala et al 2018/half_degree_binned_results.csv")
+
