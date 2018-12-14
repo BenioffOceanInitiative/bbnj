@@ -5,6 +5,7 @@ library(glue)
 library(shinydashboard)
 library(plotly)
 library(sf)
+library(raster)
 
 # paths
 dir_gdata <- "~/Google Drive/projects/Pew BBNJ/data"

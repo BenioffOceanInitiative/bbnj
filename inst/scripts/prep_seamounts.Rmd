@@ -13,10 +13,31 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 source(here::here("inst/scripts/setup.R"))
+library(xml2)
 
+r_res <- 0.1
 seamounts_kml <- file.path(dir_data_gdrive, "raw/Seamounts - Kim and Wessel 2011/KWSMTSv01.kml")
 dir_seamounts_out <- file.path(dir_data_gdrive, "derived/seamounts")
-r_tif <- file.path(dir_seamounts_out, "seamounts_count.tif")
+r_tif <- file.path(dir_seamounts_out, glue("seamounts_count_{r_res}dd.tif"))
+
+x <- read_xml(seamounts_kml)
+
+xpaths <- list(
+  name = "/d1:kml/d1:Document/d1:Folder/d1:Folder/d1:name",
+  xyz  = "/d1:kml/d1:Document/d1:Folder/d1:Folder/d1:Placemark/d1:Point/d1:coordinates")
+pts <- tibble(
+  names = xml_find_all(x, xpaths$name) %>% xml_text(),
+  xyz   = xml_find_all(x, xpaths$xyz) %>% xml_text()) %>% 
+  separate(xyz, c("x", "y", "z"), sep=",", convert=T) %>% 
+  st_as_sf(coords = c("x", "y"), crs = 4326)
+
+# devtools::load_all()
+r_na <- get_grid(res = 0.1)
+
+r_cnt <- rasterize(st_coordinates(pts), r_na, fun='count', background=0)
+writeRaster(r_cnt, r_tif)
+
+plot(r_cnt)
 ```
 
 ```{r too slow, eval=F}
@@ -45,28 +66,5 @@ library(xml2)
 
 #snip_xml <- file.path(dir_data_gdrive, "raw/Seamounts - Kim and Wessel 2011/KWSMTSv01 snip.xml")
 
-```
-
-```{r}
-x <- read_xml(seamounts_kml)
-
-xpaths <- list(
-  name = "/d1:kml/d1:Document/d1:Folder/d1:Folder/d1:name",
-  xyz  = "/d1:kml/d1:Document/d1:Folder/d1:Folder/d1:Placemark/d1:Point/d1:coordinates")
-pts <- tibble(
-  names = xml_find_all(x, xpaths$name) %>% xml_text(),
-  xyz   = xml_find_all(x, xpaths$xyz) %>% xml_text()) %>% 
-  separate(xyz, c("x", "y", "z"), sep=",", convert=T) %>% 
-  st_as_sf(coords = c("x", "y"), crs = 4326)
-
-
-r_na <- raster(
-  xmn = -180, xmx = 180, ymn = -90, ymx = 90,
-  resolution=0.5, crs=leaflet:::epsg4326)
-
-r_cnt <- rasterize(st_coordinates(pts), r_na, fun='count', background=0)
-writeRaster(r_cnt, r_tif)
-
-plot(r_cnt)
 ```
 

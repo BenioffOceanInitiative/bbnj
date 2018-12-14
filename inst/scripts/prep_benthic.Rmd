@@ -16,7 +16,7 @@ source(here::here("inst/scripts/setup.R"))
 
 dir_raw <- file.path(dir_data_gdrive, "raw/Harris and Whiteway 2009")
 dir_out <- file.path(dir_data_gdrive, "derived/benthic")
-tif <- file.path(dir_data_gdrive, "derived/benthic/benthic_scapes11.tif")
+tif <- file.path(dir_data_gdrive, "derived/benthic/benthic_scapes11s.tif")
 ```
 
 

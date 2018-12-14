@@ -13,3 +13,10 @@ usethis::create_package(path = "../bbnj")
 devtools::check()
 ```
 
+### Include packages
+
+```r
+usethis::use_package("raster")
+usethis::use_package("leaflet")
+```
+
