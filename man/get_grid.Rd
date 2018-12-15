@@ -4,7 +4,7 @@
 \alias{get_grid}
 \title{Get empty global grid}
 \usage{
-get_grid(res = 0.1, crs = leaflet:::epsg4326)
+get_grid(res = 0.1, crs = leaflet:::epsg4326, val = NA)
 }
 \arguments{
 \item{res}{resolution, in decimal degrees (default 0.1)}
