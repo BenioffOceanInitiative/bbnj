@@ -8,8 +8,8 @@ library(sf)
 library(raster)
 
 # paths
-dir_gdata <- "~/Google Drive/projects/Pew BBNJ/data"
-abnj_shp  <- file.path(dir_gdata, "derived/Caroline - high seas layer/high_seas_final.shp")
+dir_gdata <- "~/Google Drive/projects/bbnj/data"
+abnj_shp  <- file.path(dir_gdata, "derived/boundary/high_seas_s05.shp")
 dir_gfw   <- file.path(dir_gdata, "derived/fishing")
 
 abnj <- read_sf(abnj_shp) %>%

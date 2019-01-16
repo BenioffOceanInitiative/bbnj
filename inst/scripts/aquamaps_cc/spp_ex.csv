@@ -1,0 +1,7 @@
+SPECIESID,SpecCode,Genus,Species,FBname,Kingdom,Phylum,Class,Order,Family,X11,X12
+Fis-22777,107,Katsuwonus,pelamis,Skipjack tuna,Animalia,Chordata,Actinopterygii,Perciformes,Scombridae,NA,NA
+Fis-50764,17075,Abyssobrotula,galatheae,NA,Animalia,Chordata,Actinopterygii,Ophidiiformes,Ophidiidae,NA,NA
+Fis-23222,898,Prionace,glauca,Blue shark,Animalia,Chordata,Elasmobranchii,Carcharhiniformes,Carcharhinidae,NA,NA
+Fis-29762,1906,Caranx,melampygus,Bluefin trevally,Animalia,Chordata,Actinopterygii,Perciformes,Carangidae,NA,NA
+ITS-Mam-180528,69007,Balaenoptera,musculus,blue whale,Animalia,Chordata,Mammalia,Cetacea,Balaenopteridae,NA,NA
+ITS-Mam-180537,69191,Eubalaena,glacialis,North Atlantic right whale,Animalia,Chordata,Mammalia,Cetacea,Balaenidae,NA,NA
