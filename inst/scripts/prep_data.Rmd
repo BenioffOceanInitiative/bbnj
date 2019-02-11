@@ -1,0 +1,32 @@
+---
+title: "Data"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(glue)
+
+read_csv("~/Gdrive Ecoquants/projects/bbnj/data/raw/AquaMaps/spp_group_smry.csv") %>% 
+  arrange(group) %>% 
+  mutate(
+    str = glue("      - {group}: 1")) %>% 
+  pull(str)
+  
+```
+
+
+
+```{r}
+read_csv("~/Gdrive Ecoquants/projects/bbnj/data/raw/Harris and Whiteway 2009/Harris_Whiteway - 2009 - seascapes11.csv") %>% 
+  arrange(group) %>% 
+  mutate(
+    str = glue("      - {group}: 1")) %>% 
+  pull(str)
+  
+```
+

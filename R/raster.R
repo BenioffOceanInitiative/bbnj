@@ -47,7 +47,7 @@ rescale_grid <- function(r, res_new=0.1, fxn="ngb"){
 #' @examples
 qmap_r <- function(
   r, r_title, na0=T, method="ngb",
-  boundary_shp="~/Google Drive/projects/bbnj/data/derived/boundary/high_seas_s05.shp"){
+  boundary_shp="~/Gdrive Ecoquants/projects/bbnj/data/derived/boundary/high_seas_s05.shp"){
   # b2_shp="~/Google Drive/projects/bbnj/data/derived/high-seas_boundary/high_seas_final_v2.shp"
 
   # debug
