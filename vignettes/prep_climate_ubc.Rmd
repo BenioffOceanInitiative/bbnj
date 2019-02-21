@@ -1,0 +1,132 @@
+---
+title: "Prep climate UBC data"
+author: "Ben Best"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  warning = F,
+  message = F,
+  cache = F
+)
+```
+
+## Overview
+
+From: Lam, Vicky <v.lam@oceans.ubc.ca> 2019-01-22
+
+1. `Current_MCP1.tif`: Maximum Catch Potential  (MCP) of more than 1,000 marine
+fish and invertebrates species in the high seas at the current status (20
+years average from 1995 to 2014) under GFDL 8.5 scenario
+    - under climate scenario?
+    - units in metric tons?
+    - list of species?
+    - individual species rasters to calculate profitability based on current market prices?
+
+1. `MCP2050_RCP85.tif`: The projected Maximum Catch Potential of more than 1,000
+marine fish and invertebrates species in the high seas in the future (20 years
+average from 2041to 2060) under GFDL 8.5 scenario
+    - Why take average 2041to 2060 vs just 2050? A: to be similar to Current
+
+1. `hsmcpcap851.tif`: The change in MCP in the 2050s relative to the current
+status under GFDL 8.5 scenario (I cap the change greater than 2 at 2).
+    - Why cap at change > 2?
+
+## Summary Rasters
+
+```{r}
+library(tidyverse)
+library(raster)
+library(fs)
+library(glue)
+library(here)
+
+par(mar=c(0.1,0.1,0.1,0.1))
+
+dir_ubc <- "~/Gdrive Ecoquants/projects/bbnj/data/raw/UBC-exploited-fish-projections"
+
+tifs <- list.files(dir_ubc, "*.tif$", full.names = T)
+
+cat(paste(basename(tifs), collapse="\n"))
+```
+
+### Now & Future
+
+```{r}
+library(RColorBrewer)
+pal <- colorRampPalette(brewer.pal(11, "Spectral"))
+cols <- rev(pal(255))
+
+r_now    <- raster(file.path(dir_ubc, "Current_MCP1.tif"))
+r_future <- raster(file.path(dir_ubc, "MCP2050_RCP85.tif"))
+
+r_now
+r_future
+
+plot(r_now, col = cols, main="now")
+plot(r_future, col = cols, main="future")
+
+hist(r_now, main="now")
+hist(r_future, main="future")
+```
+
+#### Log Now & Future
+
+```{r}
+log(r_now)
+log(r_future)
+
+plot(log(r_now), col = cols, main="log(now)")
+plot(log(r_future), col = cols, main="log(future)")
+
+hist(log(r_now), main="log(now)")
+hist(log(r_future), main="log(future)")
+```
+
+### Difference
+
+```{r}
+r_dif            <- r_future - r_now
+r_dif_clamped0   <- raster(file.path(dir_ubc, "hsmcpcap851.tif"))
+r_dif_clamped1   <- r_dif
+r_dif_clamped1[r_dif >  2] <-  2
+r_dif_clamped1[r_dif < -1] <- -1
+
+r_dif
+r_dif_clamped0
+r_dif_clamped1
+
+plot(r_dif, col = cols, main="dif")
+plot(r_dif_clamped0, col = cols, main="dif_clamped0")
+plot(r_dif_clamped1, col = cols, main="dif_clamped1")
+
+hist(r_dif, main="dif")
+hist(r_dif_clamped0, main="dif_clamped0")
+hist(r_dif_clamped1, main="dif_clamped1")
+```
+
+#### Log Difference
+
+```{r}
+log(r_dif)
+
+plot(log(r_dif), col = cols, main="log(now)")
+
+hist(log(r_dif), main="log(dif)")
+```
+
+## Individual Fish
+
+```{r}
+csvs <- list.files(dir_ubc, "*.csv$", recursive = T, full.names = T)
+cat(paste(basename(csvs), collapse="\n"))
+```
+

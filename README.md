@@ -51,6 +51,12 @@ usethis::use_package("sf")
 usethis::use_package("leaflet")
 ```
 
+### Vignettes
+
+```r
+usethis::use_vignette("prep_climate_ubc")
+```
+
 ### Documentation
 
 ```r

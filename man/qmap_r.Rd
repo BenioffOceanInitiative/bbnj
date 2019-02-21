@@ -5,7 +5,7 @@
 \title{Quick leaflet map of raster}
 \usage{
 qmap_r(r, r_title, na0 = T, method = "ngb",
-  boundary_shp = "~/Google Drive/projects/bbnj/data/derived/boundary/high_seas_s05.shp")
+  boundary_shp = "~/Gdrive Ecoquants/projects/bbnj/data/derived/boundary/high_seas_s05.shp")
 }
 \arguments{
 \item{r}{raster}

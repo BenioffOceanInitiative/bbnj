@@ -1,0 +1,254 @@
+---
+title: "Explore prioritizr"
+author: "Ben Best"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Setup
+
+```{r p}
+suppressPackageStartupMessages({
+  library(tidyverse)
+  library(glue)
+  library(raster)
+  library(sf)
+  library(leaflet)
+  library(RColorBrewer)
+  library(rasterVis)
+  library(prioritizr) # install.packages("prioritizr")
+  
+  #library(bbnj)
+  devtools::load_all()
+})
+
+dir_data       <- "~/Gdrive Ecoquants/projects/bbnj/data"
+cell_res       <- 0.5  # n=  113,401
+p_boundary_shp <- glue("{dir_data}/derived/boundary/high_seas.shp")
+r_pu_tif       <- glue("{dir_data}/derived/boundary/high_seas_cellid_{cell_res}dd.tif")
+```
+
+## Planning Units
+
+```{r}
+# get planning unit raster
+r_pu <- raster(r_pu_tif)
+
+pal <- colorRampPalette(brewer.pal(11, "Spectral"))
+cols <- rev(pal(255))
+plot(r_pu, col = cols, main="pu")
+```
+
+## Conservation Targets
+
+```{r}
+# get biodiversity features
+bio_tifs <- list.files(
+  file.path(dir_data, "derived/biodiversity"), 
+  "spp_.*_be_0\\.5dd\\.tif", full.names = T)
+
+bio_vars <- tibble(
+  tif = bio_tifs,
+  var = str_replace(basename(tif), "spp_(.*)_be_0\\.5dd\\.tif", "\\1")) %>% 
+  mutate(
+    var = recode(var, `tunas.&.billfishes`="tunas.billfishes")) %>% 
+  pull(var)
+
+s_bio <- stack(bio_tifs)
+names(s_bio) <- bio_vars
+
+#plot(s_bio, col = cols, main="spp")
+levelplot(s_bio, main="spp")
+```
+
+## Prioritize MPAs for Single Target
+
+```{r}
+r_tunas <- raster(s_bio, "tunas.billfishes")
+plot(r_tunas, col = cols, main="tunas.billfishes")
+```
+
+```{r}
+histogram(r_tunas)
+```
+
+Conservtion feature's total abundance:
+
+```{r}
+cellStats(r_tunas, "sum")
+```
+
+Relative proportion of 0.2 in absolute terms:
+```{r}
+tunas_20pct_sum <- cellStats(r_tunas, "sum") * 0.2
+tunas_20pct_sum
+```
+
+Threshold to take top values:
+
+```{r}
+tunas_20pct_d <- tibble(v = na.omit(values(r_tunas))) %>% 
+  arrange(desc(v)) %>% 
+  mutate(
+    row = row_number(desc(v)),
+    cumv = cumsum(v)) %>% 
+  filter(
+    cumv > tunas_20pct_sum) %>% 
+  head(1)
+tunas_20pct_d
+```
+
+
+```{r}
+plot(r_tunas >= tunas_20pct_d$v)
+```
+
+Number of cells > 0.8 that will be our "target":
+```{r}
+cellStats(r_tunas > 0.8, "sum")
+```
+
+### Minimum set objective
+
+- Minimum set objective: Minimize the cost of the solution whilst ensuring that all targets are met (Rodrigues et al. 2000). This objective is similar to that used in Marxan (Ball et al. 2009). For example, we can add a minimum set objective to a problem using the following code.
+
+```{r}
+# create a new problem that has the minimum set objective
+p3 <- problem(sim_pu_raster, sim_features) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(0.1) %>%
+  add_gurobi_solver()
+
+# print the problem
+print(p3)
+```
+
+### Maximum cover objective
+
+- Maximum cover objective: Represent at least one instance of as many features as possible within a given budget (Church et al. 1996).
+
+```{r}
+# create a new problem that has the maximum coverage objective and a budget
+# of 5000
+p4 <- problem(sim_pu_raster, sim_features) %>%
+      add_max_cover_objective(5000)
+
+# print the problem
+print(p4)
+```
+
+### Maximum features objective *
+
+- Maximum features objective: Fulfill as many targets as possible while ensuring that the cost of the solution does not exceed a budget (inspired by Cabeza & Moilanen 2001). This object is similar to the maximum cover objective except that we have the option of later specifying targets for each feature. In practice, this objective is more useful than the maximum cover objective because features often require a certain amount of area for them to persist and simply capturing a single instance of habitat for each feature is generally unlikely to enhance their long-term persistence.
+
+```{r add_max_features_objective}
+# create a new problem that has the maximum features objective and a budget
+# of 5000
+p5 <- problem(sim_pu_raster, sim_features) %>%
+      add_max_features_objective(budget = 5000)
+
+# print the problem
+print(p5)
+```
+
+
+## Fuller Example
+- Minimum set objective: Minimize the cost of the solution whilst ensuring that all targets are met (Rodrigues et al. 2000). This objective is similar to that used in Marxan (Ball et al. 2009). For example, we can add a minimum set objective to a problem using the following code.
+
+```{r}
+# create a new problem that has the minimum set objective
+p3 <- problem(sim_pu_raster, sim_features) %>%
+      add_min_set_objective()
+```
+
+```{r}
+# formulate the problem
+# TODO: check that s_bio being continuous is ok, and not binary
+p <- problem(r_pu, s_bio) %>%
+     add_min_set_objective() %>%
+     add_relative_targets(0.20) %>%
+     add_gurobi_solver()
+
+# solve the problem
+r_sol <- solve(p)
+
+# plot solution
+plot(r_sol, col = c("grey90", "darkgreen"), main = "Solution")
+
+# devtools::load_all()
+qmap_r(r_sol, "Solution", na0=T)
+
+# report on solution ----
+
+# number of planning units
+cellStats(r_sol, "sum")
+
+# cost of solution
+cellStats(r_pu * r_sol, "sum")
+
+# calculate how well features are represented in the solution
+tbl_rep <- feature_representation(p, r_sol)
+tbl_rep
+```
+
+- `absolute_held`: numeric total amount of each feature secured in the solution.
+- `relative_held`: numeric proportion of the feature's distribution held in the solution.
+
+
+## Planning Units
+
+0.5 decimal degree cells (resolution of AquaMaps, GFW, ...)
+
+ID: 
+
+```{r}
+plot(r_pu)
+```
+
+
+## Planning Unit Cost: Fishing Profit
+
+- **Fishing Profit** <br>
+  Profit = Revenue - Cost (without subsidies) <br>
+  Sala et al (2018) [The economics of fishing the high seas](http://advances.sciencemag.org/content/4/6/eaat2504). _Science Advances_
+
+- Stopping subsidies is an SDG14 target
+
+```{r}
+library(mapview)
+
+tif_gfw.profit <- file.path(
+  dir_data, glue("derived/fishing/gfw_mean_scaled_profits_0.5dd.tif"))
+r_gfw.profit <- raster(tif_gfw.profit)
+#mapview(r_gfw.profit)
+#mapview(is.na(r_gfw.profit))
+
+# get percent cells with value
+n.na_pu              <- cellStats(is.na(r_pu), "sum")
+n.na_gfw.profit      <- cellStats(is.na(r_gfw.profit), "sum")
+n.not.na_pu          <- cellStats(!is.na(r_pu), "sum")
+n.not.na_gfw.profit  <- cellStats(!is.na(r_gfw.profit), "sum")
+pct_pu.gfw.profit    <- n.not.na_gfw.profit / n.not.na_pu * 100
+pct_pu.gfw.profit # 34.9%
+
+# set unfished areas to min() value, assuming if not fished then low value (ie inaccessible)
+r_pu.gfw.profit <- r_gfw.profit
+r_pu.gfw.profit[is.na(r_gfw.profit)] <- cellStats(r_gfw.profit, "min")
+r_pu.gfw.profit <- mask(r_pu.gfw.profit, r_pu)
+r_pu.gfw.profit <- r_pu.gfw.profit + abs(cellStats(r_gfw.profit, "min")) + 1
+r_pu.gfw.profit # [0 to 132,660,956
+
+hist(r_pu.gfw.profit)
+plot(r_pu.gfw.profit)
+```
