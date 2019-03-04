@@ -23,22 +23,24 @@ knitr::opts_chunk$set(
 
 From: Lam, Vicky <v.lam@oceans.ubc.ca> 2019-01-22
 
-1. `Current_MCP1.tif`: Maximum Catch Potential  (MCP) of more than 1,000 marine
+1. **Current** `Current_MCP1.tif`: Maximum Catch Potential  (MCP) of more than 1,000 marine
 fish and invertebrates species in the high seas at the current status (20
 years average from 1995 to 2014) under GFDL 8.5 scenario
-    - under climate scenario?
-    - units in metric tons?
-    - list of species?
-    - individual species rasters to calculate profitability based on current market prices?
+    - Units are in metric tons.
+    - Because of climate variability, the 20-year average was taken.
+    - TODO: Get list of species from Vicky.
+    - TODO: Consider getting individual species rasters to calculate profitability based on current market prices.
 
-1. `MCP2050_RCP85.tif`: The projected Maximum Catch Potential of more than 1,000
+1. **Future** `MCP2050_RCP85.tif`: The projected Maximum Catch Potential of more than 1,000
 marine fish and invertebrates species in the high seas in the future (20 years
 average from 2041to 2060) under GFDL 8.5 scenario
-    - Why take average 2041to 2060 vs just 2050? A: to be similar to Current
+    - Units are in metric tons.
+    - Because of climate variability, the 20-year average was taken.
 
-1. `hsmcpcap851.tif`: The change in MCP in the 2050s relative to the current
+1. **Percent Change** `hsmcpcap851.tif`: The change in MCP in the 2050s relative to the current
 status under GFDL 8.5 scenario (I cap the change greater than 2 at 2).
-    - Why cap at change > 2?
+    - This represents the percent change so difference (Future - Current) is divided by Current. For species shifting distribution into new areas (ie Future >> Current), the division can produce extremely high values, so this output was capped at [-1, 2].
+    - TODO: Below calculate [(Future - Current) / Current], not just (Future - Current).
 
 ## Summary Rasters
 

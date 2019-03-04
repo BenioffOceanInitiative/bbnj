@@ -1,13 +1,13 @@
 Package: bbnj
-Title: What the Package Does (One Line, Title Case)
+Title: Biodiversity Beyond National Jurisdiction
 Version: 0.0.0.9000
-Authors@R: 
-    person(given = "First",
-           family = "Last",
-           role = c("aut", "cre"),
-           email = "first.last@example.com")
-Description: What the package does (one paragraph).
-License: What license it uses
+Authors@R: person("Ben", "Best", email = "ben@ecoquants.com", role = c("aut", "cre"))
+Description: This package represents prioritization analysis for assessing 
+  marine protected areas in the high seas in areas beyond national jurisdication, 
+  ie outside national waters or Exclusive Economic Zones (EEZs), for scientic 
+  decision-making support for the United Nation's Biodiversity Beyond National Jurisdiction (BBNJ)
+  initiative.
+License: MIT license
 Encoding: UTF-8
 LazyData: true
 Imports: 
@@ -19,3 +19,5 @@ Suggests:
     knitr,
     rmarkdown
 VignetteBuilder: knitr
+URL: https://github.com/ecoquants/bbnj
+BugReports: https://github.com/ecoquants/bbnj/issues

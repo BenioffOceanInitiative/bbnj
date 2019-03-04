@@ -108,3 +108,18 @@ qmap_r <- function(
   }
   m
 }
+
+#' area-scale raster, max 1
+#'
+#' @param r raster to scale
+#' @param r_a area raster
+#'
+#' @return raster multiplied by area and divided by the maximum value to max at 1
+#' @export
+#'
+#' @examples
+area_scale_raster <- function(r, r_a){
+  r <- r * r_a
+  r_max <- cellStats(r, 'max')
+  raster::scale(r, center=F, scale=r_max)
+}

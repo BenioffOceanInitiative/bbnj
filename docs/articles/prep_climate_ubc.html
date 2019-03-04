@@ -61,7 +61,14 @@
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/ecoquants/bbnj">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -76,9 +83,9 @@
       <h1>Prep climate UBC data</h1>
                         <h4 class="author">Ben Best</h4>
             
-            <h4 class="date">2019-02-21</h4>
+            <h4 class="date">2019-02-27</h4>
       
-      
+      <small class="dont-index">Source: <a href="https://github.com/ecoquants/bbnj/blob/master/vignettes/prep_climate_ubc.Rmd"><code>vignettes/prep_climate_ubc.Rmd</code></a></small>
       <div class="hidden name"><code>prep_climate_ubc.Rmd</code></div>
 
     </div>
@@ -91,24 +98,26 @@
 <p>From: Lam, Vicky <a href="mailto:v.lam@oceans.ubc.ca">v.lam@oceans.ubc.ca</a> 2019-01-22</p>
 <ol style="list-style-type: decimal">
 <li>
-<code>Current_MCP1.tif</code>: Maximum Catch Potential (MCP) of more than 1,000 marine fish and invertebrates species in the high seas at the current status (20 years average from 1995 to 2014) under GFDL 8.5 scenario
+<strong>Current</strong> <code>Current_MCP1.tif</code>: Maximum Catch Potential (MCP) of more than 1,000 marine fish and invertebrates species in the high seas at the current status (20 years average from 1995 to 2014) under GFDL 8.5 scenario
 <ul>
-<li>under climate scenario?</li>
-<li>units in metric tons?</li>
-<li>list of species?</li>
-<li>individual species rasters to calculate profitability based on current market prices?</li>
+<li>Units are in metric tons.</li>
+<li>Because of climate variability, the 20-year average was taken.</li>
+<li>TODO: Get list of species from Vicky.</li>
+<li>TODO: Consider getting individual species rasters to calculate profitability based on current market prices.</li>
 </ul>
 </li>
 <li>
-<code>MCP2050_RCP85.tif</code>: The projected Maximum Catch Potential of more than 1,000 marine fish and invertebrates species in the high seas in the future (20 years average from 2041to 2060) under GFDL 8.5 scenario
+<strong>Future</strong> <code>MCP2050_RCP85.tif</code>: The projected Maximum Catch Potential of more than 1,000 marine fish and invertebrates species in the high seas in the future (20 years average from 2041to 2060) under GFDL 8.5 scenario
 <ul>
-<li>Why take average 2041to 2060 vs just 2050? A: to be similar to Current</li>
+<li>Units are in metric tons.</li>
+<li>Because of climate variability, the 20-year average was taken.</li>
 </ul>
 </li>
 <li>
-<code>hsmcpcap851.tif</code>: The change in MCP in the 2050s relative to the current status under GFDL 8.5 scenario (I cap the change greater than 2 at 2).
+<strong>Percent Change</strong> <code>hsmcpcap851.tif</code>: The change in MCP in the 2050s relative to the current status under GFDL 8.5 scenario (I cap the change greater than 2 at 2).
 <ul>
-<li>Why cap at change &gt; 2?</li>
+<li>This represents the percent change so difference (Future - Current) is divided by Current. For species shifting distribution into new areas (ie Future &gt;&gt; Current), the division can produce extremely high values, so this output was capped at [-1, 2].</li>
+<li>TODO: Below calculate [(Future - Current) / Current], not just (Future - Current).</li>
 </ul>
 </li>
 </ol>
@@ -315,7 +324,7 @@ r_dif_clamped1
 
 
       <footer><div class="copyright">
-  <p>Developed by First Last.</p>
+  <p>Developed by Ben Best.</p>
 </div>
 
 <div class="pkgdown">
