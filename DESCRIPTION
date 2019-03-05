@@ -13,7 +13,8 @@ LazyData: true
 Imports: 
     raster,
     leaflet,
-    sf
+    sf,
+    prioritizr
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,

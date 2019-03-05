@@ -1,0 +1,33 @@
+---
+title: "Vignette Title"
+author: "Vignette Author"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Load rasters
+
+```{r}
+library(bbnj)
+# devtools::install_local(force=T)
+# devtools::document()
+# devtools::load_all()
+
+# show sbais dataset, lazy loaded
+bio_aquamaps
+
+# explicitly attach to environment
+data(bio_aquamaps)
+```
+

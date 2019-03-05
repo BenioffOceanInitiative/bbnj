@@ -1,6 +1,6 @@
 #' Get empty global grid
 #'
-#' @param res resolution, in decimal degrees (default 0.1)
+#' @param res resolution, in decimal degrees (default 0.5)
 #' @param crs coordinate resolutions system, ie projection (default geographic coordinate system 4326, ie WGS84)
 #'
 #' @return global raster with extent -180 to 180 longitude, -90 to 90 latitude and specified resolution
@@ -11,7 +11,7 @@
 #' # get half-degree global grid
 #' get_grid(res=0.5)
 #' @import raster leaflet
-get_grid <- function(res = 0.1, crs=leaflet:::epsg4326, val=NA){
+get_grid <- function(res = 0.5, crs=leaflet:::epsg4326, val=NA){
   # raster specifications for 0.5 degree global raster
 
   raster::raster(

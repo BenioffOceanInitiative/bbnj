@@ -132,6 +132,15 @@ basename(tifs_bbnj)
 ### `nspp`, all taxa
 
 ```{r}
+devtools::install_local("~/github/gmbi")
+library(gmbi)
+
+data(gmbi_indicators)
+help(gmbi_indicators, package="gmbi")
+data(package="gmbi")
+
+names(gmbi_indicators)
+
 tif <- system.file("data/biodiversity/nspp_all.tif", package="bbnj")
 r_nspp_all <- raster(tif)
 plot(r_nspp_all, col = cols, main="nspp, all taxa")
@@ -171,9 +180,9 @@ plot(r_rls_all, col = cols, main="rls, all taxa")
 # get all tifs, except first one "nspp_all.tif"
 tifs <- list.files(
   system.file("data/biodiversity", package="bbnj"), 
-  "^nspp_.*.tif$", full.names = T)[-1]
+  "^rls_.*.tif$", full.names = T)[-1]
 s_nspp_groups <- stack(tifs)
-names(s_nspp_groups) <- str_replace(names(s_nspp_groups), "nspp_", "")
+names(s_nspp_groups) <- str_replace(names(s_nspp_groups), "rls_", "")
 plot(s_nspp_groups, col = cols)
 ```
 
@@ -189,7 +198,9 @@ Maximize overall biodiversity, given a budget of 10% of all high seas area.
 p01 <- problem(r_pu_areas, r_nspp_all_as) %>%
   add_max_utility_objective(budget = 10) %>% # 10% of total high seas area
   add_gurobi_solver()
-p01_sol <- solve(p01)
+
+#devtools::load_all()
+p01_sol <- solve_log(p01) # , "p01_log.txt", "p01_sol.tif")
 
 plot(p01_sol, col = c("grey90", "darkgreen"), main = "Solution")
 
@@ -285,7 +296,9 @@ Maximize overall biodiversity, given a budget of 10% of all high seas area, and 
 - [Conservation problem penalties — penalties • prioritizr](https://prioritizr.net/reference/penalties.html)
 - [Add boundary penalties — add_boundary_penalties • prioritizr](https://prioritizr.net/reference/add_boundary_penalties.html)
 
-```{r p05}
+This scenario takes too long to run, so caching.
+
+```{r p05, eval=F}
 p05 <- problem(r_pu_areas, r_nspp_all_as) %>%
   add_boundary_penalties(0.1, 1) %>%         # boundary penalty (penalty, edge_factor)
   add_max_utility_objective(budget = 10) %>% # budget = % of total high seas area
