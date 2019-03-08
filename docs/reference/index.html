@@ -60,7 +60,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">bbnj</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.0.0.9000</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.1</span>
       </span>
     </div>
 
@@ -82,9 +82,6 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="../articles/load_rasters.html">Vignette Title</a>
-    </li>
     <li>
       <a href="../articles/prep_climate_ubc.html">Prep climate UBC data</a>
     </li>
@@ -128,8 +125,8 @@
     <tbody>
       <tr>
         <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
+          <h2 id="section-raster" class="hasAnchor"><a href="#section-raster" class="anchor"></a>Raster</h2>
+          <p class="section-desc"><p>raster operations</p></p>
         </th>
       </tr>
       <tr>
@@ -138,12 +135,6 @@
           <p><code><a href="area_scale_raster.html">area_scale_raster()</a></code> </p>
         </td>
         <td><p>area-scale raster, max 1</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="bio_aquamaps.html">bio_aquamaps</a></code> </p>
-        </td>
-        <td><p>Global marine biodiversity indicators from AquaMaps</p></td>
       </tr><tr>
         
         <td>
@@ -157,6 +148,72 @@
         </td>
         <td><p>Quick leaflet map of raster</p></td>
       </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-prioritization" class="hasAnchor"><a href="#section-prioritization" class="anchor"></a>Prioritization</h2>
+          <p class="section-desc"><p>prioritizr helper functions</p></p>
+        </th>
+      </tr>
+      <tr>
+        
+        <td>
+          <p><code><a href="solve_log.html">solve_log()</a></code> </p>
+        </td>
+        <td><p>Helper function to run prioritizr::solve() and log output and resulting raster</p></td>
+      </tr>
+    </tbody><tbody>
+      <tr>
+        <th colspan="2">
+          <h2 id="section-datasets" class="hasAnchor"><a href="#section-datasets" class="anchor"></a>Datasets</h2>
+          <p class="section-desc"><p>input data for high seas MPA scenarios</p></p>
+        </th>
+      </tr>
+      <tr>
+        
+        <td>
+          <p><code><a href="p_highseas.html">p_highseas</a></code> </p>
+        </td>
+        <td><p>Polygon of high seas area</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="r_phys_seamounts.html">r_phys_seamounts</a></code> </p>
+        </td>
+        <td><p>Raster for count of seamounts (Kim &amp; Wessel, 2011)</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="r_pu_id.html">r_pu_id</a></code> </p>
+        </td>
+        <td><p>Raster of planning unit id for high seas</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="s_bio_gmbi.html">s_bio_gmbi</a></code> </p>
+        </td>
+        <td><p>Raster stack of global marine biodiversity indicators from AquaMaps and IUCN</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="s_fish_gfw.html">s_fish_gfw</a></code> </p>
+        </td>
+        <td><p>Raster stack from Global Fishing Watch analysis of high seas (Sala et al, 2018)</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="s_fish_ubc.html">s_fish_ubc</a></code> </p>
+        </td>
+        <td><p>Raster stack from UBC (Cheung, Lam et al; in draft) of maximum catch
+potential</p></td>
+      </tr><tr>
+        
+        <td>
+          <p><code><a href="s_phys_scapes.html">s_phys_scapes</a></code> </p>
+        </td>
+        <td><p>Raster stack for area (km2) of 1 thru 11 classes of benthic seascapes (Harris
+&amp; Whiteway, 2009)</p></td>
+      </tr>
     </tbody>
     </table>
   </div>
@@ -164,7 +221,9 @@
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#section-all-functions">All functions</a></li>
+      <li><a href="#section-raster">Raster</a></li>
+      <li><a href="#section-prioritization">Prioritization</a></li>
+      <li><a href="#section-datasets">Datasets</a></li>
     </ul>
   </div>
 </div>

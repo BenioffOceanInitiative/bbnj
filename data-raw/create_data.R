@@ -3,15 +3,25 @@
 
 #devtools::install_github("marinebon/gmbi")
 devtools::load_all()
+library(xml2)
+library(purrr)
+library(gmbi)
 library(raster)
 library(usethis)
+library(sf)
+library(glue)
+library(here)
 
 # paths ----
-dir_gdata      <- "~/Gdrive Ecoquants/projects/bbnj/data"
-cell_res       <- 0.5  # n=  113,401
-p_boundary_shp <- glue("{dir_gdata}/derived/boundary/high_seas.shp")
-pu_id_tif      <- glue("{dir_gdata}/derived/boundary/high_seas_cellid_{cell_res}dd.tif")
-fish_gfw_csv   <- glue("{dir_gdata}/raw/Sala et al 2018/half_degree_binned_results.csv")
+dir_gdata           <- "~/Gdrive Ecoquants/projects/bbnj/data" # on Ben Best's laptop
+cell_res            <- 0.5
+p_boundary_shp      <- glue("{dir_gdata}/derived/boundary/high_seas.shp")
+pu_id_tif           <- glue("{dir_gdata}/derived/boundary/high_seas_cellid_{cell_res}dd.tif")
+fish_gfw_csv        <- glue("{dir_gdata}/raw/Sala et al 2018/half_degree_binned_results.csv")
+phys_seamounts_kml  <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 2011/KWSMTSv01.kml")
+phys_scapes_arcinfo <- glue("{dir_gdata}/raw/Harris and Whiteway 2009/Global_Seascapes/class_11")
+fish_ubc_now_tif    <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/Current_MCP1.tif")
+fish_ubc_future_tif <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif")
 
 # helper functions ----
 lyr_to_tif <- function(lyr, s, pfx){
@@ -24,26 +34,39 @@ lyr_to_tif <- function(lyr, s, pfx){
 }
 
 # r_pu_id ----
-r_pu_id <- raster(pu_id_tif)
+r_pu_id <- raster(pu_id_tif) # plot(r_pu_id)
+
 writeRaster(r_pu_id, here("data-raw/pu_id.tif"), overwrite = TRUE)
 use_data(r_pu_id, overwrite = TRUE)
+
+# r_na ----
+# for assigning fresh values later
+r_na <- r_pu_id
+values(r_na) <- NA
+
+# p_highseas ----
+dir_data       <- "~/Gdrive Ecoquants/projects/bbnj/data"
+p_highseas_shp <- glue("{dir_data}/derived/boundary/high_seas.shp")
+
+p_highseas <- read_sf(p_highseas_shp)
+write_sf(p_highseas, here("data-raw/highseas.shp"))
+use_data(p_highseas, overwrite = TRUE)
 
 # s_bio ----
 
 # get bio raster stack from gmbi
-library(gmbi)
 data(gmbi_indicators)
 
 # mask stack
-s_bio <- gmbi_indicators %>%
+s_bio_gmbi <- gmbi_indicators %>%
   mask(r_pu_id)
 
 # write tifs
-lyrs <- names(s_bio)
-map(lyrs, lyr_to_tif, s_bio, "bio")
+lyrs <- names(s_bio_gmbi)
+map(lyrs, lyr_to_tif, s_bio_gmbi, "bio_gmbi")
 
 # use_data()
-use_data(s_bio, overwrite = TRUE)
+use_data(s_bio_gmbi, overwrite = TRUE)
 
 # s_fish_gfw ----
 
@@ -56,7 +79,7 @@ d_fish_gfw <- read_csv(fish_gfw_csv) %>%
 if (exists("s_fish_gfw")) rm(s_fish_gfw)
 lyrs <- names(d_fish_gfw)[4:(ncol(d_fish_gfw) - 1)]
 for (lyr in lyrs){ # lyr = lyrs[2]
-  r <- r_pu_id
+  r <- r_na
   names(r) <- lyr
   r[d_fish_gfw$cell_id] <- d_fish_gfw[[lyr]]
 
@@ -77,6 +100,70 @@ map(lyrs, lyr_to_tif, s_fish_gfw, "fish_gfw")
 # use_data()
 use_data(s_fish_gfw, overwrite = TRUE)
 
+# s_fish_ubc ----
+fish_ubc_now_tif           <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/Current_MCP1.tif")
+fish_ubc_future_tif        <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif")
+
+s_fish_ubc  <- stack(c(fish_ubc_now_tif, fish_ubc_future_tif))
+lyrs <- names(s_fish_ubc) <- c("mcp_2004", "mcp_2050")
+
+# mask stack
+s_fish_ubc <- mask(s_fish_ubc, r_pu_id)
+
+# write tifs
+map(lyrs, lyr_to_tif, s_fish_ubc, "fish_ubc")
+
+# use_data()
+use_data(s_fish_ubc, overwrite = TRUE)
 
 
+# r_phys_seamounts ----
+x <- read_xml(phys_seamounts_kml)
 
+xpaths <- list(
+  name = "/d1:kml/d1:Document/d1:Folder/d1:Folder/d1:name",
+  xyz  = "/d1:kml/d1:Document/d1:Folder/d1:Folder/d1:Placemark/d1:Point/d1:coordinates")
+pts <- tibble(
+  names = xml_find_all(x, xpaths$name) %>% xml_text(),
+  xyz   = xml_find_all(x, xpaths$xyz) %>% xml_text()) %>%
+  separate(xyz, c("x", "y", "z"), sep=",", convert=T) %>%
+  st_as_sf(coords = c("x", "y"), crs = 4326)
+
+r_phys_seamounts <- rasterize(st_coordinates(pts), r_pu_id, fun='count', background=0) %>%
+  mask(r_pu_id) # plot(r_phys_seamounts)
+names(r_phys_seamounts) <- "count"
+
+writeRaster(r_phys_seamounts, here("data-raw/phys_seamount_count.tif"), overwrite = TRUE)
+use_data(r_phys_seamounts, overwrite = TRUE)
+
+# s_phys_scapes ----
+
+# load raster in 0.1 deg resolution
+r_scapes <- raster(phys_scapes_arcinfo)
+
+# create raster stack of benthicscape classes
+# with each layer containing amount of class in 0.5 deg cell
+if (exists("s_scapes")) rm(s_scapes)
+r_a <- area(r_scapes)
+for (i in 1:11){ # i = 1
+  r_i <- (r_scapes == 1) * r_a
+  r_ia <- aggregate(r_i, fact=5, fun=sum, expand=F, na.rm=T)
+  #plot(r_ia)
+
+  if (!exists("s_scapes")){
+    s_scapes <- r_ia
+
+  } else {
+    s_scapes <- stack(s_scapes, r_ia)
+  }
+}
+lyrs <- names(s_scapes) <- glue("class_{1:11}")
+
+# mask stack
+s_phys_scapes <- s_scapes <- mask(s_scapes, r_pu_id)
+
+# write tifs
+map(lyrs, lyr_to_tif, s_phys_scapes, "phys_scapes")
+
+# use_data()
+use_data(s_phys_scapes, overwrite = TRUE)

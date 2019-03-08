@@ -4,10 +4,10 @@
 \alias{get_grid}
 \title{Get empty global grid}
 \usage{
-get_grid(res = 0.1, crs = leaflet:::epsg4326, val = NA)
+get_grid(res = 0.5, crs = leaflet:::epsg4326, val = NA)
 }
 \arguments{
-\item{res}{resolution, in decimal degrees (default 0.1)}
+\item{res}{resolution, in decimal degrees (default 0.5)}
 
 \item{crs}{coordinate resolutions system, ie projection (default geographic coordinate system 4326, ie WGS84)}
 }

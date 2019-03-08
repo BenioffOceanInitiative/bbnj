@@ -37,14 +37,30 @@ suppressPackageStartupMessages({
   library(rasterVis)
   library(prioritizr) # install.packages("prioritizr")
   
-  #library(bbnj)
-  devtools::load_all()
+  library(bbnj) 
+  # devtools::install_local(here::here(), force=T) 
+  # devtools::load_all()
 })
 
-dir_data       <- "~/Gdrive Ecoquants/projects/bbnj/data"
-cell_res       <- 0.5  # n=  113,401
-p_boundary_shp <- glue("{dir_data}/derived/boundary/high_seas.shp")
-r_pu_id_tif    <- glue("{dir_data}/derived/boundary/high_seas_cellid_{cell_res}dd.tif")
+# set rainbow color palette
+pal <- colorRampPalette(brewer.pal(11, "Spectral"))
+cols <- rev(pal(255))
+```
+
+## BBNJ data sets
+
+```{r}
+# view list of all datasets in bbnj R package
+data(package="bbnj")
+
+# get help on any dataset
+# ?r_pu_id
+
+# use lazily loaded dataset, not showing in environment
+r_pu_id
+
+# explicitly attach to environment
+data("r_pu_id")
 ```
 
 ## Planning Units
@@ -52,15 +68,13 @@ r_pu_id_tif    <- glue("{dir_data}/derived/boundary/high_seas_cellid_{cell_res}d
 Using half-degree global raster (resolution of AquaMaps, GFW, ...).
 
 ```{r}
-# get planning unit raster
-r_pu_id <- raster(r_pu_id_tif)
-
-pal <- colorRampPalette(brewer.pal(11, "Spectral"))
-cols <- rev(pal(255))
+# show planning unit id raster
 plot(r_pu_id, col = cols, main="pu_id")
 ```
 
 ### PU Cost as Area
+
+Get area for planning units ($km^2$):
 
 ```{r}
 r_pu_area <- area(r_pu_id) %>%  # in km2
@@ -68,6 +82,8 @@ r_pu_area <- area(r_pu_id) %>%  # in km2
 
 plot(r_pu_area, col = cols, main="pu_area (km2)")
 ```
+
+Rescale area for being able to set planning unit budgets to percentages of the global high seas:
 
 ```{r}
 A <- cellStats(r_pu_area, "sum")
@@ -77,14 +93,13 @@ r_pu_areas <- r_pu_area / A * 100
 plot(r_pu_areas, col = cols, main="pu_areas (sums to 100)")
 ```
 
-
 ## Conservation Targets
 
 ### Biodiversity
 
 All the species distribution data was generously provided as comma-seperated value (csv) files in a zip package `aquamaps_ver0816c.zip` by Kristin Kaschner and Cristina Garilao to Ben Best <ben@ecoquants.com> on Jun 21, 2018 from the extensive work available at <http://AquaMaps.org> to be fully cited [@kaschnerAquaMapsPredictedRange2016] whenever used. For details on generating indicators, see [Calculate Indicators • gmbi](https://marinebon.github.io/gmbi/articles/calc.html):
 
-Note that a probability ≥ 0.5 was used to convert AquaMaps relative environmental suitability (RES) from continuous [0 - 1] to binary [0,1] [@kleinShortfallsGlobalProtected2015; @oharaAligningMarineSpecies2017].
+Note that a probability ≥ 0.5 was used to convert AquaMaps relative environmental suitability (RES) from continuous [0 - 1] to binary [0,1] [@kleinShortfallsGlobalProtected2015; @oharaAligningMarineSpecies2017] for generating these two indicators:
 
 - `nspp`: number of species, ie species richness
 
