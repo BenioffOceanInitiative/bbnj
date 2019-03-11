@@ -109,17 +109,124 @@ qmap_r <- function(
   m
 }
 
-#' area-scale raster, max 1
+
+#' Gap-fill rasters with value based on function and mask
 #'
-#' @param r raster to scale
-#' @param r_a area raster
+#' @param r raster input
+#' @param fxn function, default="min"
+#' @param r_mask raster mask, default=r_pu_id
 #'
-#' @return raster multiplied by area and divided by the maximum value to max at 1
+#' @return raster after filling NAs with result of function and mask
 #' @export
 #'
 #' @examples
-area_scale_raster <- function(r, r_a){
-  r <- r * r_a
-  r_max <- cellStats(r, 'max')
-  raster::scale(r, center=F, scale=r_max)
+gap_fill_raster <- function(r, fxn="min", r_mask=r_pu_id){
+  r[is.na(r)] <- cellStats(r, fxn)
+  mask(r, r_pu_id)
 }
+
+#' Rescale raster
+#'
+#' @param r input raster
+#' @param rescale T/F to rescale values 0 to 1, default=T
+#' @param log T/F to log transform, defaul=F
+#' @param inverse T/F to invert by subtracting from 1
+#' @param multiply_area T/F to multiply raster by 1
+#'
+#' @return raster
+#' @export
+#'
+#' @examples
+rescale_raster <- function(r, rescale = T, log = F, inverse = F,  multiply_area=F){
+  if (multiply_area){
+    r <- r * area(r)
+  }
+
+  v <- raster::values(r)
+
+  if (log){
+    if (rescale){
+      v <- scales::rescale(v)
+    }
+    v[v == 0] <- 0.0001
+    v <- log(v)
+  }
+
+  if (rescale){
+    v <- scales::rescale(v)
+  }
+
+  if (inverse){
+    v <- 1 - v
+  }
+
+  raster::values(r) <- v
+
+  r
+
+}
+
+#' Rescale stack
+#'
+#' @param s stack
+#' @param from_all rescale based on range from all rasters in stack
+#'   (default=TRUE) or within each raster (FALSE)
+#' @param rescale T/F to rescale values 0 to 1, default=T
+#' @param log T/F to log transform, defaul=F
+#' @param inverse T/F to invert by subtracting from 1
+#' @param multiply_area T/F to multiply raster by 1
+#'
+#' @return raster
+#' @export
+#'
+#' @examples
+rescale_stack <- function(s, from_all = T, rescale = T, log = F, inverse = F,  multiply_area=F){
+
+  s_maxs <- cellStats(s, "max")
+  s_mins <- cellStats(s, "min")
+  r_a <- area(s)
+
+  for (i in 1:nlayers(s)){
+
+    r <- raster(s, i)
+
+    if (from_all){
+      rng <- c(min(s_mins), max(s_maxs))
+    } else {
+      rng <- c(s_mins[i], s_maxs[i])
+    }
+
+    if (multiply_area){
+      r <- r * r_a
+    }
+
+    v <- raster::values(r)
+
+    if (log){
+      if (rescale){
+        v <- scales::rescale(v, from=rng)
+      }
+      v[v == 0] <- 0.0001
+      v <- log(v)
+    }
+
+    if (rescale){
+      if (log){
+        v <- scales::rescale(v)
+      } else {
+        v <- scales::rescale(v, from=rng)
+      }
+    }
+
+    if (inverse){
+      v <- 1 - v
+    }
+
+    raster::values(r) <- v
+
+    s[[i]] <- r
+  }
+
+  s
+}
+

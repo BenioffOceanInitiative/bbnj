@@ -9,15 +9,22 @@
 #'
 #' @examples
 #solve_log <- function(p, log, tif){
-solve_log <- function(p, pfx= deparse(substitute(p))){
+solve_log <- function(p, pfx= deparse(substitute(p)), redo=F){
   library(prioritizr)
   library(raster)
+  select = dplyr::select
   library(glue)
 
   log <- glue("{pfx}_log.txt")
   tif <- glue("{pfx}_sol.tif")
 
-  sink(log, append=T)
+  if (all(file.exists(log,tif)) & !redo){
+    s <- raster::raster(tif)
+    message(glue("Files found ({basename(tif)}) & redo=F, returning previously computed raster solution"))
+    return(s)
+  }
+
+  sink(log)
   s <- prioritizr::solve(p)
   sink()
 
@@ -26,4 +33,45 @@ solve_log <- function(p, pfx= deparse(substitute(p))){
   }
 
   s
+}
+
+#' Produce diagnostics table for setting relative targets of features
+#'
+#' @param pu planning unit raster
+#' @param features features stack
+#' @param budget in percent of area
+#'
+#' @return table with rel_all and rel_each per feature
+#' @export
+#'
+#' @examples
+problem_diagnostics <- function(pu, features, budget){
+  # pu = r_pu_areas; features = p01_features; budget = 0.1
+
+  # get feature representation for maximizing all features given budget
+  p <- problem(pu, features) %>%
+    add_max_utility_objective(budget = budget) %>%
+    add_gurobi_solver()
+  p_sol <- solve(p)
+  d <- feature_representation(p, p_sol) %>%
+    dplyr::select(feature, rel_all=relative_held) %>%
+    dplyr::mutate(rel_each = NA)
+  # d0 <- d
+
+  for (i in 1:nlayers(features)){ # i=5
+    message(glue("{i}: {names(features[[i]])}"))
+
+    feature_i <- raster(features, i)
+    #options(error = utils::recover)
+    #options(error = NULL)
+    p <- problem(pu, feature_i) %>%
+      add_max_utility_objective(budget = budget) %>%
+      add_gurobi_solver()
+
+    p_sol <- solve(p)
+    d$rel_each[[i]] = feature_representation(p, p_sol) %>%
+      dplyr::pull(relative_held)
+  }
+
+  d
 }

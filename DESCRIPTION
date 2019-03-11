@@ -14,7 +14,8 @@ Imports:
     raster,
     leaflet,
     sf,
-    prioritizr
+    prioritizr,
+    scales
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,

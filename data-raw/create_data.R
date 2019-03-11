@@ -1,25 +1,26 @@
 # 1) use_data(). for lazy loading with library(bbnj). document datasets in R/data.R.
 # 2) write tifs. for use with other software external to R, eg QGIS
 
-#devtools::install_github("marinebon/gmbi")
-devtools::load_all()
 library(xml2)
 library(purrr)
-library(gmbi)
 library(raster)
 library(usethis)
 library(sf)
 library(glue)
 library(here)
 
+library(gmbi) #devtools::install_github("marinebon/gmbi")
+devtools::load_all()
+
 # paths ----
 dir_gdata           <- "~/Gdrive Ecoquants/projects/bbnj/data" # on Ben Best's laptop
 cell_res            <- 0.5
-p_boundary_shp      <- glue("{dir_gdata}/derived/boundary/high_seas.shp")
+p_highseas_shp      <- glue("{dir_gdata}/derived/boundary/high_seas.shp")
 pu_id_tif           <- glue("{dir_gdata}/derived/boundary/high_seas_cellid_{cell_res}dd.tif")
 fish_gfw_csv        <- glue("{dir_gdata}/raw/Sala et al 2018/half_degree_binned_results.csv")
 phys_seamounts_kml  <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 2011/KWSMTSv01.kml")
 phys_scapes_arcinfo <- glue("{dir_gdata}/raw/Harris and Whiteway 2009/Global_Seascapes/class_11")
+phys_vents_csv      <- glue("{dir_gdata}/raw/Hydrothermal vents - Interridge Vent Database v3.4/vent_fields_all.csv")
 fish_ubc_now_tif    <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/Current_MCP1.tif")
 fish_ubc_future_tif <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif")
 
@@ -45,9 +46,6 @@ r_na <- r_pu_id
 values(r_na) <- NA
 
 # p_highseas ----
-dir_data       <- "~/Gdrive Ecoquants/projects/bbnj/data"
-p_highseas_shp <- glue("{dir_data}/derived/boundary/high_seas.shp")
-
 p_highseas <- read_sf(p_highseas_shp)
 write_sf(p_highseas, here("data-raw/highseas.shp"))
 use_data(p_highseas, overwrite = TRUE)
@@ -145,10 +143,10 @@ r_scapes <- raster(phys_scapes_arcinfo)
 # with each layer containing amount of class in 0.5 deg cell
 if (exists("s_scapes")) rm(s_scapes)
 r_a <- area(r_scapes)
-for (i in 1:11){ # i = 1
-  r_i <- (r_scapes == 1) * r_a
+for (i in 1:11){ # i = 2
+  r_i <- (r_scapes == i) * r_a
   r_ia <- aggregate(r_i, fact=5, fun=sum, expand=F, na.rm=T)
-  #plot(r_ia)
+  #plot(r_ia, col=cols)
 
   if (!exists("s_scapes")){
     s_scapes <- r_ia
@@ -167,3 +165,17 @@ map(lyrs, lyr_to_tif, s_phys_scapes, "phys_scapes")
 
 # use_data()
 use_data(s_phys_scapes, overwrite = TRUE)
+
+# r_phys_vents ----
+pts_vents <- read_csv(phys_vents_csv) %>%
+  st_as_sf(
+    coords = c("Longitude", "Latitude"), crs = 4326, remove=F)
+
+r_phys_vents <- rasterize(
+  st_coordinates(pts_vents), r_pu_id, fun='count', background=0) %>%
+  mask(r_pu_id) # plot(r_phys_seamounts)
+names(r_phys_vents) <- "count"
+
+writeRaster(r_phys_vents, here("data-raw/phys_vents_count.tif"), overwrite = TRUE)
+use_data(r_phys_vents, overwrite = TRUE)
+

@@ -10,9 +10,11 @@ output:
     code_folding: hide
 vignette: >
   %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 bibliography: ../inst/bbnj.bib
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include = FALSE}
@@ -31,15 +33,16 @@ suppressPackageStartupMessages({
   library(here)
   library(glue)
   library(raster)
+  select = dplyr::select
   library(sf)
   library(leaflet)
   library(RColorBrewer)
   library(rasterVis)
   library(prioritizr) # install.packages("prioritizr")
   
-  library(bbnj) 
+  #library(bbnj) 
   # devtools::install_local(here::here(), force=T) 
-  # devtools::load_all()
+  devtools::load_all()
 })
 
 # set rainbow color palette
@@ -49,11 +52,13 @@ cols <- rev(pal(255))
 
 ## BBNJ data sets
 
+The core datasets for developing BBNJ scenarios have been made available within the R package using the [data-raw/create_data.R](https://github.com/ecoquants/bbnj/blob/master/data-raw/create_data.R) script, which also clips input datasets to the high seas, for lazy loading within R. For programs external to R, usable formats (\*.tif, \*.shp) have been placed into the [data-raw/](https://github.com/ecoquants/bbnj/blob/master/data-raw/create_data.R) folder online, which you can access by downloading the latest [bbnj master.zip](https://github.com/ecoquants/bbnj/archive/master.zip).
+
 ```{r}
 # view list of all datasets in bbnj R package
-data(package="bbnj")
+#data(package="bbnj")
 
-# get help on any dataset
+# get detailed help on any dataset
 # ?r_pu_id
 
 # use lazily loaded dataset, not showing in environment
@@ -87,8 +92,8 @@ Rescale area for being able to set planning unit budgets to percentages of the g
 
 ```{r}
 A <- cellStats(r_pu_area, "sum")
-r_pu_areas <- r_pu_area / A * 100
-#cellStats(r_pu_areas, "sum") # 100
+r_pu_areas <- r_pu_area / A
+#cellStats(r_pu_areas, "sum") # 1
 
 plot(r_pu_areas, col = cols, main="pu_areas (sums to 100)")
 ```
@@ -116,106 +121,180 @@ These indicators were calculated for all species as well as taxonomic groups def
 With rasters from R package [marinebon/gmbi](https://github.com/marinebon/gmbi), mask rasters to high seas planning units and save into this R package:
 
 ```{r}
-library(gmbi) # devtools::install_github("marinebon/gmbi")
-
-dir_bio <- here("inst/data/biodiversity")
-redo = F
-
-tifs_gmbi <- list.files(system.file("rasters", package="gmbi"), full.names = T)
-tifs_bbnj <- file.path(dir_bio, basename(tifs_gmbi))
-
-if (!all(file.exists(tifs_bbnj)) | redo){
-  
-  for (i in 1:length(tifs_gmbi)){ # i=27
-    
-    tif_gmbi <- tifs_gmbi[i]
-    tif_bbnj <- tifs_bbnj[i]
-    
-    r <- raster(tif_gmbi) %>% 
-      mask(r_pu_id)
-    
-    # in some cases masking by high seas might return all NAs, in which case skip
-    if (sum(!is.na(values(r))) == 0) next()
-    
-    writeRaster(r, tif_bbnj, overwrite=T)
-  }
-}
-
-basename(tifs_bbnj)
+names(s_bio_gmbi)
 ```
 
-### `nspp`, all taxa
+#### `nspp`, all taxa
 
 ```{r}
-devtools::install_local("~/github/gmbi")
-library(gmbi)
-
-data(gmbi_indicators)
-help(gmbi_indicators, package="gmbi")
-data(package="gmbi")
-
-names(gmbi_indicators)
-
-tif <- system.file("data/biodiversity/nspp_all.tif", package="bbnj")
-r_nspp_all <- raster(tif)
+r_nspp_all <- raster(s_bio_gmbi, "nspp_all")
 plot(r_nspp_all, col = cols, main="nspp, all taxa")
 ```
 
-### `nspp`, all taxa, area scaled
+#### `nspp`, all taxa, area scaled
 
 ```{r}
-r_nspp_all_as <- area_scale_raster(r_nspp_all, r_pu_area)
+r_nspp_all_as <- rescale_raster(r_nspp_all, multiply_area=T) # "bio_nspp"
 
 plot(r_nspp_all_as, col = cols, main="nspp, all taxa, area scaled")
 ```
 
-### `nspp`, by taxonomic group
+#### `nspp`, by taxonomic group
 
 ```{r}
-# get all tifs, except first one "nspp_all.tif"
-tifs <- list.files(
-  system.file("data/biodiversity", package="bbnj"), 
-  "^nspp_.*.tif$", full.names = T)[-1]
-s_nspp_groups <- stack(tifs)
-names(s_nspp_groups) <- str_replace(names(s_nspp_groups), "nspp_", "")
-plot(s_nspp_groups, col = cols)
+grps_nspp <- names(s_bio_gmbi) %>% 
+  str_subset("^nspp_") %>% 
+  str_subset("_all$", negate=T)
+s_bio_nspp_grps <- raster::subset(s_bio_gmbi, grps_nspp)
+
+names(s_bio_nspp_grps) <- names(s_bio_nspp_grps) %>% 
+  str_replace("nspp_", "")
+plot(s_bio_nspp_grps, col = cols)
 ```
 
-### `rls`, all taxa
+
+#### `rls`, all taxa
 
 ```{r}
-tif <- system.file("data/biodiversity/rls_all.tif", package="bbnj")
-r_rls_all <- raster(tif)
+r_rls_all <- raster(s_bio_gmbi, "rls_all")
 plot(r_rls_all, col = cols, main="rls, all taxa")
 ```
 
-### `rls`, by taxonomic group
+#### `rls`, all taxa, area scaled
 
 ```{r}
-# get all tifs, except first one "nspp_all.tif"
-tifs <- list.files(
-  system.file("data/biodiversity", package="bbnj"), 
-  "^rls_.*.tif$", full.names = T)[-1]
-s_nspp_groups <- stack(tifs)
-names(s_nspp_groups) <- str_replace(names(s_nspp_groups), "rls_", "")
-plot(s_nspp_groups, col = cols)
+r_rls_all_as <- rescale_raster(r_rls_all, multiply_area=T)
+
+plot(r_rls_all_as, col = cols, main="rls, all taxa, area scaled")
 ```
 
-## Priotizr Scenarios
+#### `rls`, by taxonomic group
 
-### p01: 10%, `r_nspp_all_as`
+```{r}
+grps_rls <- names(s_bio_gmbi) %>% 
+  str_subset("^rls_") %>% 
+  str_subset("_all$", negate=T)
+s_bio_rls_grps <- raster::subset(s_bio_gmbi, grps_rls)
 
-Maximize overall biodiversity, given a budget of 10% of all high seas area.
+names(s_bio_rls_grps) <- names(s_bio_rls_grps) %>% 
+  str_replace("rls_", "")
+plot(s_bio_rls_grps, col = cols)
+```
 
-- [Add maximum utility objective — add_max_utility_objective • prioritizr](https://prioritizr.net/reference/add_max_utility_objective.html)
+### Physiographic: Seamounts
 
-```{r p01}
-p01 <- problem(r_pu_areas, r_nspp_all_as) %>%
-  add_max_utility_objective(budget = 10) %>% # 10% of total high seas area
+Count of seamounts (Kim & Wessel, 2011) in half-degree cells:
+
+```{r}
+plot(r_phys_seamounts, col = cols, main="r_phys_seamounts")
+```
+
+### Physiographic: Benthic Seascapes
+
+Area (km2) of 1 thru 11 classes of benthic seascapes (Harris & Whiteway, 2009):
+
+1. Upper Bathyal, shallow shelf, low DO, very high PP. thick sediment very warm
+2. Lower Bathyal, deep shelf (submerged), marginal plateaus, very high DO, high PP, thick sediment, warm
+3. Lower Bathyal, other ridges and plateaus, marginal plateaus, marginal seas with hilly bottom, steep, very low DO
+4. Lower Bathyal, continental slope see high PP, very thick sediment, warm
+5. Lower Bathyal, island arcs, steep, high DO
+6. Lower Bathyal (Abyssal-Hadal), deep water trenches, island arcs, trenches controlled by fracture zones, volcanic ridges and plateaus, very steep
+7. Abyssal, volcanic ridges and highs, central rift zone, ridge flanks, microcontinents, cold
+8. Abyssal, flat sedimented plains of marginal seas, central rift zone, ridge flanks, marginal seas with hilly bottoms, flat, low DO, thin sediment
+9. Abyssal (Hadal), trenches controlled by fracture zones, deep water trenches, large arched uplifted structures, low PP thin sediment, cold
+10. Abyssal, plains with slightly undulating seafloor, flat abyssal plains, continental rise, very flat, high DO, low PP, very cold
+11. Abyssal, hilly plains, large (arched) uplifted structures, flat abyssal plains, flat, very low PP, very thin sediment
+
+```{r}
+plot(s_phys_scapes, col = cols)
+```
+
+### Fisheries: Global Fishing Watch
+
+Raster stack from Global Fishing Watch analysis of high seas (Sala et al, 2018) for half-degree raster of high seas (year of analysis: 2016).
+
+```{r}
+names(s_fish_gfw)
+plot(s_fish_gfw, col = cols)
+```
+
+#### Gap-Filling Fisheries Layer
+
+Assuming places fished have the least profit, gap fill with minimum value:
+
+```{r}
+r_gfw_profit           <- raster(s_fish_gfw, "mean_scaled_profits") %>% 
+  gap_fill_raster()
+r_gfw_profit.subsidies <- raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>% 
+  gap_fill_raster()
+
+plot(r_gfw_profit.subsidies, col=cols, main="r_gfw_profit.subsidies")
+```
+
+#### Inverting Fisheries for Conservation Target
+
+Fisheries could be included into the optimization in at least a couple ways:
+
+1. **Fisheries as Planning Unit Cost (Minimize)**. By minimizing the planning unit cost, conservation targets are maximized.
+
+1. **Fisheries as Conservation Target (Maximize Inverse)**. To reduce friction with fishing industry the maximum profit areas are to be minimized. To achieve this on the conservation target side of the optimization the inverse of the original profit layers is to be used, which can take the form:
+
+$$value_{cell} = \sum_{a}^{b}{c}$$
+
+
+
+
+be placed on the Cost side of the optimization as the planning units t
+
+```{r}
+r_gfw_profit.subsidies_inv <- rescale_raster(r_gfw_profit.subsidies, inverse=T) #, log=T)
+
+hist(r_gfw_profit.subsidies, main="r_gfw_profit.subsidies")
+hist(r_gfw_profit.subsidies_inv, main="r_gfw_profit.subsidies_inv")
+
+plot(r_gfw_profit.subsidies_inv, col=cols, main="r_gfw_profit.subsidies_inv")
+```
+
+
+### Fisheries: U of British Columbia
+
+Raster stack from UBC (Cheung, Lam et al; in draft) of maximum catch potential (MCP; landings in metric tons) of more than 1,000 fish and invertebrates species for \code{mcp_2004} (average 1995 to 2014) and  \code{mcp_2050} (average 2041 to 2060 under 'business as usual' climate change scenario GFDL 8.5).
+
+```{r}
+plot(s_fish_ubc, col = cols)
+```
+
+## Priorization Scenarios
+
+### p01: Biodiversity Centric, 10%, max utility
+
+Maximize diversity of species and habitats, given a budget of 10% of the high seas.
+
+```{r}
+p01_features <- stack(
+  r_nspp_all_as,
+  r_rls_all_as,
+  rescale_raster(r_phys_seamounts),
+  rescale_raster(r_phys_vents),
+  rescale_stack(s_phys_scapes))
+names(p01_features) <- c(
+  "bio_nspp", 
+  "bio_rls",
+  "phys_seamounts",
+  "phys_vents",
+  glue("phys_scape{1:11}"))
+
+# hist(r_nspp_all_as); hist(r_rls_all_as); hist(rescale_raster(r_phys_seamounts))
+
+p01_sum <- raster::stackApply(p01_features, rep(1,nlayers(p01_features)), sum) %>% 
+  mask(r_pu_id)
+plot(p01_sum, col=cols)
+
+p01 <- problem(r_pu_areas, p01_features) %>%
+  add_max_utility_objective(budget = 0.1) %>% # 10% of total high seas area
   add_gurobi_solver()
 
-#devtools::load_all()
-p01_sol <- solve_log(p01) # , "p01_log.txt", "p01_sol.tif")
+p01_sol <- solve_log(p01, redo=F)
 
 plot(p01_sol, col = c("grey90", "darkgreen"), main = "Solution")
 
@@ -226,18 +305,37 @@ cellStats(r_pu_areas * p01_sol, "sum")
 feature_representation(p01, p01_sol)
 ```
 
-### p02: 10%, `r_nspp_all_as`, 2 nbrs
+Strategy:
 
-Maximize overall biodiversity, given a budget of 10% of all high seas area, and require 2 rook-style neighbors for all cells in the solution.
+1. Solve for `add_max_utility_objective(budget = 0.1)` to determine max relative targets for:
+  - all targets: min
+  - ea target: max
+1. Switch to `add_max_features_objective(budget = 0.1)` + `add_relative_targets(c(0.3, 0.3, 0))`
+1. + `add_feature_weights()` to balance out
+1. add BLM 
+  
+```{r}
+p01_diagnostics <- problem_diagnostics(r_pu_areas, p01_features, budget=0.1)
+cat(getwd())
+#View(p01_diagnostics)
+```
 
-```{r p02}
-p02 <- problem(r_pu_areas, r_nspp_all_as) %>%
-  add_neighbor_constraints(2) %>%            # require # of rook neighbors
-  add_max_utility_objective(budget = 10) %>% # budget = % of total high seas area
+### p02: Biodiversity Centric, 10%, max features
+
+If relative target exceeds amount available, ie p01_diagnostics$rel_each, then target gets essentially dropped, so set to some compromise between full solution (rel_all) and max amount if just that feature chosen (rel_each) as the mean of the two. Do not excessively weight other features, so cap to 0.2 or similar with min.
+
+```{r}
+p02_targets <- p01_diagnostics %>% 
+  mutate(
+    rel_mean = (rel_all + rel_each) / 2,
+    target   = map_dbl(rel_mean, function(x) min(x, 0.2)))
+p02_targets
+
+p02 <- problem(r_pu_areas, p01_features) %>%
+  add_max_features_objective(budget = 0.1) %>% 
+  add_relative_targets(pull(p02_targets, target)) %>% 
   add_gurobi_solver()
-
-# solve the problem
-p02_sol <- solve(p02)
+p02_sol <- solve_log(p02, redo=F)
 
 # plot solution
 plot(p02_sol, col = c("grey90", "darkgreen"), main = "Solution")
@@ -246,94 +344,60 @@ plot(p02_sol, col = c("grey90", "darkgreen"), main = "Solution")
 cellStats(r_pu_areas * p02_sol, "sum")
 
 # calculate how well features are represented in the solution
-tbl_rep <- feature_representation(p02, p02_sol)
-tbl_rep
+feature_representation(p02, p02_sol)
 ```
 
-The p02 result looks nearly same as p01, only tiny bit lower value in biodiversity held, presumably because of neighbor constraint.
+### p03: Biodiversity Centric, 10%, max features with weights
 
-### p03: 10%, `r_nspp_all_as`, 3 nbrs
+Maximize overall biodiversity, given a budget of 10% of all high seas area.
 
-Maximize overall biodiversity, given a budget of 10% of all high seas area, and require 4 rook-style neighbors for all cells in the solution.
+Try to include missed phys_scape1 and phys_scape2 by adding weight.
 
-```{r p03}
-p03 <- problem(r_pu_areas, r_nspp_all_as) %>%
-  add_neighbor_constraints(3) %>%            # require # of rook neighbors
-  add_max_utility_objective(budget = 10) %>% # budget = % of total high seas area
+```{r}
+p03 <- problem(r_pu_areas, p01_features) %>%
+  add_max_features_objective(budget = 0.1) %>% 
+  add_relative_targets(pull(p02_targets, target)) %>% 
+  add_feature_weights(c(10, 10, 10, 10, 3, 3, 2, 2, rep(1, 7))) %>% 
   add_gurobi_solver()
+p03_sol <- solve_log(p03, redo=F)
 
-# solve the problem
-p03_sol <- solve(p03)
-
-# plot solution
 plot(p03_sol, col = c("grey90", "darkgreen"), main = "Solution")
-
-# area of solution
 cellStats(r_pu_areas * p03_sol, "sum")
-
-# calculate how well features are represented in the solution
-tbl_rep <- feature_representation(p03, p03_sol)
-tbl_rep
+feature_representation(p03, p03_sol)
 ```
 
-Whoah, funk! Band around Antarctica with 3 neighbor constraint.
 
-### p04: 10%, `r_nspp_all_as`, 4 nbrs
 
-Maximize overall biodiversity, given a budget of 10% of all high seas area, and require 4 rook-style neighbors for all cells in the solution.
 
-```{r p04}
-p04 <- problem(r_pu_areas, r_nspp_all_as) %>%
-  add_neighbor_constraints(3) %>%            # require # of rook neighbors
-  add_max_utility_objective(budget = 10) %>% # budget = % of total high seas area
+
+
+### p04: Biodiversity Centric, 10%, max features with weights and BLM
+
+Add clumping. 
+
+From the [marxan manual 1.8.10.pdf](https://drive.google.com/file/d/1QIOA7hzYDgvjeVdqPfK6HzfDLrZCWIXd/view?usp=sharing) (p. 22-23):
+
+> 3.2.1.1.2 Boundary Length Modifier
+> As a very rough guide, a good starting place for the BLM is to scale it such that the largest boundary between planning units becomes a similar order of magnitude to the most expensive planning unit. For instance, if your highest planning unit cost is 100 and your longest boundary is 1000, you may want to start the BLM at 0.1. Note that it is usually best to explore a range of values that are separated using a fixed multiplier; e.g., 0.04, 0.2, 1, 5, 25 – where in this example, these values are each multiplied by 5. Typically, the values are increased exponentially or by orders of magnitude in order to sample a range of values and choose one that balances the order of magnitude of competing terms of the objective function.
+
+Using same formulation as p01 + BLM.
+
+```{r}
+# set clumping parameter based on BLM advice in Marxan manual, exp't with p01
+blm <- cellStats(r_pu_areas, "max") / 0.5 * 10000
+blm
+
+p04 <- problem(r_pu_areas, p01_features) %>%
+  add_max_utility_objective(budget = 0.1) %>%
+  add_boundary_penalties(blm, 1) %>% 
   add_gurobi_solver()
 
-# solve the problem
-p04_sol <- solve(p04)
+p04_sol <- solve_log(p04, redo=T)
 
-# plot solution
-plot(p04_sol, col = c("grey90", "darkgreen"), main = "Solution")
-
-# area of solution
+plot(p04_sol, col = c("grey90", "darkgreen"), main = "p04 Solution")
 cellStats(r_pu_areas * p04_sol, "sum")
-
-# calculate how well features are represented in the solution
-tbl_rep <- feature_representation(p04, p04_sol)
-tbl_rep
+feature_representation(p04, p04_sol)
 ```
-
-Whoah, funk! Whole ocean with 4 neighbor constraint.
-
-### p05: 10%, `r_nspp_all_as`, blm(0.1,1)
-
-Maximize overall biodiversity, given a budget of 10% of all high seas area, and enforce boundary length modifier.
-
-- [Conservation problem penalties — penalties • prioritizr](https://prioritizr.net/reference/penalties.html)
-- [Add boundary penalties — add_boundary_penalties • prioritizr](https://prioritizr.net/reference/add_boundary_penalties.html)
-
-This scenario takes too long to run, so caching.
-
-```{r p05, eval=F}
-p05 <- problem(r_pu_areas, r_nspp_all_as) %>%
-  add_boundary_penalties(0.1, 1) %>%         # boundary penalty (penalty, edge_factor)
-  add_max_utility_objective(budget = 10) %>% # budget = % of total high seas area
-  add_gurobi_solver()
-
-# solve the problem
-p05_sol <- solve(p05)
-
-# plot solution
-plot(p05_sol, col = c("grey90", "darkgreen"), main = "Solution")
-
-# area of solution
-cellStats(r_pu_areas * p05_sol, "sum")
-
-# calculate how well features are represented in the solution
-tbl_rep <- feature_representation(p05, p05_sol)
-tbl_rep
-```
-
-Whoah, funk! Whole ocean with 4 neighbor constraint.
 
 ## TODO: near-term
 

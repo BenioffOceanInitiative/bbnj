@@ -5,7 +5,20 @@
 \alias{s_phys_scapes}
 \title{Raster stack for area (km2) of 1 thru 11 classes of benthic seascapes (Harris
 & Whiteway, 2009)}
-\format{A \code{\link[raster]{raster}} integer class id of benthic seascape.}
+\format{A \code{\link[raster]{stack}} in which each layer represents area for given integer class id of benthic seascape corresponding to :
+\enumerate{
+  \item Upper Bathyal, shallow shelf, low DO, very high PP. thick sediment very warm
+  \item Lower Bathyal, deep shelf (submerged), marginal plateaus, very high DO, high PP, thick sediment, warm
+  \item Lower Bathyal, other ridges and plateaus, marginal plateaus, marginal seas with hilly bottom, steep, very low DO
+  \item Lower Bathyal, continental slope see high PP, very thick sediment, warm
+  \item Lower Bathyal, island arcs, steep, high DO
+  \item Lower Bathyal (Abyssal-Hadal), deep water trenches, island arcs, trenches controlled by fracture zones, volcanic ridges and plateaus, very steep
+  \item Abyssal, volcanic ridges and highs, central rift zone, ridge flanks, microcontinents, cold
+  \item Abyssal, flat sedimented plains of marginal seas, central rift zone, ridge flanks, marginal seas with hilly bottoms, flat, low DO, thin sediment
+  \item Abyssal (Hadal), trenches controlled by fracture zones, deep water trenches, large arched uplifted structures, low PP thin sediment, cold
+  \item Abyssal, plains with slightly undulating seafloor, flat abyssal plains, continental rise, very flat, high DO, low PP, very cold
+  \item Abyssal, hilly plains, large (arched) uplifted structures, flat abyssal plains, flat, very low PP, very thin sediment
+}}
 \usage{
 s_phys_scapes
 }
