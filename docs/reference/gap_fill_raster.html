@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Raster stack from Global Fishing Watch analysis of high seas (Sala et al, 2018) — s_fish_gfw • bbnj</title>
+<title>Gap-fill rasters with value based on function and mask — gap_fill_raster • bbnj</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Raster stack from Global Fishing Watch analysis of high seas (Sala et al, 2018) — s_fish_gfw" />
+<meta property="og:title" content="Gap-fill rasters with value based on function and mask — gap_fill_raster" />
 
-<meta property="og:description" content="Global half-degree raster of high seas. Year of analysis is 2016." />
+<meta property="og:description" content="Gap-fill rasters with value based on function and mask" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -117,30 +117,48 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Raster stack from Global Fishing Watch analysis of high seas (Sala et al, 2018)</h1>
-    <small class="dont-index">Source: <a href='https://github.com/ecoquants/bbnj/blob/master/R/data.R'><code>R/data.R</code></a></small>
-    <div class="hidden name"><code>s_fish_gfw.Rd</code></div>
+    <h1>Gap-fill rasters with value based on function and mask</h1>
+    <small class="dont-index">Source: <a href='https://github.com/ecoquants/bbnj/blob/master/R/raster.R'><code>R/raster.R</code></a></small>
+    <div class="hidden name"><code>gap_fill_raster.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Global half-degree raster of high seas. Year of analysis is 2016.</p>
+    <p>Gap-fill rasters with value based on function and mask</p>
     
     </div>
 
-    <pre class="usage"><span class='no'>s_fish_gfw</span></pre>
-        
-    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
+    <pre class="usage"><span class='fu'>gap_fill_raster</span>(<span class='no'>r</span>, <span class='kw'>fxn</span> <span class='kw'>=</span> <span class='st'>"min"</span>, <span class='kw'>r_mask</span> <span class='kw'>=</span> <span class='no'>r_pu_id</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>r</th>
+      <td><p>raster input</p></td>
+    </tr>
+    <tr>
+      <th>fxn</th>
+      <td><p>function, default="min"</p></td>
+    </tr>
+    <tr>
+      <th>r_mask</th>
+      <td><p>raster mask, default=r_pu_id</p></td>
+    </tr>
+    </table>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A <code><a href='https://www.rdocumentation.org/packages/raster/topics/stack'>stack</a></code> with layers of results from analyses.</p>
+    <p>raster after filling NAs with result of function and mask</p>
     
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
+      <li><a href="#arguments">Arguments</a></li>
       
-      <li><a href="#format">Format</a></li>
+      <li><a href="#value">Value</a></li>
           </ul>
 
   </div>

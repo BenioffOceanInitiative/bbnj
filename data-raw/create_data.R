@@ -9,7 +9,7 @@ library(sf)
 library(glue)
 library(here)
 
-library(gmbi) #devtools::install_github("marinebon/gmbi")
+library(gmbi) #devtools::install_github("marinebon/gmbi") #devtools::install_local("~/github/gmbi")
 devtools::load_all()
 
 # paths ----

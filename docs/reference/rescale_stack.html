@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Raster stack from Global Fishing Watch analysis of high seas (Sala et al, 2018) — s_fish_gfw • bbnj</title>
+<title>Rescale stack — rescale_stack • bbnj</title>
 
 <!-- jquery -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
@@ -30,9 +30,9 @@
 
 
 
-<meta property="og:title" content="Raster stack from Global Fishing Watch analysis of high seas (Sala et al, 2018) — s_fish_gfw" />
+<meta property="og:title" content="Rescale stack — rescale_stack" />
 
-<meta property="og:description" content="Global half-degree raster of high seas. Year of analysis is 2016." />
+<meta property="og:description" content="Rescale stack" />
 <meta name="twitter:card" content="summary" />
 
 
@@ -117,30 +117,62 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Raster stack from Global Fishing Watch analysis of high seas (Sala et al, 2018)</h1>
-    <small class="dont-index">Source: <a href='https://github.com/ecoquants/bbnj/blob/master/R/data.R'><code>R/data.R</code></a></small>
-    <div class="hidden name"><code>s_fish_gfw.Rd</code></div>
+    <h1>Rescale stack</h1>
+    <small class="dont-index">Source: <a href='https://github.com/ecoquants/bbnj/blob/master/R/raster.R'><code>R/raster.R</code></a></small>
+    <div class="hidden name"><code>rescale_stack.Rd</code></div>
     </div>
 
     <div class="ref-description">
     
-    <p>Global half-degree raster of high seas. Year of analysis is 2016.</p>
+    <p>Rescale stack</p>
     
     </div>
 
-    <pre class="usage"><span class='no'>s_fish_gfw</span></pre>
-        
-    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
+    <pre class="usage"><span class='fu'>rescale_stack</span>(<span class='no'>s</span>, <span class='kw'>from_all</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>rescale</span> <span class='kw'>=</span> <span class='no'>T</span>, <span class='kw'>log</span> <span class='kw'>=</span> <span class='no'>F</span>, <span class='kw'>inverse</span> <span class='kw'>=</span> <span class='no'>F</span>,
+  <span class='kw'>multiply_area</span> <span class='kw'>=</span> <span class='no'>F</span>)</pre>
+    
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>s</th>
+      <td><p>stack</p></td>
+    </tr>
+    <tr>
+      <th>from_all</th>
+      <td><p>rescale based on range from all rasters in stack
+(default=TRUE) or within each raster (FALSE)</p></td>
+    </tr>
+    <tr>
+      <th>rescale</th>
+      <td><p>T/F to rescale values 0 to 1, default=T</p></td>
+    </tr>
+    <tr>
+      <th>log</th>
+      <td><p>T/F to log transform, defaul=F</p></td>
+    </tr>
+    <tr>
+      <th>inverse</th>
+      <td><p>T/F to invert by subtracting from 1</p></td>
+    </tr>
+    <tr>
+      <th>multiply_area</th>
+      <td><p>T/F to multiply raster by 1</p></td>
+    </tr>
+    </table>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A <code><a href='https://www.rdocumentation.org/packages/raster/topics/stack'>stack</a></code> with layers of results from analyses.</p>
+    <p>raster</p>
     
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
+      <li><a href="#arguments">Arguments</a></li>
       
-      <li><a href="#format">Format</a></li>
+      <li><a href="#value">Value</a></li>
           </ul>
 
   </div>

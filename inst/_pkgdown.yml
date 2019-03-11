@@ -18,13 +18,16 @@ reference:
 - title: "Raster"
   desc: "raster operations"
   contents:
-  - area_scale_raster
+  - rescale_raster
+  - rescale_stack
+  - gap_fill_raster
   - get_grid
   - qmap_r
 - title: "Prioritization"
   desc: "prioritizr helper functions"
   contents:
   - solve_log
+  - problem_diagnostics
 - title: "Datasets"
   desc: "input data for high seas MPA scenarios"
   contents:

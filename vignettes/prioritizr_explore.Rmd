@@ -392,7 +392,7 @@ p04 <- problem(r_pu_areas, p01_features) %>%
   add_boundary_penalties(blm, 1) %>% 
   add_gurobi_solver()
 
-p04_sol <- solve_log(p04, redo=T)
+p04_sol <- solve_log(p04, redo=F)
 
 plot(p04_sol, col = c("grey90", "darkgreen"), main = "p04 Solution")
 cellStats(r_pu_areas * p04_sol, "sum")
@@ -403,5 +403,4 @@ feature_representation(p04, p04_sol)
 
 1. [add_locked_out_constraints()](https://prioritizr.net/reference/add_locked_out_constraints.html) for mining leased areas
 1. Explore [Solution portfolios](https://prioritizr.net/reference/portfolios.html) solves for stack of alternative raster solutions.
-1. Explore [add_loglinear_targets()](https://prioritizr.net/reference/add_loglinear_targets.html)
 

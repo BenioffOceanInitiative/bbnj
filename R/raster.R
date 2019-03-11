@@ -19,20 +19,6 @@ get_grid <- function(res = 0.5, crs=leaflet:::epsg4326, val=NA){
     resolution=res, crs=leaflet:::epsg4326, vals=val)
 }
 
-rescale_grid <- function(r, res_new=0.1, fxn="ngb"){
-  # TODO: resample(x, y, method="bilinear")
-
-  res_old <- raster::res(r)[1]
-  if (res_old == res_new) r
-  if (res_old %% res_new != 0) stop(glue("res_old {res_old} not evenly divisible by res_new {res_new}"))
-  if (res_new > res_old){
-    r <- raster::aggregate(r, res_new/res_old)
-  } else {
-    r <- raster::disaggregate(r, res_old/res_new)
-  }
-}
-
-
 #' Quick leaflet map of raster
 #'
 #' @param r raster
