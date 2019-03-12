@@ -114,6 +114,7 @@
   <span class="co"># devtools::install_local(here::here(), force=T) </span>
   devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/load_all">load_all</a></span>()
 })
+<span class="cf">if</span> (<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/basename">basename</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/getwd">getwd</a></span>())<span class="op">!=</span><span class="st">"vignettes"</span>) <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/getwd">setwd</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/here/topics/here">here</a></span>(<span class="st">"vignettes"</span>))
 
 <span class="co"># set rainbow color palette</span>
 pal &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/grDevices/topics/colorRamp">colorRampPalette</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/RColorBrewer/topics/ColorBrewer">brewer.pal</a></span>(<span class="dv">11</span>, <span class="st">"Spectral"</span>))
@@ -304,12 +305,12 @@ s_bio_rls_grps &lt;-<span class="st"> </span>raster<span class="op">::</span><sp
 <h4 class="hasAnchor">
 <a href="#gap-filling-fisheries-layer" class="anchor"></a>Gap-Filling Fisheries Layer</h4>
 <p>Assuming places fished have the least profit, gap fill with minimum value:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r_gfw_profit           &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/raster">raster</a></span>(s_fish_gfw, <span class="st">"mean_scaled_profits"</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r_fish_gfw.profit           &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/raster">raster</a></span>(s_fish_gfw, <span class="st">"mean_scaled_profits"</span>) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw"><a href="../reference/gap_fill_raster.html">gap_fill_raster</a></span>()
-r_gfw_profit.subsidies &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/raster">raster</a></span>(s_fish_gfw, <span class="st">"mean_scaled_profits_with_subsidies"</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+r_fish_gfw.profit.subsidies &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/raster">raster</a></span>(s_fish_gfw, <span class="st">"mean_scaled_profits_with_subsidies"</span>) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw"><a href="../reference/gap_fill_raster.html">gap_fill_raster</a></span>()
 
-<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(r_gfw_profit.subsidies, <span class="dt">col=</span>cols, <span class="dt">main=</span><span class="st">"r_gfw_profit.subsidies"</span>)</code></pre></div>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(r_fish_gfw.profit.subsidies, <span class="dt">col=</span>cols, <span class="dt">main=</span><span class="st">"r_gfw_profit.subsidies"</span>)</code></pre></div>
 <p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-15-1.png" width="691.2"></p>
 </div>
 <div id="inverting-fisheries-for-conservation-target" class="section level4">
@@ -320,15 +321,14 @@ r_gfw_profit.subsidies &lt;-<span class="st"> </span><span class="kw"><a href="h
 <li><p><strong>Fisheries as Planning Unit Cost (Minimize)</strong>. By minimizing the planning unit cost, conservation targets are maximized.</p></li>
 <li><p><strong>Fisheries as Conservation Target (Maximize Inverse)</strong>. To reduce friction with fishing industry the maximum profit areas are to be minimized. To achieve this on the conservation target side of the optimization the inverse of the original profit layers is to be used, which can take the form:</p></li>
 </ol>
-<p><span class="math display">\[value_{cell} = \sum_{a}^{b}{c}\]</span></p>
-<p>be placed on the Cost side of the optimization as the planning units t</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r_gfw_profit.subsidies_inv &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rescale_raster.html">rescale_raster</a></span>(r_gfw_profit.subsidies, <span class="dt">inverse=</span>T) <span class="co">#, log=T)</span>
+<p><span class="math display">\[v_{cell} = 1 - \frac{v_{cell}}{\max(v) - \min(v)}\]</span></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r_fish_gfw.profit.subsidies_inv &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rescale_raster.html">rescale_raster</a></span>(r_fish_gfw.profit.subsidies, <span class="dt">inverse=</span>T) <span class="co">#, log=T)</span>
 
-<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/hist">hist</a></span>(r_gfw_profit.subsidies, <span class="dt">main=</span><span class="st">"r_gfw_profit.subsidies"</span>)</code></pre></div>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/hist">hist</a></span>(r_fish_gfw.profit.subsidies, <span class="dt">main=</span><span class="st">"r_gfw_profit.subsidies"</span>)</code></pre></div>
 <p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-16-1.png" width="691.2"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/hist">hist</a></span>(r_gfw_profit.subsidies_inv, <span class="dt">main=</span><span class="st">"r_gfw_profit.subsidies_inv"</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/hist">hist</a></span>(r_fish_gfw.profit.subsidies_inv, <span class="dt">main=</span><span class="st">"r_gfw_profit.subsidies_inv"</span>)</code></pre></div>
 <p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-16-2.png" width="691.2"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(r_gfw_profit.subsidies_inv, <span class="dt">col=</span>cols, <span class="dt">main=</span><span class="st">"r_gfw_profit.subsidies_inv"</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(r_fish_gfw.profit.subsidies_inv, <span class="dt">col=</span>cols, <span class="dt">main=</span><span class="st">"r_gfw_profit.subsidies_inv"</span>)</code></pre></div>
 <p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-16-3.png" width="691.2"></p>
 </div>
 </div>
@@ -338,6 +338,13 @@ r_gfw_profit.subsidies &lt;-<span class="st"> </span><span class="kw"><a href="h
 <p>Raster stack from UBC (Cheung, Lam et al; in draft) of maximum catch potential (MCP; landings in metric tons) of more than 1,000 fish and invertebrates species for  (average 1995 to 2014) and  (average 2041 to 2060 under ‘business as usual’ climate change scenario GFDL 8.5).</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(s_fish_ubc, <span class="dt">col =</span> cols)</code></pre></div>
 <p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-17-1.png" width="691.2"></p>
+<div id="rescale-and-invert" class="section level4">
+<h4 class="hasAnchor">
+<a href="#rescale-and-invert" class="anchor"></a>Rescale and Invert</h4>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s_fish_ubc_inv  &lt;-<span class="st"> </span><span class="kw"><a href="../reference/rescale_stack.html">rescale_stack</a></span>(s_fish_ubc, <span class="dt">inverse=</span>T)
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(s_fish_ubc_inv, <span class="dt">col =</span> cols)</code></pre></div>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-18-1.png" width="691.2"></p>
+</div>
 </div>
 </div>
 <div id="priorization-scenarios" class="section level2">
@@ -365,15 +372,15 @@ r_gfw_profit.subsidies &lt;-<span class="st"> </span><span class="kw"><a href="h
 p01_sum &lt;-<span class="st"> </span>raster<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/stackApply">stackApply</a></span>(p01_features, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="dv">1</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/nlayers">nlayers</a></span>(p01_features)), sum) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/mask">mask</a></span>(r_pu_id)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p01_sum, <span class="dt">col=</span>cols)</code></pre></div>
-<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-18-1.png" width="691.2"></p>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-19-1.png" width="691.2"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p01 &lt;-<span class="st"> </span><span class="kw"><a href="https://prioritizr.net/reference/problem.html">problem</a></span>(r_pu_areas, p01_features) <span class="op">%&gt;%</span>
 <span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_max_utility_objective.html">add_max_utility_objective</a></span>(<span class="dt">budget =</span> <span class="fl">0.1</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># 10% of total high seas area</span>
 <span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_gurobi_solver.html">add_gurobi_solver</a></span>()
 
 p01_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/solve_log.html">solve_log</a></span>(p01, <span class="dt">redo=</span>F)
 
-<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p01_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"Solution"</span>)</code></pre></div>
-<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-18-2.png" width="691.2"></p>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p01_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"p01 solution"</span>)</code></pre></div>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-19-2.png" width="691.2"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># area of solution</span>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/cellStats">cellStats</a></span>(r_pu_areas <span class="op">*</span><span class="st"> </span>p01_sol, <span class="st">"sum"</span>)</code></pre></div>
 <pre><code>## [1] 0.0999999</code></pre>
@@ -414,435 +421,26 @@ p01_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sol
 </ul></li>
 <li>add BLM</li>
 </ol>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p01_diagnostics &lt;-<span class="st"> </span><span class="kw"><a href="../reference/problem_diagnostics.html">problem_diagnostics</a></span>(r_pu_areas, p01_features, <span class="dt">budget=</span><span class="fl">0.1</span>)</code></pre></div>
-<pre><code>## Optimize a model with 16 rows, 113416 columns and 487167 nonzeros
-## Variable types: 15 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 2e+04]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 15 rows and 41464 columns
-## Presolve time: 0.68s
-## Presolved: 1 rows, 71952 columns, 71952 nonzeros
-## Variable types: 0 continuous, 71952 integer (56610 binary)
-## Presolved: 1 rows, 71952 columns, 71952 nonzeros
-## 
-## 
-## Root relaxation: objective 1.175591e+04, 1 iterations, 0.14 seconds
-## 
-##     Nodes    |    Current Node    |     Objective Bounds      |     Work
-##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-## 
-##      0     0 11755.9084    0    1   -0.00000 11755.9084      -     -    0s
-## H    0     0                    11755.811126 11755.9084  0.00%     -    0s
-## 
-## Explored 1 nodes (1 simplex iterations) in 0.97 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 11755.8 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 1.175581112579e+04, best bound 1.175590839412e+04, gap 0.0008%
-## Optimize a model with 2 rows, 113402 columns and 215338 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 5e+03]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 0 rows and 79329 columns
-## Presolve time: 1.55s
-## Presolved: 2 rows, 34073 columns, 68145 nonzeros
-## Variable types: 1 continuous, 34072 integer (13583 binary)
-## Presolve removed 0 rows and 4943 columns
-## Presolved: 2 rows, 29130 columns, 58259 nonzeros
-## 
-## Extra 5 simplex iterations after uncrush
-## 
-## Root relaxation: objective 9.918594e+02, 25 iterations, 0.09 seconds
-## 
-##     Nodes    |    Current Node    |     Objective Bounds      |     Work
-##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-## 
-##      0     0  991.85944    0    1   -0.00000  991.85944      -     -    1s
-## H    0     0                     991.8240013  991.85944  0.00%     -    2s
-## 
-## Explored 1 nodes (25 simplex iterations) in 2.14 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 991.824 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 9.918240012580e+02, best bound 9.918594367308e+02, gap 0.0036%
-## Optimize a model with 2 rows, 113402 columns and 208278 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 6e+03]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 0 rows and 108702 columns
-## Presolve time: 0.54s
-## Presolved: 2 rows, 4700 columns, 9399 nonzeros
-## Variable types: 1 continuous, 4699 integer (696 binary)
-## Presolve removed 0 rows and 19 columns
-## Presolved: 2 rows, 4681 columns, 9361 nonzeros
-## 
-## 
-## Root relaxation: objective 1.078239e+03, 3 iterations, 0.01 seconds
-## 
-##     Nodes    |    Current Node    |     Objective Bounds      |     Work
-##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-## 
-##      0     0 1078.23916    0    1   -0.00000 1078.23916      -     -    0s
-## H    0     0                    1078.2013348 1078.23916  0.00%     -    0s
-## 
-## Explored 1 nodes (3 simplex iterations) in 0.60 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 1078.2 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 1.078201334775e+03, best bound 1.078239160270e+03, gap 0.0035%
-## Optimize a model with 2 rows, 113402 columns and 128227 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 4e+03]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 0 rows and 112935 columns
-## Presolve time: 0.07s
-## Presolved: 2 rows, 467 columns, 933 nonzeros
-## Variable types: 0 continuous, 467 integer (71 binary)
-## Presolved: 2 rows, 467 columns, 933 nonzeros
-## 
-## 
-## Root relaxation: objective 2.943399e+03, 10 iterations, 0.00 seconds
-## 
-##     Nodes    |    Current Node    |     Objective Bounds      |     Work
-##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-## 
-## *    0     0               0    2943.3990001 2943.39900  0.00%     -    0s
-## 
-## Explored 0 nodes (10 simplex iterations) in 0.09 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 2943.4 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 2.943399000072e+03, best bound 2.943399000072e+03, gap 0.0000%
-## Optimize a model with 2 rows, 113402 columns and 113632 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 5e+01]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 2 rows and 113402 columns
-## Presolve time: 0.04s
-## Presolve: All rows and columns removed
-## 
-## Explored 0 nodes (0 simplex iterations) in 0.06 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 45.1428 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 4.514283226787e+01, best bound 4.514283226787e+01, gap 0.0000%
-## Optimize a model with 2 rows, 113402 columns and 135894 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 2e+04]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 0 rows and 103984 columns
-## Presolve time: 0.17s
-## Presolved: 2 rows, 9418 columns, 18835 nonzeros
-## Variable types: 1 continuous, 9417 integer (8350 binary)
-## Presolve removed 0 rows and 3324 columns
-## Presolved: 2 rows, 6094 columns, 12187 nonzeros
-## 
-## Extra 9 simplex iterations after uncrush
-## 
-## Root relaxation: objective 7.554865e+03, 26 iterations, 0.02 seconds
-## 
-##     Nodes    |    Current Node    |     Objective Bounds      |     Work
-##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-## 
-##      0     0 7554.86484    0    1   -0.00000 7554.86484      -     -    0s
-## H    0     0                    7554.7574805 7554.86484  0.00%     -    0s
-## 
-## Explored 1 nodes (26 simplex iterations) in 0.23 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 7554.76 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 7.554757480454e+03, best bound 7.554864835296e+03, gap 0.0014%
-## Optimize a model with 2 rows, 113402 columns and 148196 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 2e+04]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 0 rows and 99078 columns
-## Presolve time: 0.34s
-## Presolved: 2 rows, 14324 columns, 28647 nonzeros
-## Variable types: 1 continuous, 14323 integer (12451 binary)
-## Presolve removed 0 rows and 4580 columns
-## Presolved: 2 rows, 9744 columns, 19487 nonzeros
-## 
-## 
-## Root relaxation: objective 7.560496e+03, 18 iterations, 0.03 seconds
-## 
-##     Nodes    |    Current Node    |     Objective Bounds      |     Work
-##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-## 
-##      0     0 7560.49561    0    1   -0.00000 7560.49561      -     -    0s
-## H    0     0                    7560.3295881 7560.49561  0.00%     -    0s
-## 
-## Explored 1 nodes (18 simplex iterations) in 0.41 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 7560.33 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 7.560329588097e+03, best bound 7.560495607118e+03, gap 0.0022%
-## Optimize a model with 2 rows, 113402 columns and 130378 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 1e+04]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 0 rows and 106925 columns
-## Presolve time: 0.11s
-## Presolved: 2 rows, 6477 columns, 12953 nonzeros
-## Variable types: 1 continuous, 6476 integer (5759 binary)
-## Presolve removed 0 rows and 2012 columns
-## Presolved: 2 rows, 4465 columns, 8929 nonzeros
-## 
-## Extra 6 simplex iterations after uncrush
-## 
-## Root relaxation: objective 7.555836e+03, 18 iterations, 0.01 seconds
-## 
-##     Nodes    |    Current Node    |     Objective Bounds      |     Work
-##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-## 
-##      0     0 7555.83612    0    1   -0.00000 7555.83612      -     -    0s
-## H    0     0                    7555.3731603 7555.83612  0.01%     -    0s
-## 
-## Explored 1 nodes (18 simplex iterations) in 0.16 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 7555.37 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 7.555373160301e+03, best bound 7.555836118176e+03, gap 0.0061%
-## Optimize a model with 2 rows, 113402 columns and 143267 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 1e+04]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 0 rows and 96048 columns
-## Presolve time: 0.49s
-## Presolved: 2 rows, 17354 columns, 34707 nonzeros
-## Variable types: 1 continuous, 17353 integer (14831 binary)
-## Presolve removed 0 rows and 5083 columns
-## Presolved: 2 rows, 12271 columns, 24541 nonzeros
-## 
-## Extra 75 simplex iterations after uncrush
-## 
-## Root relaxation: objective 7.372708e+03, 98 iterations, 0.04 seconds
-## 
-##     Nodes    |    Current Node    |     Objective Bounds      |     Work
-##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-## 
-##      0     0 7372.70813    0    1   -0.00000 7372.70813      -     -    0s
-## H    0     0                    7372.3882677 7372.70813  0.00%     -    0s
-## 
-## Explored 1 nodes (98 simplex iterations) in 0.65 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 7372.39 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 7.372388267654e+03, best bound 7.372708125457e+03, gap 0.0043%
-## Optimize a model with 2 rows, 113402 columns and 142635 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 8e+03]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 0 rows and 90115 columns
-## Presolve time: 0.89s
-## Presolved: 2 rows, 23287 columns, 46573 nonzeros
-## Variable types: 1 continuous, 23286 integer (20194 binary)
-## Presolve removed 0 rows and 8855 columns
-## Presolved: 2 rows, 14432 columns, 28863 nonzeros
-## 
-## 
-## Root relaxation: objective 4.896908e+03, 3 iterations, 0.08 seconds
-## 
-##     Nodes    |    Current Node    |     Objective Bounds      |     Work
-##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-## 
-##      0     0 4896.90804    0    1   -0.00000 4896.90804      -     -    1s
-## H    0     0                    4896.8893997 4896.90804  0.00%     -    1s
-## 
-## Explored 1 nodes (3 simplex iterations) in 1.13 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 4896.89 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 4.896889399698e+03, best bound 4.896908036361e+03, gap 0.0004%
-## Optimize a model with 2 rows, 113402 columns and 121614 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 2e+03]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 2 rows and 113402 columns
-## Presolve time: 0.06s
-## Presolve: All rows and columns removed
-## 
-## Explored 0 nodes (0 simplex iterations) in 0.08 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 2095.35 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 2.095349492485e+03, best bound 2.095349492485e+03, gap 0.0000%
-## Optimize a model with 2 rows, 113402 columns and 114005 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 3e+02]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 2 rows and 113402 columns
-## Presolve time: 0.04s
-## Presolve: All rows and columns removed
-## 
-## Explored 0 nodes (0 simplex iterations) in 0.06 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 306.313 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 3.063129460677e+02, best bound 3.063129460677e+02, gap 0.0000%
-## Optimize a model with 2 rows, 113402 columns and 117043 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 1e+03]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 2 rows and 113402 columns
-## Presolve time: 0.04s
-## Presolve: All rows and columns removed
-## 
-## Explored 0 nodes (0 simplex iterations) in 0.06 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 1075.04 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 1.075038157983e+03, best bound 1.075038157983e+03, gap 0.0000%
-## Optimize a model with 2 rows, 113402 columns and 116473 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 9e+02]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 2 rows and 113402 columns
-## Presolve time: 0.04s
-## Presolve: All rows and columns removed
-## 
-## Explored 0 nodes (0 simplex iterations) in 0.06 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 896.201 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 8.962011156731e+02, best bound 8.962011156731e+02, gap 0.0000%
-## Optimize a model with 2 rows, 113402 columns and 113414 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 1e+01]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 2 rows and 113402 columns
-## Presolve time: 0.04s
-## Presolve: All rows and columns removed
-## 
-## Explored 0 nodes (0 simplex iterations) in 0.06 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 11.5532 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 1.155324065586e+01, best bound 1.155324065586e+01, gap 0.0000%
-## Optimize a model with 2 rows, 113402 columns and 126387 nonzeros
-## Variable types: 1 continuous, 113401 integer (113401 binary)
-## Coefficient statistics:
-##   Matrix range     [6e-08, 1e+00]
-##   Objective range  [6e-10, 1e+00]
-##   Bounds range     [1e+00, 3e+03]
-##   RHS range        [1e-01, 1e-01]
-## Found heuristic solution: objective -0.0000000
-## Presolve removed 0 rows and 102591 columns
-## Presolve time: 0.20s
-## Presolved: 2 rows, 10811 columns, 21621 nonzeros
-## Variable types: 1 continuous, 10810 integer (9541 binary)
-## Presolve removed 0 rows and 1750 columns
-## Presolved: 2 rows, 9061 columns, 18121 nonzeros
-## 
-## 
-## Root relaxation: objective 2.875409e+03, 1 iterations, 0.02 seconds
-## 
-##     Nodes    |    Current Node    |     Objective Bounds      |     Work
-##  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-## 
-##      0     0 2875.40864    0    1   -0.00000 2875.40864      -     -    0s
-## H    0     0                    2875.3976010 2875.40864  0.00%     -    0s
-## 
-## Explored 1 nodes (1 simplex iterations) in 0.29 seconds
-## Thread count was 1 (of 12 available processors)
-## 
-## Solution count 2: 2875.4 -0 
-## 
-## Optimal solution found (tolerance 1.00e-01)
-## Best objective 2.875397600988e+03, best bound 2.875408635844e+03, gap 0.0004%</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/cat">cat</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/getwd">getwd</a></span>())</code></pre></div>
-<pre><code>## /Users/bbest/github/bbnj/vignettes</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#View(p01_diagnostics)</span></code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p01_diagnostics &lt;-<span class="st"> </span><span class="kw"><a href="../reference/problem_diagnostics.html">problem_diagnostics</a></span>(r_pu_areas, p01_features, <span class="dt">budget=</span><span class="fl">0.1</span>)
+p01_diagnostics <span class="co">#View(p01_diagnostics)</span></code></pre></div>
+<pre><code>## # A tibble: 15 x 3
+##    feature        rel_all rel_each
+##    &lt;chr&gt;            &lt;dbl&gt;    &lt;dbl&gt;
+##  1 bio_nspp       0.122      0.181
+##  2 bio_rls        0.122      0.183
+##  3 phys_seamounts 0.740      0.783
+##  4 phys_vents     0.703      1.   
+##  5 phys_scape1    0.0286     0.491
+##  6 phys_scape2    0.0607     0.416
+##  7 phys_scape3    0.0744     0.616
+##  8 phys_scape4    0.168      0.629
+##  9 phys_scape5    0.188      0.630
+## 10 phys_scape6    0.292      1.000
+## 11 phys_scape7    0.00145    1.000
+## 12 phys_scape8    0.259      1.000
+## 13 phys_scape9    0.0763     1.000
+## 14 phys_scape10   0.745      1    
+## 15 phys_scape11   0.241      0.984</code></pre>
 </div>
 <div id="p02-biodiversity-centric-10-max-features" class="section level3">
 <h3 class="hasAnchor">
@@ -878,8 +476,8 @@ p02_targets</code></pre></div>
 p02_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/solve_log.html">solve_log</a></span>(p02, <span class="dt">redo=</span>F)
 
 <span class="co"># plot solution</span>
-<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p02_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"Solution"</span>)</code></pre></div>
-<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-20-1.png" width="691.2"></p>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p02_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"p02 solution"</span>)</code></pre></div>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-21-1.png" width="691.2"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># area of solution</span>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/cellStats">cellStats</a></span>(r_pu_areas <span class="op">*</span><span class="st"> </span>p02_sol, <span class="st">"sum"</span>)</code></pre></div>
 <pre><code>## [1] 0.09996667</code></pre>
@@ -916,8 +514,8 @@ p02_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sol
 <span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_gurobi_solver.html">add_gurobi_solver</a></span>()
 p03_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/solve_log.html">solve_log</a></span>(p03, <span class="dt">redo=</span>F)
 
-<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p03_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"Solution"</span>)</code></pre></div>
-<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-21-1.png" width="691.2"></p>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p03_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"p03 solution"</span>)</code></pre></div>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-22-1.png" width="691.2"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/cellStats">cellStats</a></span>(r_pu_areas <span class="op">*</span><span class="st"> </span>p03_sol, <span class="st">"sum"</span>)</code></pre></div>
 <pre><code>## [1] 0.09999678</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://prioritizr.net/reference/feature_representation.html">feature_representation</a></span>(p03, p03_sol)</code></pre></div>
@@ -939,10 +537,49 @@ p03_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sol
 ## 13 phys_scape9           179.        0.200   
 ## 14 phys_scape10            2.71      0.235   
 ## 15 phys_scape11          584.        0.200</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/problem_diagnostics.html">problem_diagnostics</a></span>(r_pu_areas, p01_features, <span class="dt">budget=</span><span class="fl">0.3</span>, <span class="dt">pfx=</span><span class="st">"p05"</span>)</code></pre></div>
+<pre><code>## # A tibble: 15 x 3
+##    feature        rel_all rel_each
+##    &lt;chr&gt;            &lt;dbl&gt;    &lt;dbl&gt;
+##  1 bio_nspp         0.403    0.462
+##  2 bio_rls          0.405    0.482
+##  3 phys_seamounts   0.996    1.000
+##  4 phys_vents       0.987    1.   
+##  5 phys_scape1      0.144    1.000
+##  6 phys_scape2      0.261    0.995
+##  7 phys_scape3      0.367    1.   
+##  8 phys_scape4      0.368    1.000
+##  9 phys_scape5      0.425    0.997
+## 10 phys_scape6      0.564    1.000
+## 11 phys_scape7      0.167    1.000
+## 12 phys_scape8      0.621    1.000
+## 13 phys_scape9      0.285    1.000
+## 14 phys_scape10     0.830    1    
+## 15 phys_scape11     0.493    1.</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p01_diagnostics &lt;-<span class="st"> </span><span class="kw"><a href="../reference/problem_diagnostics.html">problem_diagnostics</a></span>(r_pu_areas, p01_features, <span class="dt">budget=</span><span class="fl">0.1</span>)
+p01_diagnostics <span class="co">#View(p01_diagnostics)</span></code></pre></div>
+<pre><code>## # A tibble: 15 x 3
+##    feature        rel_all rel_each
+##    &lt;chr&gt;            &lt;dbl&gt;    &lt;dbl&gt;
+##  1 bio_nspp       0.122      0.181
+##  2 bio_rls        0.122      0.183
+##  3 phys_seamounts 0.740      0.783
+##  4 phys_vents     0.703      1.   
+##  5 phys_scape1    0.0286     0.491
+##  6 phys_scape2    0.0607     0.416
+##  7 phys_scape3    0.0744     0.616
+##  8 phys_scape4    0.168      0.629
+##  9 phys_scape5    0.188      0.630
+## 10 phys_scape6    0.292      1.000
+## 11 phys_scape7    0.00145    1.000
+## 12 phys_scape8    0.259      1.000
+## 13 phys_scape9    0.0763     1.000
+## 14 phys_scape10   0.745      1    
+## 15 phys_scape11   0.241      0.984</code></pre>
 </div>
-<div id="p04-biodiversity-centric-10-max-features-with-weights-and-blm" class="section level3">
+<div id="p04-biodiversity-centric-10-max-utility-with-blm" class="section level3">
 <h3 class="hasAnchor">
-<a href="#p04-biodiversity-centric-10-max-features-with-weights-and-blm" class="anchor"></a>p04: Biodiversity Centric, 10%, max features with weights and BLM</h3>
+<a href="#p04-biodiversity-centric-10-max-utility-with-blm" class="anchor"></a>p04: Biodiversity Centric, 10%, max utility with BLM</h3>
 <p>Add clumping.</p>
 <p>From the <a href="https://drive.google.com/file/d/1QIOA7hzYDgvjeVdqPfK6HzfDLrZCWIXd/view?usp=sharing">marxan manual 1.8.10.pdf</a> (p. 22-23):</p>
 <blockquote>
@@ -960,8 +597,8 @@ blm</code></pre></div>
 
 p04_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/solve_log.html">solve_log</a></span>(p04, <span class="dt">redo=</span>F)
 
-<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p04_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"p04 Solution"</span>)</code></pre></div>
-<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-22-1.png" width="691.2"></p>
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p04_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"p04 solution"</span>)</code></pre></div>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-24-1.png" width="691.2"></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/cellStats">cellStats</a></span>(r_pu_areas <span class="op">*</span><span class="st"> </span>p04_sol, <span class="st">"sum"</span>)</code></pre></div>
 <pre><code>## [1] 0.09999998</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://prioritizr.net/reference/feature_representation.html">feature_representation</a></span>(p04, p04_sol)</code></pre></div>
@@ -983,6 +620,265 @@ p04_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sol
 ## 13 phys_scape9            126.         0.141 
 ## 14 phys_scape10            11.6        1     
 ## 15 phys_scape11           893.         0.306</code></pre>
+</div>
+<div id="p05-biodiversity-centric-30-max-utility" class="section level3">
+<h3 class="hasAnchor">
+<a href="#p05-biodiversity-centric-30-max-utility" class="anchor"></a>p05: Biodiversity Centric, 30%, max utility</h3>
+<p>Maximize diversity of species and habitats, given a budget of 30% of the high seas.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p05 &lt;-<span class="st"> </span><span class="kw"><a href="https://prioritizr.net/reference/problem.html">problem</a></span>(r_pu_areas, p01_features) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_max_utility_objective.html">add_max_utility_objective</a></span>(<span class="dt">budget =</span> <span class="fl">0.3</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_gurobi_solver.html">add_gurobi_solver</a></span>()
+
+p05_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/solve_log.html">solve_log</a></span>(p05, <span class="dt">redo=</span>F)
+
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p05_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"p05 Solution"</span>)</code></pre></div>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-25-1.png" width="691.2"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/cellStats">cellStats</a></span>(r_pu_areas <span class="op">*</span><span class="st"> </span>p05_sol, <span class="st">"sum"</span>)</code></pre></div>
+<pre><code>## [1] 0.2999999</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://prioritizr.net/reference/feature_representation.html">feature_representation</a></span>(p05, p05_sol)</code></pre></div>
+<pre><code>## # A tibble: 15 x 3
+##    feature        absolute_held relative_held
+##    &lt;chr&gt;                  &lt;dbl&gt;         &lt;dbl&gt;
+##  1 bio_nspp             2209.           0.403
+##  2 bio_rls              2385.           0.405
+##  3 phys_seamounts       3742.           0.996
+##  4 phys_vents             44.6          0.987
+##  5 phys_scape1          2210.           0.144
+##  6 phys_scape2          4734.           0.261
+##  7 phys_scape3          4505.           0.367
+##  8 phys_scape4          4308.           0.368
+##  9 phys_scape5          3298.           0.425
+## 10 phys_scape6          1183.           0.564
+## 11 phys_scape7            51.3          0.167
+## 12 phys_scape8           668.           0.621
+## 13 phys_scape9           255.           0.285
+## 14 phys_scape10            9.59         0.830
+## 15 phys_scape11         1441.           0.493</code></pre>
+</div>
+<div id="p06-fisheries-centric-10-max-utility" class="section level3">
+<h3 class="hasAnchor">
+<a href="#p06-fisheries-centric-10-max-utility" class="anchor"></a>p06: Fisheries Centric, 10%, max utility</h3>
+<p>Goal: Protect habitats with strong focus on minimizing impacts to fishing profits.</p>
+<ul>
+<li>To have inverse fishing as a target</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p06_features &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/stack">stack</a></span>(
+  r_fish_gfw.profit.subsidies_inv,
+  <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/raster">raster</a></span>(s_fish_ubc_inv, <span class="st">"mcp_2004"</span>),
+  <span class="kw"><a href="../reference/rescale_raster.html">rescale_raster</a></span>(r_phys_seamounts),
+  <span class="kw"><a href="../reference/rescale_raster.html">rescale_raster</a></span>(r_phys_vents),
+  <span class="kw"><a href="../reference/rescale_stack.html">rescale_stack</a></span>(s_phys_scapes))
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/names">names</a></span>(p06_features) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(
+  <span class="st">"fish_profit.subs"</span>, 
+  <span class="st">"fish_mcp.now"</span>,
+  <span class="st">"phys_seamounts"</span>,
+  <span class="st">"phys_vents"</span>,
+  <span class="kw"><a href="https://www.rdocumentation.org/packages/glue/topics/glue">glue</a></span>(<span class="st">"phys_scape{1:11}"</span>))
+<span class="co"># hist(r_nspp_all_as); hist(r_rls_all_as); hist(rescale_raster(r_phys_seamounts))</span>
+
+p06_sum &lt;-<span class="st"> </span>raster<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/stackApply">stackApply</a></span>(p06_features, <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/rep">rep</a></span>(<span class="dv">1</span>,<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/nlayers">nlayers</a></span>(p06_features)), sum) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/mask">mask</a></span>(r_pu_id)
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p06_sum, <span class="dt">col=</span>cols)</code></pre></div>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-26-1.png" width="691.2"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p06 &lt;-<span class="st"> </span><span class="kw"><a href="https://prioritizr.net/reference/problem.html">problem</a></span>(r_pu_areas, p06_features) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_max_utility_objective.html">add_max_utility_objective</a></span>(<span class="dt">budget =</span> <span class="fl">0.1</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># 10% of total high seas area</span>
+<span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_gurobi_solver.html">add_gurobi_solver</a></span>()
+p06_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/solve_log.html">solve_log</a></span>(p06, <span class="dt">redo=</span>F)
+
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p06_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"p06 solution"</span>)</code></pre></div>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-26-2.png" width="691.2"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/cellStats">cellStats</a></span>(r_pu_areas <span class="op">*</span><span class="st"> </span>p06_sol, <span class="st">"sum"</span>)</code></pre></div>
+<pre><code>## [1] 0.09999991</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://prioritizr.net/reference/feature_representation.html">feature_representation</a></span>(p06, p06_sol)</code></pre></div>
+<pre><code>## # A tibble: 15 x 3
+##    feature          absolute_held relative_held
+##    &lt;chr&gt;                    &lt;dbl&gt;         &lt;dbl&gt;
+##  1 fish_profit.subs     26247.         0.272   
+##  2 fish_mcp.now         24886.         0.253   
+##  3 phys_seamounts         681.         0.181   
+##  4 phys_vents               2.00       0.0443  
+##  5 phys_scape1              4.11       0.000267
+##  6 phys_scape2           3262.         0.180   
+##  7 phys_scape3             18.9        0.00154 
+##  8 phys_scape4           1669.         0.142   
+##  9 phys_scape5            510.         0.0656  
+## 10 phys_scape6             50.2        0.0239  
+## 11 phys_scape7              0.636      0.00208 
+## 12 phys_scape8              5.71       0.00531 
+## 13 phys_scape9            131.         0.146   
+## 14 phys_scape10             0          0       
+## 15 phys_scape11           288.         0.0987</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p06_diagnostics &lt;-<span class="st"> </span><span class="kw"><a href="../reference/problem_diagnostics.html">problem_diagnostics</a></span>(r_pu_areas, p06_features, <span class="dt">budget=</span><span class="fl">0.1</span>)
+p06_diagnostics</code></pre></div>
+<pre><code>## # A tibble: 15 x 3
+##    feature           rel_all rel_each
+##    &lt;chr&gt;               &lt;dbl&gt;    &lt;dbl&gt;
+##  1 fish_profit.subs 0.272       0.298
+##  2 fish_mcp.now     0.253       0.259
+##  3 phys_seamounts   0.181       0.783
+##  4 phys_vents       0.0443      1.   
+##  5 phys_scape1      0.000267    0.491
+##  6 phys_scape2      0.180       0.416
+##  7 phys_scape3      0.00154     0.616
+##  8 phys_scape4      0.142       0.629
+##  9 phys_scape5      0.0656      0.630
+## 10 phys_scape6      0.0239      1.000
+## 11 phys_scape7      0.00208     1.000
+## 12 phys_scape8      0.00531     1.000
+## 13 phys_scape9      0.146       1.000
+## 14 phys_scape10     0           1    
+## 15 phys_scape11     0.0987      0.984</code></pre>
+<p>Strategy:</p>
+<ol style="list-style-type: decimal">
+<li>Solve for <code><a href="https://prioritizr.net/reference/add_max_utility_objective.html">add_max_utility_objective(budget = 0.1)</a></code> to determine max relative targets for:</li>
+</ol>
+<ul>
+<li>all targets: min</li>
+<li>ea target: max</li>
+</ul>
+<ol style="list-style-type: decimal">
+<li>Switch to <code><a href="https://prioritizr.net/reference/add_max_features_objective.html">add_max_features_objective(budget = 0.1)</a></code> + <code><a href="https://prioritizr.net/reference/add_relative_targets.html">add_relative_targets(c(0.3, 0.3, 0))</a></code>
+</li>
+<li><ul>
+<li>
+<code><a href="https://prioritizr.net/reference/add_feature_weights.html">add_feature_weights()</a></code> to balance out</li>
+</ul></li>
+<li>add BLM</li>
+</ol>
+</div>
+<div id="p07-fisheries-centric-30-max-utility" class="section level3">
+<h3 class="hasAnchor">
+<a href="#p07-fisheries-centric-30-max-utility" class="anchor"></a>p07: Fisheries Centric, 30%, max utility</h3>
+<p>Goal: Protect habitats with strong focus on minimizing impacts to fishing profits.</p>
+<ul>
+<li>To have inverse fishing as a target</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p07 &lt;-<span class="st"> </span><span class="kw"><a href="https://prioritizr.net/reference/problem.html">problem</a></span>(r_pu_areas, p06_features) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_max_utility_objective.html">add_max_utility_objective</a></span>(<span class="dt">budget =</span> <span class="fl">0.3</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># 10% of total high seas area</span>
+<span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_gurobi_solver.html">add_gurobi_solver</a></span>()
+p07_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/solve_log.html">solve_log</a></span>(p07, <span class="dt">redo=</span>F)
+
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p07_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"p07 solution"</span>)</code></pre></div>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-27-1.png" width="691.2"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/cellStats">cellStats</a></span>(r_pu_areas <span class="op">*</span><span class="st"> </span>p07_sol, <span class="st">"sum"</span>)</code></pre></div>
+<pre><code>## [1] 0.3</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://prioritizr.net/reference/feature_representation.html">feature_representation</a></span>(p07, p07_sol)</code></pre></div>
+<pre><code>## # A tibble: 15 x 3
+##    feature          absolute_held relative_held
+##    &lt;chr&gt;                    &lt;dbl&gt;         &lt;dbl&gt;
+##  1 fish_profit.subs       50429.         0.523 
+##  2 fish_mcp.now           46622.         0.474 
+##  3 phys_seamounts          1743.         0.464 
+##  4 phys_vents                17.1        0.380 
+##  5 phys_scape1             1536.         0.0998
+##  6 phys_scape2             8041.         0.443 
+##  7 phys_scape3             1245.         0.102 
+##  8 phys_scape4             6165.         0.526 
+##  9 phys_scape5             1827.         0.235 
+## 10 phys_scape6              369.         0.176 
+## 11 phys_scape7               38.2        0.125 
+## 12 phys_scape8               93.1        0.0866
+## 13 phys_scape9              380.         0.424 
+## 14 phys_scape10               0          0     
+## 15 phys_scape11            1023.         0.350</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p07_diagnostics &lt;-<span class="st"> </span><span class="kw"><a href="../reference/problem_diagnostics.html">problem_diagnostics</a></span>(r_pu_areas, p06_features, <span class="dt">budget=</span><span class="fl">0.3</span>, <span class="dt">pfx=</span><span class="st">"p07"</span>)
+p07_diagnostics</code></pre></div>
+<pre><code>## # A tibble: 15 x 3
+##    feature          rel_all rel_each
+##    &lt;chr&gt;              &lt;dbl&gt;    &lt;dbl&gt;
+##  1 fish_profit.subs  0.523     0.553
+##  2 fish_mcp.now      0.474     0.490
+##  3 phys_seamounts    0.464     1.000
+##  4 phys_vents        0.380     1.   
+##  5 phys_scape1       0.0998    1.000
+##  6 phys_scape2       0.443     0.995
+##  7 phys_scape3       0.102     1.   
+##  8 phys_scape4       0.526     1.000
+##  9 phys_scape5       0.235     0.997
+## 10 phys_scape6       0.176     1.000
+## 11 phys_scape7       0.125     1.000
+## 12 phys_scape8       0.0866    1.000
+## 13 phys_scape9       0.424     1.000
+## 14 phys_scape10      0         1    
+## 15 phys_scape11      0.350     1.</code></pre>
+</div>
+<div id="p08-integrated-10-max-utility" class="section level3">
+<h3 class="hasAnchor">
+<a href="#p08-integrated-10-max-utility" class="anchor"></a>p08: Integrated, 10%, max utility</h3>
+<p>Integrated “kitchen sink”</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p08_features &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/stack">stack</a></span>(
+  r_nspp_all_as,
+  r_rls_all_as,
+  r_fish_gfw.profit.subsidies_inv,
+  <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/raster">raster</a></span>(s_fish_ubc_inv, <span class="st">"mcp_2004"</span>),
+  <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/raster">raster</a></span>(s_fish_ubc_inv, <span class="st">"mcp_2050"</span>),
+  <span class="kw"><a href="../reference/rescale_raster.html">rescale_raster</a></span>(r_phys_seamounts),
+  <span class="kw"><a href="../reference/rescale_raster.html">rescale_raster</a></span>(r_phys_vents),
+  <span class="kw"><a href="../reference/rescale_stack.html">rescale_stack</a></span>(s_phys_scapes))
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/names">names</a></span>(p08_features) &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(
+  <span class="st">"bio_nspp"</span>, 
+  <span class="st">"bio_rls"</span>,
+  <span class="st">"fish_profit.subs"</span>, 
+  <span class="st">"fish_mcp.now"</span>,
+  <span class="st">"fish_mcp.future"</span>,
+  <span class="st">"phys_seamounts"</span>,
+  <span class="st">"phys_vents"</span>,
+  <span class="kw"><a href="https://www.rdocumentation.org/packages/glue/topics/glue">glue</a></span>(<span class="st">"phys_scape{1:11}"</span>))
+
+p08 &lt;-<span class="st"> </span><span class="kw"><a href="https://prioritizr.net/reference/problem.html">problem</a></span>(r_pu_areas, p08_features) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_max_utility_objective.html">add_max_utility_objective</a></span>(<span class="dt">budget =</span> <span class="fl">0.1</span>) <span class="op">%&gt;%</span><span class="st"> </span><span class="co"># 10% of total high seas area</span>
+<span class="st">  </span><span class="kw"><a href="https://prioritizr.net/reference/add_gurobi_solver.html">add_gurobi_solver</a></span>()
+p08_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/solve_log.html">solve_log</a></span>(p08, <span class="dt">redo=</span>F)
+
+<span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(p08_sol, <span class="dt">col =</span> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"grey90"</span>, <span class="st">"darkgreen"</span>), <span class="dt">main =</span> <span class="st">"p08 solution"</span>)</code></pre></div>
+<p><img src="prioritizr_explore_files/figure-html/unnamed-chunk-28-1.png" width="691.2"></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/cellStats">cellStats</a></span>(r_pu_areas <span class="op">*</span><span class="st"> </span>p08_sol, <span class="st">"sum"</span>)</code></pre></div>
+<pre><code>## [1] 0.09999991</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://prioritizr.net/reference/feature_representation.html">feature_representation</a></span>(p08, p08_sol)</code></pre></div>
+<pre><code>## # A tibble: 18 x 3
+##    feature          absolute_held relative_held
+##    &lt;chr&gt;                    &lt;dbl&gt;         &lt;dbl&gt;
+##  1 bio_nspp                93.2        0.0170  
+##  2 bio_rls                150.         0.0256  
+##  3 fish_profit.subs     25567.         0.265   
+##  4 fish_mcp.now         25302.         0.257   
+##  5 fish_mcp.future      25280.         0.257   
+##  6 phys_seamounts         579.         0.154   
+##  7 phys_vents               1.86       0.0411  
+##  8 phys_scape1              3.68       0.000239
+##  9 phys_scape2           3380.         0.186   
+## 10 phys_scape3             24.8        0.00202 
+## 11 phys_scape4           1686.         0.144   
+## 12 phys_scape5            514.         0.0661  
+## 13 phys_scape6             56.3        0.0269  
+## 14 phys_scape7              0.636      0.00208 
+## 15 phys_scape8              5.40       0.00503 
+## 16 phys_scape9            158.         0.176   
+## 17 phys_scape10             0          0       
+## 18 phys_scape11           296.         0.101</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p08_diagnostics &lt;-<span class="st"> </span><span class="kw"><a href="../reference/problem_diagnostics.html">problem_diagnostics</a></span>(r_pu_areas, p08_features, <span class="dt">budget=</span><span class="fl">0.1</span>, <span class="dt">redo=</span>F)
+p08_diagnostics</code></pre></div>
+<pre><code>## # A tibble: 18 x 3
+##    feature           rel_all rel_each
+##    &lt;chr&gt;               &lt;dbl&gt;    &lt;dbl&gt;
+##  1 bio_nspp         0.0170      0.181
+##  2 bio_rls          0.0256      0.183
+##  3 fish_profit.subs 0.265       0.298
+##  4 fish_mcp.now     0.257       0.259
+##  5 fish_mcp.future  0.257       0.259
+##  6 phys_seamounts   0.154       0.783
+##  7 phys_vents       0.0411      1.   
+##  8 phys_scape1      0.000239    0.491
+##  9 phys_scape2      0.186       0.416
+## 10 phys_scape3      0.00202     0.616
+## 11 phys_scape4      0.144       0.629
+## 12 phys_scape5      0.0661      0.630
+## 13 phys_scape6      0.0269      1.000
+## 14 phys_scape7      0.00208     1.000
+## 15 phys_scape8      0.00503     1.000
+## 16 phys_scape9      0.176       1.000
+## 17 phys_scape10     0           1    
+## 18 phys_scape11     0.101       0.984</code></pre>
 </div>
 </div>
 <div id="todo-near-term" class="section level2">
@@ -1045,7 +941,11 @@ p04_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sol
       <li><a href="#inverting-fisheries-for-conservation-target">Inverting Fisheries for Conservation Target</a></li>
       </ul>
 </li>
-      <li><a href="#fisheries-u-of-british-columbia">Fisheries: U of British Columbia</a></li>
+      <li>
+<a href="#fisheries-u-of-british-columbia">Fisheries: U of British Columbia</a><ul class="nav nav-pills nav-stacked">
+<li><a href="#rescale-and-invert">Rescale and Invert</a></li>
+      </ul>
+</li>
       </ul>
 </li>
       <li>
@@ -1053,7 +953,11 @@ p04_sol &lt;-<span class="st"> </span><span class="kw"><a href="../reference/sol
 <li><a href="#p01-biodiversity-centric-10-max-utility">p01: Biodiversity Centric, 10%, max utility</a></li>
       <li><a href="#p02-biodiversity-centric-10-max-features">p02: Biodiversity Centric, 10%, max features</a></li>
       <li><a href="#p03-biodiversity-centric-10-max-features-with-weights">p03: Biodiversity Centric, 10%, max features with weights</a></li>
-      <li><a href="#p04-biodiversity-centric-10-max-features-with-weights-and-blm">p04: Biodiversity Centric, 10%, max features with weights and BLM</a></li>
+      <li><a href="#p04-biodiversity-centric-10-max-utility-with-blm">p04: Biodiversity Centric, 10%, max utility with BLM</a></li>
+      <li><a href="#p05-biodiversity-centric-30-max-utility">p05: Biodiversity Centric, 30%, max utility</a></li>
+      <li><a href="#p06-fisheries-centric-10-max-utility">p06: Fisheries Centric, 10%, max utility</a></li>
+      <li><a href="#p07-fisheries-centric-30-max-utility">p07: Fisheries Centric, 30%, max utility</a></li>
+      <li><a href="#p08-integrated-10-max-utility">p08: Integrated, 10%, max utility</a></li>
       </ul>
 </li>
       <li><a href="#todo-near-term">TODO: near-term</a></li>

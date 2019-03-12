@@ -13,6 +13,15 @@
 #' @format A \code{\link[sf]{sf}} object of a polygon.
 "p_highseas"
 
+#' Polygons of exclusive economic zones (EEZs)
+#'
+#' Downloaded World_EEZ_v10_20180221/eez_v10.shp from MarineRegions.org. For
+#' quick mapping applied simplification using
+#' \code{\link[rmapshaper]{ms_simplify}(keep = 0.5)} twice.
+#'
+#' @format A \code{\link[sf]{sf}} object of a polygon.
+"p_eez"
+
 #' Raster stack of global marine biodiversity indicators from AquaMaps and IUCN
 #'
 #' Dataset containing global half-degree rasters clipped to the high seas of
@@ -25,9 +34,11 @@
 #' @source \url{https://iucnredlist.org}
 "s_bio_gmbi"
 
-#' Raster stack from Global Fishing Watch analysis of high seas (Sala et al, 2018)
+#' Raster stack from Global Fishing Watch analysis of high seas (Sala et al,
+#' 2018)
 #'
-#' Global half-degree raster of high seas. Year of analysis is 2016.
+#' Global half-degree raster of high seas. Year of analysis is 2016. See also
+#' \url{https://github.com/SFG-UCSB/The-economics-of-fishing-the-high-seas}.
 #'
 #' @format A \code{\link[raster]{stack}} with layers of results from analyses.
 "s_fish_gfw"
@@ -57,6 +68,19 @@
 #' @format A \code{\link[raster]{raster}} count of hydrothermal vents features within cell.
 "r_phys_vents"
 
+#' Raster for presence of mining claim (Interridge Vent Database v3.4)
+#'
+#' Global half-degree raster of presence in high seas, per ISA_claim_areas_update_20181202.
+#'
+#' @format A \code{\link[raster]{raster}} prence (1 or 0) of mine claim in cell.
+"r_mine_claim"
+
+#' Polygons of mine claims (ISA)
+#'
+#' Per ISA_claim_areas_update_20181202.
+#'
+#' @format A \code{\link[sf]{sf}} object of mining claim polygons.
+"p_mine_claims"
 
 #' Raster stack for area (km2) of 1 thru 11 classes of benthic seascapes (Harris
 #' & Whiteway, 2009)

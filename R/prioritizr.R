@@ -45,8 +45,23 @@ solve_log <- function(p, pfx= deparse(substitute(p)), redo=F){
 #' @export
 #'
 #' @examples
-problem_diagnostics <- function(pu, features, budget){
+problem_diagnostics <- function(pu, features, budget, pfx= deparse(substitute(features)), redo=F){
   # pu = r_pu_areas; features = p01_features; budget = 0.1
+
+  library(prioritizr)
+  library(raster)
+  select = dplyr::select
+  library(glue)
+
+  log <- glue("{pfx}_diagnostics_log.txt")
+  csv <- glue("{pfx}_diagnostics.csv")
+
+  if (all(file.exists(log,csv)) & !redo){
+    message(glue("Files found ({basename(csv)}) & redo=F, returning previously computed diagnostic table"))
+    return(read_csv(csv))
+  }
+
+  sink(log)
 
   # get feature representation for maximizing all features given budget
   p <- problem(pu, features) %>%
@@ -73,5 +88,8 @@ problem_diagnostics <- function(pu, features, budget){
       dplyr::pull(relative_held)
   }
 
+  sink()
+
+  write_csv(d, csv)
   d
 }

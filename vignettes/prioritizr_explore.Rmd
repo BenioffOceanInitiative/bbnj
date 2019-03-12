@@ -44,6 +44,7 @@ suppressPackageStartupMessages({
   # devtools::install_local(here::here(), force=T) 
   devtools::load_all()
 })
+if (basename(getwd())!="vignettes") setwd(here("vignettes"))
 
 # set rainbow color palette
 pal <- colorRampPalette(brewer.pal(11, "Spectral"))
@@ -223,12 +224,12 @@ plot(s_fish_gfw, col = cols)
 Assuming places fished have the least profit, gap fill with minimum value:
 
 ```{r}
-r_gfw_profit           <- raster(s_fish_gfw, "mean_scaled_profits") %>% 
+r_fish_gfw.profit           <- raster(s_fish_gfw, "mean_scaled_profits") %>% 
   gap_fill_raster()
-r_gfw_profit.subsidies <- raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>% 
+r_fish_gfw.profit.subsidies <- raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>% 
   gap_fill_raster()
 
-plot(r_gfw_profit.subsidies, col=cols, main="r_gfw_profit.subsidies")
+plot(r_fish_gfw.profit.subsidies, col=cols, main="r_gfw_profit.subsidies")
 ```
 
 #### Inverting Fisheries for Conservation Target
@@ -239,20 +240,15 @@ Fisheries could be included into the optimization in at least a couple ways:
 
 1. **Fisheries as Conservation Target (Maximize Inverse)**. To reduce friction with fishing industry the maximum profit areas are to be minimized. To achieve this on the conservation target side of the optimization the inverse of the original profit layers is to be used, which can take the form:
 
-$$value_{cell} = \sum_{a}^{b}{c}$$
-
-
-
-
-be placed on the Cost side of the optimization as the planning units t
+$$v_{cell} = 1 - \frac{v_{cell}}{\max(v) - \min(v)}$$
 
 ```{r}
-r_gfw_profit.subsidies_inv <- rescale_raster(r_gfw_profit.subsidies, inverse=T) #, log=T)
+r_fish_gfw.profit.subsidies_inv <- rescale_raster(r_fish_gfw.profit.subsidies, inverse=T) #, log=T)
 
-hist(r_gfw_profit.subsidies, main="r_gfw_profit.subsidies")
-hist(r_gfw_profit.subsidies_inv, main="r_gfw_profit.subsidies_inv")
+hist(r_fish_gfw.profit.subsidies, main="r_gfw_profit.subsidies")
+hist(r_fish_gfw.profit.subsidies_inv, main="r_gfw_profit.subsidies_inv")
 
-plot(r_gfw_profit.subsidies_inv, col=cols, main="r_gfw_profit.subsidies_inv")
+plot(r_fish_gfw.profit.subsidies_inv, col=cols, main="r_gfw_profit.subsidies_inv")
 ```
 
 
@@ -263,6 +259,14 @@ Raster stack from UBC (Cheung, Lam et al; in draft) of maximum catch potential (
 ```{r}
 plot(s_fish_ubc, col = cols)
 ```
+
+#### Rescale and Invert
+
+```{r}
+s_fish_ubc_inv  <- rescale_stack(s_fish_ubc, inverse=T)
+plot(s_fish_ubc_inv, col = cols)
+```
+
 
 ## Priorization Scenarios
 
@@ -296,7 +300,7 @@ p01 <- problem(r_pu_areas, p01_features) %>%
 
 p01_sol <- solve_log(p01, redo=F)
 
-plot(p01_sol, col = c("grey90", "darkgreen"), main = "Solution")
+plot(p01_sol, col = c("grey90", "darkgreen"), main = "p01 solution")
 
 # area of solution
 cellStats(r_pu_areas * p01_sol, "sum")
@@ -316,8 +320,7 @@ Strategy:
   
 ```{r}
 p01_diagnostics <- problem_diagnostics(r_pu_areas, p01_features, budget=0.1)
-cat(getwd())
-#View(p01_diagnostics)
+p01_diagnostics #View(p01_diagnostics)
 ```
 
 ### p02: Biodiversity Centric, 10%, max features
@@ -338,7 +341,7 @@ p02 <- problem(r_pu_areas, p01_features) %>%
 p02_sol <- solve_log(p02, redo=F)
 
 # plot solution
-plot(p02_sol, col = c("grey90", "darkgreen"), main = "Solution")
+plot(p02_sol, col = c("grey90", "darkgreen"), main = "p02 solution")
 
 # area of solution
 cellStats(r_pu_areas * p02_sol, "sum")
@@ -361,17 +364,19 @@ p03 <- problem(r_pu_areas, p01_features) %>%
   add_gurobi_solver()
 p03_sol <- solve_log(p03, redo=F)
 
-plot(p03_sol, col = c("grey90", "darkgreen"), main = "Solution")
+plot(p03_sol, col = c("grey90", "darkgreen"), main = "p03 solution")
 cellStats(r_pu_areas * p03_sol, "sum")
 feature_representation(p03, p03_sol)
+
+problem_diagnostics(r_pu_areas, p01_features, budget=0.3, pfx="p05")
 ```
 
+```{r}
+p01_diagnostics <- problem_diagnostics(r_pu_areas, p01_features, budget=0.1)
+p01_diagnostics #View(p01_diagnostics)
+```
 
-
-
-
-
-### p04: Biodiversity Centric, 10%, max features with weights and BLM
+### p04: Biodiversity Centric, 10%, max utility with BLM
 
 Add clumping. 
 
@@ -394,10 +399,181 @@ p04 <- problem(r_pu_areas, p01_features) %>%
 
 p04_sol <- solve_log(p04, redo=F)
 
-plot(p04_sol, col = c("grey90", "darkgreen"), main = "p04 Solution")
+plot(p04_sol, col = c("grey90", "darkgreen"), main = "p04 solution")
 cellStats(r_pu_areas * p04_sol, "sum")
 feature_representation(p04, p04_sol)
 ```
+
+
+### p05: Biodiversity Centric, 30%, max utility
+
+Maximize diversity of species and habitats, given a budget of 30% of the high seas.
+
+```{r}
+p05 <- problem(r_pu_areas, p01_features) %>%
+  add_max_utility_objective(budget = 0.3) %>%
+  add_gurobi_solver()
+
+p05_sol <- solve_log(p05, redo=F)
+
+plot(p05_sol, col = c("grey90", "darkgreen"), main = "p05 Solution")
+cellStats(r_pu_areas * p05_sol, "sum")
+feature_representation(p05, p05_sol)
+```
+
+
+### p06: Fisheries Centric, 10%, max utility
+
+Goal: Protect habitats with strong focus on minimizing impacts to fishing profits.
+
+- To have inverse fishing as a target
+
+```{r}
+p06_features <- stack(
+  r_fish_gfw.profit.subsidies_inv,
+  raster(s_fish_ubc_inv, "mcp_2004"),
+  rescale_raster(r_phys_seamounts),
+  rescale_raster(r_phys_vents),
+  rescale_stack(s_phys_scapes))
+names(p06_features) <- c(
+  "fish_profit.subs", 
+  "fish_mcp.now",
+  "phys_seamounts",
+  "phys_vents",
+  glue("phys_scape{1:11}"))
+# hist(r_nspp_all_as); hist(r_rls_all_as); hist(rescale_raster(r_phys_seamounts))
+
+p06_sum <- raster::stackApply(p06_features, rep(1,nlayers(p06_features)), sum) %>% 
+  mask(r_pu_id)
+plot(p06_sum, col=cols)
+
+p06 <- problem(r_pu_areas, p06_features) %>%
+  add_max_utility_objective(budget = 0.1) %>% # 10% of total high seas area
+  add_gurobi_solver()
+p06_sol <- solve_log(p06, redo=F)
+
+plot(p06_sol, col = c("grey90", "darkgreen"), main = "p06 solution")
+cellStats(r_pu_areas * p06_sol, "sum")
+feature_representation(p06, p06_sol)
+p06_diagnostics <- problem_diagnostics(r_pu_areas, p06_features, budget=0.1)
+p06_diagnostics
+```
+
+Strategy:
+
+1. Solve for `add_max_utility_objective(budget = 0.1)` to determine max relative targets for:
+  - all targets: min
+  - ea target: max
+1. Switch to `add_max_features_objective(budget = 0.1)` + `add_relative_targets(c(0.3, 0.3, 0))`
+1. + `add_feature_weights()` to balance out
+1. add BLM 
+
+
+### p07: Fisheries Centric, 30%, max utility
+
+Goal: Protect habitats with strong focus on minimizing impacts to fishing profits.
+
+- To have inverse fishing as a target
+
+```{r}
+p07 <- problem(r_pu_areas, p06_features) %>%
+  add_max_utility_objective(budget = 0.3) %>% # 10% of total high seas area
+  add_gurobi_solver()
+p07_sol <- solve_log(p07, redo=F)
+
+plot(p07_sol, col = c("grey90", "darkgreen"), main = "p07 solution")
+cellStats(r_pu_areas * p07_sol, "sum")
+feature_representation(p07, p07_sol)
+p07_diagnostics <- problem_diagnostics(r_pu_areas, p06_features, budget=0.3, pfx="p07")
+p07_diagnostics
+```
+
+
+### p08: Integrated, 10%, max utility
+
+Integrated “kitchen sink”
+
+```{r}
+p08_features <- stack(
+  r_nspp_all_as,
+  r_rls_all_as,
+  r_fish_gfw.profit.subsidies_inv,
+  raster(s_fish_ubc_inv, "mcp_2004"),
+  raster(s_fish_ubc_inv, "mcp_2050"),
+  rescale_raster(r_phys_seamounts),
+  rescale_raster(r_phys_vents),
+  rescale_stack(s_phys_scapes))
+names(p08_features) <- c(
+  "bio_nspp", 
+  "bio_rls",
+  "fish_profit.subs", 
+  "fish_mcp.now",
+  "fish_mcp.future",
+  "phys_seamounts",
+  "phys_vents",
+  glue("phys_scape{1:11}"))
+
+p08 <- problem(r_pu_areas, p08_features) %>%
+  add_max_utility_objective(budget = 0.1) %>% # 10% of total high seas area
+  add_gurobi_solver()
+p08_sol <- solve_log(p08, redo=F)
+
+plot(p08_sol, col = c("grey90", "darkgreen"), main = "p08 solution")
+cellStats(r_pu_areas * p08_sol, "sum")
+feature_representation(p08, p08_sol)
+p08_diagnostics <- problem_diagnostics(r_pu_areas, p08_features, budget=0.1, redo=F)
+p08_diagnostics
+```
+
+
+### p09: Biodiversity Centric, 10%, max utility with weights
+
+Maximize overall biodiversity, given a budget of 10% of all high seas area.
+
+Try to include missed phys_scape1 and phys_scape2 by adding weight.
+
+```{r}
+p09 <- problem(r_pu_areas, p01_features) %>%
+  add_max_utility_objective(budget = 0.1) %>%
+  add_feature_weights(c(100, 100, 10, 10, rep(1, 11))) %>% 
+  add_gurobi_solver()
+
+p09_sol <- solve_log(p09, redo=T)
+
+plot(p09_sol, col = c("grey90", "darkgreen"), main = "p09 solution")
+cellStats(r_pu_areas * p09_sol, "sum")
+feature_representation(p09, p09_sol)
+```
+
+### p04: Biodiversity Centric, 10%, max utility with BLM
+
+Add clumping. 
+
+From the [marxan manual 1.8.10.pdf](https://drive.google.com/file/d/1QIOA7hzYDgvjeVdqPfK6HzfDLrZCWIXd/view?usp=sharing) (p. 22-23):
+
+> 3.2.1.1.2 Boundary Length Modifier
+> As a very rough guide, a good starting place for the BLM is to scale it such that the largest boundary between planning units becomes a similar order of magnitude to the most expensive planning unit. For instance, if your highest planning unit cost is 100 and your longest boundary is 1000, you may want to start the BLM at 0.1. Note that it is usually best to explore a range of values that are separated using a fixed multiplier; e.g., 0.04, 0.2, 1, 5, 25 – where in this example, these values are each multiplied by 5. Typically, the values are increased exponentially or by orders of magnitude in order to sample a range of values and choose one that balances the order of magnitude of competing terms of the objective function.
+
+Using same formulation as p01 + BLM.
+
+```{r}
+# set clumping parameter based on BLM advice in Marxan manual, exp't with p01
+blm <- cellStats(r_pu_areas, "max") / 0.5 * 10000
+blm
+
+p04 <- problem(r_pu_areas, p01_features) %>%
+  add_max_utility_objective(budget = 0.1) %>%
+  add_boundary_penalties(blm, 1) %>% 
+  add_gurobi_solver()
+
+p04_sol <- solve_log(p04, redo=F)
+
+plot(p04_sol, col = c("grey90", "darkgreen"), main = "p04 solution")
+cellStats(r_pu_areas * p04_sol, "sum")
+feature_representation(p04, p04_sol)
+```
+
+
 
 ## TODO: near-term
 

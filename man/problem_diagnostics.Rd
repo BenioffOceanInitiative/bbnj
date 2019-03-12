@@ -4,7 +4,8 @@
 \alias{problem_diagnostics}
 \title{Produce diagnostics table for setting relative targets of features}
 \usage{
-problem_diagnostics(pu, features, budget)
+problem_diagnostics(pu, features, budget,
+  pfx = deparse(substitute(features)), redo = F)
 }
 \arguments{
 \item{pu}{planning unit raster}

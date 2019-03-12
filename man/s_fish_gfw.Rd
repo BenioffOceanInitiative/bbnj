@@ -3,12 +3,14 @@
 \docType{data}
 \name{s_fish_gfw}
 \alias{s_fish_gfw}
-\title{Raster stack from Global Fishing Watch analysis of high seas (Sala et al, 2018)}
+\title{Raster stack from Global Fishing Watch analysis of high seas (Sala et al,
+2018)}
 \format{A \code{\link[raster]{stack}} with layers of results from analyses.}
 \usage{
 s_fish_gfw
 }
 \description{
-Global half-degree raster of high seas. Year of analysis is 2016.
+Global half-degree raster of high seas. Year of analysis is 2016. See also
+\url{https://github.com/SFG-UCSB/The-economics-of-fishing-the-high-seas}.
 }
 \keyword{datasets}

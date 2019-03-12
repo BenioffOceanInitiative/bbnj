@@ -9,19 +9,11 @@ dashboardPage(
       menuItem("Histogram", tabName = "tab_hist", icon = icon("bar-chart"))),
 
     selectInput(
-      "select_var", label = "Variable to plot",
-      choices = list(
-        "Global Fishing Watch" = tbl_gfw$name)),
+      "sel_lyr", label = "Layer",
+      choices = lyr_choices),
 
     sliderInput(
-      "slider_mag", label = "Magnitude",
-      min = min(quakes$mag), max = max(quakes$mag), step = 0.2,
-      value = c(min(quakes$mag), max = max(quakes$mag))),
-
-    sliderInput(
-      "slider_depth", label = "Depth",
-      min = min(quakes$depth), max = max(quakes$depth), step = 50,
-      value = c(min(quakes$depth), max = max(quakes$depth)))),
+      "slider_opacity", "Opacity", 0, 1, 0.7, step=0.1)),
 
   dashboardBody(
     tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
