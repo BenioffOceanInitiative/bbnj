@@ -1,14 +1,16 @@
-library(shiny)
+library(raster)
 library(tidyverse)
+library(stringr)
+select = dplyr::select
+library(sf)
 library(leaflet)
 library(mapview)
 library(here)
 library(glue)
+library(shiny)
 library(shinydashboard)
-library(plotly)
-library(sf)
-library(raster)
-devtools::load_all() # library(bbnj)
+#library(plotly)
+library(bbnj) # devtools::load_all() # devtools::install_github("ecoquants/bbnj")
 
 lyrs_grd <- here("inst/app/lyrs.grd")
 

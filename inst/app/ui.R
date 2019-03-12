@@ -22,4 +22,6 @@ dashboardPage(
       tabItem("tab_map",
               leafletOutput("map")),
       tabItem("tab_hist",
-              plotlyOutput("hist_var")))))
+              "todo"
+              #plotlyOutput("hist_var")
+              ))))
