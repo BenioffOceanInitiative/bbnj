@@ -7,7 +7,7 @@ Coefficient statistics:
   RHS range        [1e-01, 1e-01]
 Found heuristic solution: objective -0.0000000
 Presolve removed 15 rows and 41464 columns
-Presolve time: 0.61s
+Presolve time: 0.59s
 Presolved: 1 rows, 71952 columns, 71952 nonzeros
 Variable types: 0 continuous, 71952 integer (56610 binary)
 Presolved: 1 rows, 71952 columns, 71952 nonzeros
@@ -21,7 +21,7 @@ Root relaxation: objective 2.173740e+05, 1 iterations, 0.11 seconds
      0     0 217373.991    0    1   -0.00000 217373.991      -     -    0s
 H    0     0                    217374.84773 217374.848  0.00%     -    0s
 
-Explored 1 nodes (1 simplex iterations) in 0.85 seconds
+Explored 1 nodes (1 simplex iterations) in 0.82 seconds
 Thread count was 1 (of 12 available processors)
 
 Solution count 2: 217375 -0 

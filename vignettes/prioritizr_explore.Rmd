@@ -27,7 +27,7 @@ knitr::opts_chunk$set(
 
 ## Setup
 
-```{r p}
+```{r}
 suppressPackageStartupMessages({
   library(tidyverse)
   library(here)
@@ -96,7 +96,7 @@ A <- cellStats(r_pu_area, "sum")
 r_pu_areas <- r_pu_area / A
 #cellStats(r_pu_areas, "sum") # 1
 
-plot(r_pu_areas, col = cols, main="pu_areas (sums to 100)")
+plot(r_pu_areas, col = cols, main="pu_areas (sums to 1)")
 ```
 
 ## Conservation Targets
