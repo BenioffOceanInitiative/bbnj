@@ -26,7 +26,7 @@ shinyServer(function(input, output, session) {
       "Spectral", rng, na.color = "transparent", reverse=T)
 
     leafletProxy("map") %>%
-      leaflet::removeImage("lyr") %>%
+      removeImage("lyr") %>%
       addRasterImage(
         r, colors = pal, opacity = opacity, project = F,
         layerId="lyr", group="Layer") %>%
