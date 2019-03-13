@@ -24,6 +24,17 @@ knitr::opts_chunk$set(echo = TRUE)
 
 - `~/Google Drive/projects/bbnj/software/gurobi_optimizer/gurobi8.1.0_mac64.pkg`
 
+```{r}
+# install.packages("googledrive")
+library("googledrive")
+
+files <- drive_get("gurobi8.1.0_linux64.tar.gz")
+# prompted for credentials
+drive_download(files$path[1])
+```
+
+
+
 - By default, the installer will place the Gurobi 8.1.0 files in `/Library/gurobi810/mac64`
 
 ```bash
