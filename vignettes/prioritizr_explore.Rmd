@@ -491,6 +491,19 @@ p07_diagnostics
 
 ### p08: Integrated, 10%, max utility
 
+```{r}
+select = dplyr::select
+read_csv("~/github/gmbi/data-raw/spp_iucn.csv") %>% 
+  group_by(iucn_criteria) %>% 
+  summarize(n = n()) %>% 
+  arrange(desc(n)) %>% 
+  View()
+#  table(useNA="always")
+#iucn_category, iucn_criteria, iucn_population_trend
+
+```
+
+
 Integrated “kitchen sink”
 
 ```{r}
@@ -512,6 +525,30 @@ names(p08_features) <- c(
   "phys_seamounts",
   "phys_vents",
   glue("phys_scape{1:11}"))
+
+p08_features <- stack(
+    raster(s_bio_gmbi, "nspp_all") %>%
+      rescale_raster(multiply_area=T),
+    raster(s_bio_gmbi, "rls_all") %>%
+      rescale_raster(multiply_area=T),
+    raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>%
+      gap_fill_raster() %>%
+      rescale_raster(inverse=T),
+    rescale_stack(s_fish_ubc, inverse=T),
+    rescale_raster(r_phys_seamounts),
+    rescale_raster(r_phys_vents),
+    r_mine_claim,
+    rescale_stack(s_phys_scapes))
+  names(p08_features) <- c(
+    "bio_nspp",
+    "bio_rls",
+    "fish_profit.subs",
+    "fish_mcp.2004",
+    "fish_mcp.2050",
+    "phys_seamounts",
+    "phys_vents",
+    "mine_claim",
+    glue("phys_scape.{1:11}"))
 
 p08 <- problem(r_pu_areas, p08_features) %>%
   add_max_utility_objective(budget = 0.1) %>% # 10% of total high seas area
