@@ -95,33 +95,6 @@ lyr_choices <- list(
         str_subset("^Features.rescaled.*") %>%
         str_replace("Features.rescaled_", "")))
 
-p_feature_names <- names(lyrs) %>%
-  str_subset("^Features.rescaled.*")
-
-p_features <- subset(lyrs, p_feature_names)
-names(p_features) <- str_replace(p_feature_names, "Features.rescaled_", "")
-
-
-r_pu_area <- area(r_pu_id) %>%  # in km2
-  mask(r_pu_id)
-A <- cellStats(r_pu_area, "sum")
-r_pu_areas <- r_pu_area / A
-
-p <- problem(r_pu_areas, features) %>%
-  add_max_utility_objective(budget = 0.1) # 10% of total high seas area
-
-
-p01_sol <- solve_log(p01, redo=F)
-
-plot(p01_sol, col = c("grey90", "darkgreen"), main = "p01 solution")
-
-# area of solution
-cellStats(r_pu_areas * p01_sol, "sum")
-
-# calculate how well features are represented in the solution
-feature_representation(p01, p01_sol)
-
-
 # 2. Features, 10%
 # 3. Features, 30%
 # 4. Scenarios
