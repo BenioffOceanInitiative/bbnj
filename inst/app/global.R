@@ -10,13 +10,18 @@ library(glue)
 library(shiny)
 library(shinydashboard)
 #library(plotly)
-library(bbnj) # devtools::load_all() # devtools::install_github("ecoquants/bbnj")
-library(prioritizr)
+library(bbnj)
+# devtools::load_all()
+# devtools::install_github("ecoquants/bbnj", force=T)
+# devtools::install_local(force=T)
+#library(prioritizr)
 
 lyrs_grd <- here("inst/app/lyrs.grd")
 
 # 0. eez
 data(p_eez)
+data(p_abnj_s05)
+data(p_abnj_ppow_s05)
 
 if (!file.exists(lyrs_grd)){
 
