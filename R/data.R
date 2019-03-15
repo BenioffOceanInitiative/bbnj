@@ -5,13 +5,40 @@
 #' @format A \code{\link[raster]{raster}} with integer of id unique to cell.
 "r_pu_id"
 
-#' Polygon of high seas area
+#' Polygon of areas beyond national jurisdiction, ie high seas area
 #'
-#' Global area [-180,180,-90,90] with land and Exclusive Economic Zones (EEZs
-#' frommMarineRegions.org) clipped out.
+#' Global area [-180,180,-90,90] with land and Exclusive Economic Zones (EEZs)
+#' clipped out using the "Intersect_EEZ_IHO_v3_2018" product from MarineRegions.org.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
-"p_highseas"
+"p_abnj"
+
+#' Polygon of Pelagic Provinces of the World (Spalding et al, 2012) for high
+#' seas
+#'
+#' See http://data.unep-wcmc.org/datasets/38. Clipped to high seas. TODO: merge
+#' small areas with larger ones.
+#'
+#' @format A \code{\link[sf]{sf}} object of a polygon.
+"p_abnj_ppow"
+
+#' Simplified polygon of Pelagic Provinces of the World (Spalding et al, 2012) for high
+#' seas
+#'
+#' See http://data.unep-wcmc.org/datasets/38. Clipped to high seas. TODO: merge
+#' small areas with larger ones. Simplified to 5% of original vertices for fast visualization.
+#'
+#' @format A \code{\link[sf]{sf}} object of a polygon.
+"p_abnj_ppow_s005"
+
+#' Simplified polygon of areas beyond national jurisdiction, ie high seas area
+#'
+#' Global area [-180,180,-90,90] with land and Exclusive Economic Zones (EEZs)
+#' clipped out using the "Intersect_EEZ_IHO_v3_2018" product from MarineRegions.org.
+#' Simplified to 5% of original vertices for fast visualization.
+#'
+#' @format A \code{\link[sf]{sf}} object of a polygon.
+"p_abnj_s05"
 
 #' Polygons of exclusive economic zones (EEZs)
 #'

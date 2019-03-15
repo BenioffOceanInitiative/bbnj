@@ -12,7 +12,7 @@ p_load(RColorBrewer)                                # graphics
 select <- dplyr::select # vs raster::select
 
 # paths ----
-dir_data_gdrive <- "/Users/bbest/Google Drive/projects/Pew BBNJ/data"
+dir_data_gdrive <- "/Users/bbest/Gdrive Ecoquants/projects/bbnj/data"
 elev_nc         <- file.path(dir_data_gdrive, "raw/gebco.net_depth/GEBCO_2014_2D.nc")
 eez_land_shp    <- file.path(dir_data_gdrive, "raw/marineregions.org_boundaries/EEZ_land_union_v2_201410/EEZ_land_v2_201410.shp")
 eez_shp         <- file.path(dir_data_gdrive, "raw/marineregions.org_boundaries/World_EEZ_v10_20180221/eez_v10.shp")

@@ -1,6 +1,7 @@
 # 1) use_data(). for lazy loading with library(bbnj). document datasets in R/data.R.
 # 2) write tifs. for use with other software external to R, eg QGIS
 
+library(tidyverse)
 library(xml2)
 library(purrr)
 library(raster)
@@ -9,23 +10,31 @@ library(sf)
 library(glue)
 library(here)
 library(rmapshaper)
+select = dplyr::select
 
 library(gmbi) #devtools::install_github("marinebon/gmbi") #devtools::install_local("~/github/gmbi")
 devtools::load_all()
 
 # paths ----
-dir_gdata           <- "~/Gdrive Ecoquants/projects/bbnj/data" # on Ben Best's laptop
-cell_res            <- 0.5
-eez_shp             <- "/Users/bbest/github/sdg14-shiny/info-gl/data/eez_s005005.shp"
-highseas_shp        <- glue("{dir_gdata}/derived/boundary/high_seas.shp")
-pu_id_tif           <- glue("{dir_gdata}/derived/boundary/high_seas_cellid_{cell_res}dd.tif")
-fish_gfw_csv        <- glue("{dir_gdata}/raw/Sala et al 2018/half_degree_binned_results.csv")
-phys_seamounts_kml  <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 2011/KWSMTSv01.kml")
-phys_scapes_arcinfo <- glue("{dir_gdata}/raw/Harris and Whiteway 2009/Global_Seascapes/class_11")
-phys_vents_csv      <- glue("{dir_gdata}/raw/Hydrothermal vents - Interridge Vent Database v3.4/vent_fields_all.csv")
-fish_ubc_now_tif    <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/Current_MCP1.tif")
-fish_ubc_future_tif <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif")
-mine_claims_shp     <- glue("{dir_gdata}/raw/ISA_shapefiles/ISA_claim_areas_update_20181202.shp")
+dir_data                 <- here("inst/data")
+dir_gdata                <- "~/Gdrive Ecoquants/projects/bbnj/data" # on Ben Best's laptop
+raw_eez_shp              <- glue("{dir_gdata}/raw/marineregions.org_boundaries/World_EEZ_v10_20180221/eez_v10.shp")
+raw_eez_iho_shp          <- glue("{dir_gdata}/raw/marineregions.org_boundaries/Intersect_EEZ_IHO_v3_2018/EEZ_IHO_v3.shp")
+raw_ppow_shp             <- glue("{dir_gdata}/raw/UNEP-WCMC/DataPack-14_001_WCMC036_MEOW_PPOW_2007_2012_v1/01_Data/WCMC-036-MEOW-PPOW-2007-2012-NoCoast.shp")
+raw_fish_gfw_csv         <- glue("{dir_gdata}/raw/Sala et al 2018/half_degree_binned_results.csv")
+raw_fish_saup_now_tif    <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/Current_MCP1.tif")
+raw_fish_saup_future_tif <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif")
+raw_mine_claims_shp      <- glue("{dir_gdata}/raw/ISA_shapefiles/ISA_claim_areas_update_20181202.shp")
+raw_phys_seamounts_kml   <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 2011/KWSMTSv01.kml")
+raw_phys_scapes_arcinfo  <- glue("{dir_gdata}/raw/Harris and Whiteway 2009/Global_Seascapes/class_11")
+raw_phys_vents_csv       <- glue("{dir_gdata}/raw/Hydrothermal vents - Interridge Vent Database v3.4/vent_fields_all.csv")
+abnj_shp                 <- glue("{dir_data}/abnj.shp")
+abnj_s05_shp             <- glue("{dir_data}/abnj_s05.shp")
+abnj_iho_shp             <- glue("{dir_data}/abnj_iho.shp")
+abnj_ppow_shp            <- glue("{dir_data}/abnj_ppow.shp")
+abnj_ppow_s05_shp        <- glue("{dir_data}/abnj_ppow_s05.shp")
+eez_shp                  <- glue("{dir_data}/eez.shp")
+pu_id_tif                <- glue("{dir_data}/pu_id.tif")
 
 # helper functions ----
 lyr_to_tif <- function(lyr, s, pfx){
@@ -37,15 +46,84 @@ lyr_to_tif <- function(lyr, s, pfx){
   writeRaster(r, tif, overwrite=T)
 }
 
-# r_pu_id ----
-r_pu_id <- raster(pu_id_tif) # plot(r_pu_id)
-writeRaster(r_pu_id, here("data-raw/pu_id.tif"), overwrite = TRUE)
-use_data(r_pu_id, overwrite = TRUE)
+# globe
+bb = st_sf(
+  tibble(
+    one = 1,
+    geom = st_sfc(st_polygon(list(rbind(
+      c(-180, -90),
+      c( 180, -90),
+      c( 180,  90),
+      c(-180,  90),
+      c(-180, -90)))), crs = 4326)))
+
+if (!file.exists(abnj_s05_shp)){
+  eez_iho <- read_sf(raw_eez_iho_shp)
+
+  p_abnj_iho <- eez_iho %>%
+    filter(is.na(EEZ)) %>%
+    select(fid, MarRegion, MRGID, IHO_Sea, IHO_MRGID, Longitude, Latitude, Area_km2)
+  write_sf(p_abnj_iho, abnj_iho_shp)
+  use_data(p_abnj_iho, overwrite = TRUE)
+
+  abnj <- abnj_iho %>%
+    mutate(name="Areas Beyond National Jurisdiction, i.e. High Seas") %>%
+    group_by(name) %>%
+    summarize()
+
+  abnj_parts <- st_cast(abnj, "POLYGON") %>%
+    mutate(
+      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
+  #write_sf(abnj_parts, glue("{dir_gdata}/derived/boundary/abnj_parts.shp"))
+  # manually edited out islands
+
+  abnj_parts <- read_sf(glue("{dir_gdata}/derived/boundary/abnj_parts.shp"))
+  p_abnj <- st_union(abnj_parts) %>%
+    st_intersection(bb)
+  write_sf(p_abnj, abnj_shp)
+  p_abnj <- read_sf(abnj_shp)
+  use_data(p_abnj, overwrite = TRUE)
+
+  p_abnj_s05 <- rmapshaper::ms_simplify(p_abnj, keep = 0.05)
+  use_data(p_abnj_s05, overwrite = TRUE)
+  write_sf(p_abnj_s05, abnj_s05_shp)
+}
+
+if (!file.exists(abnj_ppow_s05_shp)){
+  ppow <- read_sf(raw_ppow_shp)
+  abnj <- read_sf(abnj_shp)
+
+  abnj_ppow <- st_intersection(ppow, abnj)
+  abnj_ppow <- abnj_ppow %>%
+    select(-FID, -one) %>%
+    mutate(
+      area_km2 = st_area(geometry) %>%  units::set_units(km^2) %>% as.integer())
+  #p_abnj_ppow <- abnj_ppow
+  write_sf(p_abnj_ppow, abnj_ppow_shp)
+  p_abnj_ppow <- read_sf(abnj_ppow_shp)
+  use_data(p_abnj_ppow, overwrite = TRUE)
+
+  p_abnj_ppow_s05 <- rmapshaper::ms_simplify(p_abnj_ppow, keep = 0.05)
+  use_data(p_abnj_ppow_s05, overwrite = TRUE)
+  write_sf(p_abnj_ppow_s05, abnj_ppow_s05_shp)
+}
 
 # r_na ----
 # for assigning fresh values later
-r_na <- r_pu_id
-values(r_na) <- NA
+r_na <- raster(
+  xmn = -180, xmx = 180, ymn = -90, ymx = 90,
+  resolution=0.5, crs=leaflet:::epsg4326, vals=NA)
+
+# r_pu_id ----
+if (!file.exists(pu_id_tif)){
+  r_abnj <- rasterize(abnj, r_na)
+  r_pu_id <- r_na
+  values(r_pu_id) <- 1:ncell(r_abnj)
+  r_pu_id <- mask(r_pu_id, r_abnj)
+
+  writeRaster(r_pu_id, pu_id_tif, overwrite=T)
+  use_data(r_pu_id, overwrite = TRUE)
+}
 
 # p_eez ----
 p_eez <- read_sf(eez_shp)
@@ -105,21 +183,21 @@ map(lyrs, lyr_to_tif, s_fish_gfw, "fish_gfw")
 # use_data()
 use_data(s_fish_gfw, overwrite = TRUE)
 
-# s_fish_ubc ----
-fish_ubc_now_tif           <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/Current_MCP1.tif")
-fish_ubc_future_tif        <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif")
+# s_fish_saup ----
+fish_saup_now_tif           <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/Current_MCP1.tif")
+fish_saup_future_tif        <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif")
 
-s_fish_ubc  <- stack(c(fish_ubc_now_tif, fish_ubc_future_tif))
-lyrs <- names(s_fish_ubc) <- c("mcp_2004", "mcp_2050")
+s_fish_saup  <- stack(c(fish_saup_now_tif, fish_saup_future_tif))
+lyrs <- names(s_fish_saup) <- c("mcp_2004", "mcp_2050")
 
 # mask stack
-s_fish_ubc <- mask(s_fish_ubc, r_pu_id)
+s_fish_saup <- mask(s_fish_saup, r_pu_id)
 
 # write tifs
-map(lyrs, lyr_to_tif, s_fish_ubc, "fish_ubc")
+map(lyrs, lyr_to_tif, s_fish_saup, "fish_saup")
 
 # use_data()
-use_data(s_fish_ubc, overwrite = TRUE)
+use_data(s_fish_saup, overwrite = TRUE)
 
 
 # r_phys_seamounts ----

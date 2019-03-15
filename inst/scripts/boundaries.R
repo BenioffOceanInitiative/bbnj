@@ -6,6 +6,8 @@ source(here::here("inst/scripts/setup.R"))
 # data
 eez_sf  <- sf::read_sf(eez_shp)
 
+
+
 # globe
 bb = st_sf(
   tibble(
@@ -24,21 +26,43 @@ plot(bb)
 sf_erase <- function(x, y){
   st_difference(x, st_union(st_combine(y))) } # 215.873
 
-# x <- sf_erase(bb, eez_sf)
-eez_b <- st_buffer(eez_sf, 0) # 396.303 sec
+eez_bsee_shp <- file.path(dir_data_gdrive, "derived/boundary/eez_bsee.shp")
 
-system.time(eez_bs   <- ms_simplify(eez_b, keep = 0.05)) # 569 sec
-system.time(eez_bse  <- ms_erase(bb, eez_bs, remove_slivers = T)) # 11.5 sec
-system.time(eez_bsee <- ms_explode(eez_bse)) # 8.9 sec
+if (!file.exists(eez_bsee_shp)){
+  # x <- sf_erase(bb, eez_sf)
+  eez_b <- st_buffer(eez_sf, 0) # 396.303 sec
+  system.time(eez_bs   <- ms_simplify(eez_b, keep = 0.05)) # 569 sec
+  system.time(eez_bse  <- ms_erase(bb, eez_bs, remove_slivers = T)) # 11.5 sec
+  system.time(eez_bsee <- ms_explode(eez_bse)) # 8.9 sec
 
-eez_bsee <- eez_bsee %>%
-  mutate(area_km2 = st_area(geometry)/(1000*1000)) # 0.56 sec
-# 195019807.766397536
+  eez_bsee <- eez_bsee %>%
+    mutate(area_km2 = st_area(geometry)/(1000*1000)) # 0.56 sec
+  # 195019807.766397536
 
-write_sf(eez_bsee, file.path(dir_data_gdrive, "derived/eez_bsee.shp"))
+  write_sf(eez_bsee, eez_bsee_shp)
+}
+eez_bse <- read_sf(file.path(dir_data_gdrive, "derived/boundary/eez_bse.shp"))
+#sf::st_is_valid(eez_bse) # FALSE
+system.time(eez_bseb <- st_buffer(eez_bse, 0)) # 5.74 sec
+#sf::st_is_valid(eez_bseb) # TRUE
+system.time(eez_bsebe <- ms_explode(eez_bseb))
+write_sf(eez_bsebe, file.path(dir_data_gdrive, "derived/boundary/eez_bsebe.shp"))
 
-eez_bsee <- read_sf(file.path(dir_data_gdrive, "derived/eez_bsee.shp"))
-eez_bse <- read_sf(file.path(dir_data_gdrive, "derived/eez_bse.shp"))
+eez_bsebe_c <- st_centroid(eez_bsebe)
+write_sf(eez_bsebe_c, file.path(dir_data_gdrive, "derived/boundary/eez_bsebe_c.shp"))
+
+nc = st_read(system.file("shape/nc.shp", package="sf"), quiet = TRUE)
+ncg = st_geometry(nc)
+plot(ncg, border = 'grey')
+cntrd = st_centroid(ncg)
+## Warning in st_centroid.sfc(ncg): st_centroid does not give correct
+## centroids for longitude/latitude data
+ncg2 = (ncg - cntrd) * rot(pi/2) * .75 + cntrd
+plot(ncg2, add = TRUE)
+plot(cntrd, col = 'red', add = TRUE, cex = .5)
+
+
+eez_bsee <- read_sf(eez_bsee_shp)
 
 
 library(rnaturalearth)
