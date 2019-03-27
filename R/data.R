@@ -20,7 +20,7 @@
 #' small areas with larger ones.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
-"p_abnj_ppow"
+"p_ppow"
 
 #' Simplified polygon of Pelagic Provinces of the World (Spalding et al, 2012) for high
 #' seas
@@ -29,7 +29,23 @@
 #' small areas with larger ones. Simplified to 5% of original vertices for fast visualization.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
-"p_abnj_ppow_s005"
+"p_ppow_s05"
+
+#' Polygon of IHO Seas
+#'
+#' See http://www.marineregions.org/sources.php#iho. Clipped to high seas. TODO:
+#' merge small areas with larger ones.
+#'
+#' @format A \code{\link[sf]{sf}} object of a polygon.
+"p_ppow"
+
+#' Simplified polygon of IHO Seas
+#'
+#' See http://www.marineregions.org/sources.php#iho. Clipped to high seas. TODO:
+#' merge small areas with larger ones. Simplified to 5% of original vertices for fast visualization.
+#'
+#' @format A \code{\link[sf]{sf}} object of a polygon.
+"p_ppow"
 
 #' Simplified polygon of areas beyond national jurisdiction, ie high seas area
 #'
@@ -42,12 +58,19 @@
 
 #' Polygons of exclusive economic zones (EEZs)
 #'
+#' Downloaded World_EEZ_v10_20180221/eez_v10.shp from MarineRegions.org.
+#'
+#' @format A \code{\link[sf]{sf}} object of a polygon.
+"p_eez"
+
+#' Simplified polygons of exclusive economic zones (EEZs)
+#'
 #' Downloaded World_EEZ_v10_20180221/eez_v10.shp from MarineRegions.org. For
 #' quick mapping applied simplification using
 #' \code{\link[rmapshaper]{ms_simplify}(keep = 0.5)} twice.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
-"p_eez"
+"p_eez_s05"
 
 #' Raster stack of global marine biodiversity indicators from AquaMaps and IUCN
 #'
@@ -100,7 +123,7 @@
 #' Global half-degree raster of presence in high seas, per ISA_claim_areas_update_20181202.
 #'
 #' @format A \code{\link[raster]{raster}} prence (1 or 0) of mine claim in cell.
-"r_mine_claim"
+"r_mine_claims"
 
 #' Polygons of mine claims (ISA)
 #'
