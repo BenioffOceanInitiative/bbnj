@@ -31,6 +31,9 @@ shinyServer(function(input, output, session) {
 
   # observe layer selection
   observe({
+
+    #browser()
+
     r <- raster(lyrs_mer, input$sel_lyr)
     opacity <- input$slider_opacity
 
@@ -74,6 +77,8 @@ shinyServer(function(input, output, session) {
     cellid <- cellFromXY(r, xy)
     v <- r[cellid]
 
+    am_link <- glue("https://www.aquamaps.org/SpeciesList.php?xlat={k$lat}&xlong={k$lng}")
+
     leafletProxy("map") %>%
       removePopup("lyr_val")
 
@@ -81,7 +86,8 @@ shinyServer(function(input, output, session) {
       popup <- glue("
                     lon: {format(k$lng, digits=5)}<br>
                     lat: {format(k$lat, digits=5)}<br>
-                    value: <strong>{v}</strong>")
+                    value: <strong>{v}</strong><br>
+                    species: <a href='{am_link}'>AquaMaps</a>")
 
       leafletProxy("map") %>%
         addPopups(k$lng, k$lat, popup, layerId = "lyr_val")
