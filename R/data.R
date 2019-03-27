@@ -56,13 +56,6 @@
 #' @format A \code{\link[sf]{sf}} object of a polygon.
 "p_abnj_s05"
 
-#' Polygons of exclusive economic zones (EEZs)
-#'
-#' Downloaded World_EEZ_v10_20180221/eez_v10.shp from MarineRegions.org.
-#'
-#' @format A \code{\link[sf]{sf}} object of a polygon.
-"p_eez"
-
 #' Simplified polygons of exclusive economic zones (EEZs)
 #'
 #' Downloaded World_EEZ_v10_20180221/eez_v10.shp from MarineRegions.org. For
