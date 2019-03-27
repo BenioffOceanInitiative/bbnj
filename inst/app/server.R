@@ -3,16 +3,30 @@ shinyServer(function(input, output, session) {
   output$map <- renderLeaflet({
     # input = list(sel_lyr = lyr_choices[[1]][[1]], slider_opacity=0.7)
 
+
+    data(p_abnj_s05)
+    data(p_abnj_ppow_s05)
+
     leaflet() %>%
       addProviderTiles(providers$Esri.OceanBasemap, group="ESRI Ocean Basemap") %>%
       addProviderTiles(providers$Stamen.TonerLite, group="Stamen TonerLite") %>%
-      addPolygons(data=p_eez, label = ~GeoName, group = "EEZ") %>%
+      addPolygons(
+        data=p_eez, label = ~GeoName, group = "EEZ",
+        color = "gray", weight=2) %>%
+      addPolygons(
+        data=p_abnj_s05, group = "High Seas",
+        color = "black", weight=4) %>%
+      addPolygons(
+        data=p_abnj_ppow_s05, group = "Pelagic Provinces",
+        color = "blue", weight=3) %>%
       addMouseCoordinates() %>%
       addLayersControl(
         baseGroups = c("Stamen TonerLite", "ESRI Ocean Basemap"),
-        overlayGroups = c("EEZ"),
+        overlayGroups = c("EEZ","High Seas","Pelagic Provinces"),
         options = layersControlOptions(collapsed = T)) %>%
       hideGroup("EEZ") %>%
+      hideGroup("High Seas") %>%
+      hideGroup("Pelagic Provinces") %>%
       fitBounds(-150, -60, 150, 60)
   })
 
@@ -40,7 +54,7 @@ shinyServer(function(input, output, session) {
           str_replace("_", "<br>")) %>%
       addLayersControl(
         baseGroups = c("Stamen TonerLite", "ESRI Ocean Basemap"),
-        overlayGroups = c("EEZ", "Layer"),
+        overlayGroups = c("EEZ","High Seas","Pelagic Provinces", "Layer"),
         options = layersControlOptions(collapsed = T))
   })
 
