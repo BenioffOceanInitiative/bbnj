@@ -30,11 +30,15 @@ raw_phys_scapes_arcinfo  <- glue("{dir_gdata}/raw/Harris and Whiteway 2009/Globa
 raw_phys_vents_csv       <- glue("{dir_gdata}/raw/Hydrothermal vents - Interridge Vent Database v3.4/vent_fields_all.csv")
 abnj_shp                 <- glue("{dir_data}/abnj.shp")
 abnj_s05_shp             <- glue("{dir_data}/abnj_s05.shp")
-abnj_iho_shp             <- glue("{dir_data}/abnj_iho.shp")
-abnj_ppow_shp            <- glue("{dir_data}/abnj_ppow.shp")
-abnj_ppow_s05_shp        <- glue("{dir_data}/abnj_ppow_s05.shp")
+iho_shp                  <- glue("{dir_data}/iho.shp")
+iho_s05_shp              <- glue("{dir_data}/iho_s05.shp")
+ppow_shp                 <- glue("{dir_data}/ppow.shp")
+ppow_s05_shp             <- glue("{dir_data}/ppow_s05.shp")
 eez_shp                  <- glue("{dir_data}/eez.shp")
+eez_s05_shp              <- glue("{dir_data}/eez_s05.shp")
 pu_id_tif                <- glue("{dir_data}/pu_id.tif")
+mine_claims_shp          <- glue("{dir_data}/mine-claims.shp")
+mine_claims_tif          <- glue("{dir_data}/mine-claims.tif")
 
 # helper functions ----
 lyr_to_tif <- function(lyr, s, pfx){
@@ -57,16 +61,15 @@ bb = st_sf(
       c(-180,  90),
       c(-180, -90)))), crs = 4326)))
 
+# p_abnj ----
 if (!file.exists(abnj_s05_shp)){
   eez_iho <- read_sf(raw_eez_iho_shp)
 
-  p_abnj_iho <- eez_iho %>%
+  p_iho <- eez_iho %>%
     filter(is.na(EEZ)) %>%
     select(fid, MarRegion, MRGID, IHO_Sea, IHO_MRGID, Longitude, Latitude, Area_km2)
-  write_sf(p_abnj_iho, abnj_iho_shp)
-  use_data(p_abnj_iho, overwrite = TRUE)
 
-  abnj <- abnj_iho %>%
+  abnj <- p_iho %>%
     mutate(name="Areas Beyond National Jurisdiction, i.e. High Seas") %>%
     group_by(name) %>%
     summarize()
@@ -83,6 +86,20 @@ if (!file.exists(abnj_s05_shp)){
   write_sf(p_abnj, abnj_shp)
   p_abnj <- read_sf(abnj_shp)
   use_data(p_abnj, overwrite = TRUE)
+
+  # TODO: clip iho to high seas
+  #p_iho <- st_intersection(p_iho, p_abnj)
+  #write_sf(p_iho, iho_shp)
+  use_data(p_iho, overwrite = TRUE)
+
+  #p_iho <- read_sf(iho_shp)
+  p_iho_s05 <- rmapshaper::ms_simplify(p_iho, keep = 0.05)
+  use_data(p_iho_s05, overwrite = TRUE)
+  write_sf(p_iho_s05, iho_s05_shp)
+
+  p_abnj_s05 <- rmapshaper::ms_simplify(p_abnj, keep = 0.05)
+  use_data(p_abnj_s05, overwrite = TRUE)
+  write_sf(p_abnj_s05, abnj_s05_shp)
 
   p_abnj_s05 <- rmapshaper::ms_simplify(p_abnj, keep = 0.05)
   use_data(p_abnj_s05, overwrite = TRUE)
@@ -122,13 +139,36 @@ if (!file.exists(pu_id_tif)){
   r_pu_id <- mask(r_pu_id, r_abnj)
 
   writeRaster(r_pu_id, pu_id_tif, overwrite=T)
-  use_data(r_pu_id, overwrite = TRUE)
+  use_data(r_pu_id * 1, overwrite = TRUE)
 }
 
+# testing ----
+# library(tidyverse)
+# library(raster)
+# raster("inst/data/bio_gmbi/nspp_all.tif") %>%
+#   plot()
+
+# library(sf)
+# load("data/r_phys_seamounts.rda")
+# r_phys_seamounts
+# plot(r_mine_claim)
+
+# use_data()
+# load("data/p_abnj_ppow_s05.rda")
+# p_abnj_ppow_s05
+# plot(p_abnj_ppow_s05['ECOREGION'])
+# class(p_abnj_ppow_s05)
+
 # p_eez ----
-p_eez <- read_sf(eez_shp)
-write_sf(p_eez, here("data-raw/eez.shp"))
-use_data(p_eez, overwrite = TRUE)
+if (!file.exists(eez_shp)){
+  p_eez <- read_sf(raw_eez_shp)
+  write_sf(p_eez, here("data-raw/eez.shp"))
+  use_data(p_eez, overwrite = TRUE)
+
+  p_eez_s05 <- rmapshaper::ms_simplify(p_abnj, keep = 0.05)
+  use_data(p_eez_s05, overwrite = TRUE)
+  write_sf(p_eez_s05, eez_s05_shp)
+}
 
 # p_highseas ----
 p_highseas <- read_sf(highseas_shp)
@@ -264,8 +304,10 @@ names(r_phys_vents) <- "count"
 writeRaster(r_phys_vents, here("data-raw/phys_vents_count.tif"), overwrite = TRUE)
 use_data(r_phys_vents, overwrite = TRUE)
 
-# r_mine_claims
-p_mine_claims <- read_sf(mine_claims_shp)
+# r_mine_claims ----
+p_mine_claims <- read_sf(raw_mine_claims_shp) %>%
+  # remove: APEI (Area of Particular Environmental Interest)
+  filter(area_type != "apei")
 #table(p_mine_claims$area_type)
 # apei    claim reserved
 #    9     1330      174
@@ -281,12 +323,11 @@ p_mine_claims <- read_sf(mine_claims_shp)
 #     CMC (China)           COMRA (China)
 #               8                     255
 # ...
-write_sf(p_mine_claims, here("data-raw/mine_claims.shp"))
+write_sf(p_mine_claims, mine_claims_shp)
 use_data(p_mine_claims, overwrite = TRUE)
 
-r_mine_claim <- rasterize(p_mine_claims, r_pu_id, field=1, background=0) %>%
+r_mine_claims <- rasterize(p_mine_claims, r_pu_id, field=1, background=0) %>%
   mask(r_pu_id) # plot(r_mine_claims)
-names(r_mine_claim) <- "present"
-writeRaster(r_mine_claim, here("data-raw/mine_claim_present.tif"), overwrite = TRUE)
-use_data(r_mine_claim, overwrite = TRUE)
-
+names(r_mine_claims) <- "present"
+writeRaster(r_mine_claims, mine_claims_tif, overwrite = TRUE)
+use_data(r_mine_claims, overwrite = TRUE)
