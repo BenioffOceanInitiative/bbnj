@@ -12,7 +12,7 @@ library(here)
 library(rmapshaper)
 select = dplyr::select
 
-library(gmbi) #devtools::install_github("marinebon/gmbi") #devtools::install_local("~/github/gmbi")
+library(gmbi) #devtools::install_github("marinebon/gmbi", force=T) #devtools::install_local("~/github/gmbi")
 devtools::load_all()
 
 # paths ----
@@ -42,7 +42,7 @@ mine_claims_tif          <- glue("{dir_data}/mine-claims.tif")
 
 # helper functions ----
 lyr_to_tif <- function(lyr, s, pfx){
-  dir_tif <- here(glue("data-raw/{pfx}"))
+  dir_tif <- here(glue("inst/data/{pfx}"))
   if (!dir.exists(dir_tif)) dir.create(dir_tif)
   tif <- glue("{dir_tif}/{lyr}.tif")
   r <- raster(s, lyr) %>%
@@ -142,23 +142,6 @@ if (!file.exists(pu_id_tif)){
   use_data(r_pu_id * 1, overwrite = TRUE)
 }
 
-# testing ----
-# library(tidyverse)
-# library(raster)
-# raster("inst/data/bio_gmbi/nspp_all.tif") %>%
-#   plot()
-
-# library(sf)
-# load("data/r_phys_seamounts.rda")
-# r_phys_seamounts
-# plot(r_mine_claim)
-
-# use_data()
-# load("data/p_abnj_ppow_s05.rda")
-# p_abnj_ppow_s05
-# plot(p_abnj_ppow_s05['ECOREGION'])
-# class(p_abnj_ppow_s05)
-
 # p_eez ----
 if (!file.exists(eez_shp)){
   p_eez <- read_sf(raw_eez_shp)
@@ -170,12 +153,7 @@ if (!file.exists(eez_shp)){
   write_sf(p_eez_s05, eez_s05_shp)
 }
 
-# p_highseas ----
-p_highseas <- read_sf(highseas_shp)
-write_sf(p_highseas, here("data-raw/highseas.shp"))
-use_data(p_highseas, overwrite = TRUE)
-
-# s_bio ----
+# s_bio_gmbi ----
 
 # get bio raster stack from gmbi
 data(gmbi_indicators)
@@ -185,8 +163,7 @@ s_bio_gmbi <- gmbi_indicators %>%
   mask(r_pu_id)
 
 # write tifs
-lyrs <- names(s_bio_gmbi)
-map(lyrs, lyr_to_tif, s_bio_gmbi, "bio_gmbi")
+map(names(s_bio_gmbi), lyr_to_tif, s_bio_gmbi, "bio_gmbi")
 
 # use_data()
 use_data(s_bio_gmbi, overwrite = TRUE)
