@@ -1,6 +1,5 @@
 # 1) use_data(). for lazy loading with library(bbnj). document datasets in R/data.R.
 # 2) write tifs. for use with other software external to R, eg QGIS
-
 library(tidyverse)
 library(xml2)
 library(purrr)
@@ -10,6 +9,9 @@ library(sf)
 library(glue)
 library(here)
 library(rmapshaper)
+library(geojsonio)
+library(bbnj)
+library(rlang)
 select = dplyr::select
 
 library(gmbi) #devtools::install_github("marinebon/gmbi", force=T) #devtools::install_local("~/github/gmbi")
@@ -45,7 +47,7 @@ phys_vents_tif           <- glue("{dir_data}/phys_vents.tif")
 # variables ----
 redo_eez  = F
 redo_abnj = F
-redo_lyrs = T
+redo_lyrs = F
 
 # helper functions ----
 lyr_to_tif <- function(lyr, s, pfx){
@@ -71,10 +73,15 @@ bb = st_sf(
 # p_eez ----
 if (!file.exists(eez_shp) | redo_eez){
   p_eez <- read_sf(raw_eez_shp)
-  write_sf(p_eez, here("data-raw/eez.shp"))
-  use_data(p_eez, overwrite = TRUE)
+  #write_sf(p_eez, eez_shp)  # TOO BIG: 159.9 MB
+  #use_data(p_eez, overwrite = TRUE) # TOO BIG: 121.8 MB
 
-  p_eez_s05 <- rmapshaper::ms_simplify(p_abnj, keep = 0.05)
+  p_eez_s05 <- p_eez %>%
+    geojson_json() %>% # convert to geojson for faster ms_simplify; 69.6 sec
+    ms_simplify(keep=0.05, keep_shapes=T)
+  # TODO: crashing on BB's Mac 2019-03-27 so using prior version
+  # p_eez_s05 <- read_sf(eez_s05_shp)
+
   use_data(p_eez_s05, overwrite = TRUE)
   write_sf(p_eez_s05, eez_s05_shp)
 }
@@ -179,8 +186,17 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_lyrs){
   use_data(s_bio_gmbi, overwrite = TRUE)
 }
 
+# s_bio_gmbi: seagrass? ----
+
+# r_sg <- raster(s_bio_gmbi, "nspp_seagrasses")
+# #xyFromCell(object, cell, spatial=FALSE, ...)
+# ?raster
+#   !is.na(r_sg)
+# sum(!is.na(values(raster(s_bio_gmbi, "nspp_seagrasses"))))
+
+
 # s_fish_gfw ----
-if (!dir.exists("inst/data/fish_gfw") | redo_lyrs){
+if (!dir.exists("inst/data/fish_gfw") | T){
 
   # read csv, identify cell_id
   d_fish_gfw <- read_csv(raw_fish_gfw_csv) %>%
@@ -195,9 +211,9 @@ if (!dir.exists("inst/data/fish_gfw") | redo_lyrs){
     names(r) <- lyr
     r[d_fish_gfw$cell_id] <- d_fish_gfw[[lyr]]
 
-    if (!exists("s_fish_gfw")){
+    #if (!exists("s_fish_gfw")){
+    if (!env_has(global_env(), "s_fish_gfw")){
       s_fish_gfw <- r
-
     } else {
       s_fish_gfw <- stack(s_fish_gfw, r)
     }
@@ -230,7 +246,7 @@ if (!dir.exists("inst/data/fish_saup") | redo_lyrs){
 }
 
 # s_phys_scapes ----
-if (!dir.exists("inst/data/phys_scapes") | redo_lyrs){
+if (!dir.exists("inst/data/phys_scapes") | T){
 
   # load raster in 0.1 deg resolution
   r_scapes <- raster(raw_phys_scapes_arcinfo)
@@ -244,9 +260,9 @@ if (!dir.exists("inst/data/phys_scapes") | redo_lyrs){
     r_ia <- aggregate(r_i, fact=5, fun=sum, expand=F, na.rm=T)
     #plot(r_ia, col=cols)
 
-    if (!exists("s_scapes")){
+    #if (!exists("s_scapes")){
+    if (!env_has(global_env(), "s_scapes")){
       s_scapes <- r_ia
-
     } else {
       s_scapes <- stack(s_scapes, r_ia)
     }

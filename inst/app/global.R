@@ -10,20 +10,19 @@ library(glue)
 library(shiny)
 library(shinydashboard)
 #library(plotly)
-library(bbnj)
-# devtools::load_all()
+#library(bbnj)
+devtools::load_all()
 # devtools::install_github("ecoquants/bbnj", force=T)
 # devtools::install_local(force=T)
 #library(prioritizr)
 
-lyrs_grd <- here("inst/app/lyrs.grd")
-
 # 0. eez
-data(p_eez)
+data(p_eez_s05)
 data(p_abnj_s05)
-data(p_abnj_ppow_s05)
+data(p_ppow_s05)
 
-if (!file.exists(lyrs_grd)){
+lyrs_rda <- file.path(system.file(package="bbnj"), "app/lyrs.rda")
+if (!file.exists(lyrs_rda)){
 
   # 1. Features, Original
   features_original <- stack(
@@ -33,7 +32,7 @@ if (!file.exists(lyrs_grd)){
     s_fish_ubc,
     r_phys_seamounts,
     r_phys_vents,
-    r_mine_claim,
+    r_mine_claims,
     s_phys_scapes)
   names(features_original) <- c(
     "bio_nspp",
@@ -43,7 +42,7 @@ if (!file.exists(lyrs_grd)){
     "fish_mcp.2050",
     "phys_seamounts",
     "phys_vents",
-    "mine_claim",
+    "mine_claims",
     glue("phys_scape.{1:11}"))
   names(features_original) <- glue("Features.original_{names(features_original)}")
 
@@ -59,7 +58,7 @@ if (!file.exists(lyrs_grd)){
     rescale_stack(s_fish_ubc, inverse=T),
     rescale_raster(r_phys_seamounts),
     rescale_raster(r_phys_vents),
-    r_mine_claim,
+    r_mine_claims,
     rescale_stack(s_phys_scapes))
   names(features_rescaled) <- c(
     "bio_nspp",
@@ -69,34 +68,36 @@ if (!file.exists(lyrs_grd)){
     "fish_mcp.2050",
     "phys_seamounts",
     "phys_vents",
-    "mine_claim",
+    "mine_claims",
     glue("phys_scape.{1:11}"))
   names(features_rescaled) <- glue("Features.rescaled_{names(features_rescaled)}")
 
-  lyrs <- stack(
+  lyrs_geo <- stack(
     features_original,
     features_rescaled)
 
-  lyrs <- projectRasterForLeaflet(lyrs, "ngb")
+  lyrs_mer <- projectRasterForLeaflet(lyrs_geo, "ngb")
 
-  writeRaster(lyrs, lyrs_grd)
+  #writeRaster(lyrs, lyrs_grd)
+  save(lyrs_geo, lyrs_mer, file=lyrs_rda, compress="bzip2")
 } else {
-  lyrs <- stack(lyrs_grd)
+  #lyrs <- stack(lyrs_grd)
+  load(lyrs_rda)
 }
 
 lyr_choices <- list(
   `Features, original` =
     setNames(
-      names(lyrs) %>%
+      names(lyrs_mer) %>%
         str_subset("^Features.original.*"),
-      names(lyrs) %>%
+      names(lyrs_mer) %>%
         str_subset("^Features.original.*") %>%
         str_replace("Features.original_", "")),
   `Features, rescaled` =
     setNames(
-      names(lyrs) %>%
+      names(lyrs_mer) %>%
         str_subset("^Features.rescaled.*"),
-      names(lyrs) %>%
+      names(lyrs_mer) %>%
         str_subset("^Features.rescaled.*") %>%
         str_replace("Features.rescaled_", "")))
 

@@ -3,21 +3,20 @@ shinyServer(function(input, output, session) {
   output$map <- renderLeaflet({
     # input = list(sel_lyr = lyr_choices[[1]][[1]], slider_opacity=0.7)
 
-
     data(p_abnj_s05)
-    data(p_abnj_ppow_s05)
+    data(p_ppow_s05)
 
     leaflet() %>%
       addProviderTiles(providers$Esri.OceanBasemap, group="ESRI Ocean Basemap") %>%
       addProviderTiles(providers$Stamen.TonerLite, group="Stamen TonerLite") %>%
       addPolygons(
-        data=p_eez, label = ~GeoName, group = "EEZ",
+        data=p_eez_s05, label = ~GeoName, group = "EEZ",
         color = "gray", weight=2) %>%
       addPolygons(
         data=p_abnj_s05, group = "High Seas",
         color = "black", weight=4) %>%
       addPolygons(
-        data=p_abnj_ppow_s05, group = "Pelagic Provinces",
+        data=p_ppow_s05, group = "Pelagic Provinces",
         color = "blue", weight=3) %>%
       addMouseCoordinates() %>%
       addLayersControl(
@@ -32,7 +31,7 @@ shinyServer(function(input, output, session) {
 
   # observe layer selection
   observe({
-    r <- raster(lyrs, input$sel_lyr)
+    r <- raster(lyrs_mer, input$sel_lyr)
     opacity <- input$slider_opacity
 
     rng <- range(values(r), na.rm=T)
@@ -65,7 +64,7 @@ shinyServer(function(input, output, session) {
     #browser()
     k <- input$map_click[c("lng","lat")]
 
-    r <- raster(lyrs, input$sel_lyr)
+    r <- raster(lyrs_mer, input$sel_lyr)
 
     xy <- sp::SpatialPoints(
       as.matrix(as.numeric(k)) %>% t(),
