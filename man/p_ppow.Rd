@@ -14,13 +14,13 @@ p_ppow
 p_ppow
 }
 \description{
-See http://data.unep-wcmc.org/datasets/38. Clipped to high seas. TODO: merge
+See \url{http://data.unep-wcmc.org/datasets/38}. Clipped to high seas. TODO: merge
 small areas with larger ones.
 
-See http://www.marineregions.org/sources.php#iho. Clipped to high seas. TODO:
+See \url{http://www.marineregions.org/sources.php#iho}. Clipped to high seas. TODO:
 merge small areas with larger ones.
 
-See http://www.marineregions.org/sources.php#iho. Clipped to high seas. TODO:
+See \url{http://www.marineregions.org/sources.php#iho}. Clipped to high seas. TODO:
 merge small areas with larger ones. Simplified to 5% of original vertices for fast visualization.
 }
 \keyword{datasets}

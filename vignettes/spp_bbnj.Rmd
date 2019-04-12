@@ -1,0 +1,115 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r get db con}
+library(tidyverse)
+library(here)
+library(glue)
+library(raster)
+library(DBI)
+library(RPostgreSQL)
+# library(gmbi)
+
+# database connection
+con <- gmbi::get_db_con(password=readLines("~/private/pg_pass"))
+con
+```
+
+```{r, eval=F}
+#library(bbnj)
+devtools::load_all()
+
+data("r_pu_id")
+
+bbnj_cells <- tibble(
+  cellid = values(r_pu_id)) %>% 
+  filter(!is.na(cellid)) %>% 
+  mutate(in_bbnj = T)
+
+cells <- tbl(con, "cells") %>% 
+  collect() %>% 
+  left_join(
+    bbnj_cells,
+    by="cellid") %>% 
+  mutate(
+    cellid = as.integer(cellid))
+
+copy_to(
+  con, cells, "cells", temporary=F, overwrite=T,
+  unique_indexes=list("cellid"),
+  indexes = list("CenterLat", "CenterLong", "in_bbnj"))
+
+res <- dbGetQuery(con, '
+UPDATE cells
+SET "CenterLat"  = ROUND("CenterLat",2),
+    "CenterLong" = ROUND("CenterLong",2);')
+
+res <- dbGetQuery(con, '
+                  ALTER Table cells ALTER COLUMN "CenterLat" TYPE DECIMAL(5,2);
+                  ALTER Table cells ALTER COLUMN "CenterLong" TYPE DECIMAL(5,2);')
+res <- dbGetQuery(con, '
+                  ALTER Table spp_cells ALTER COLUMN "CenterLat" TYPE DECIMAL(5,2);
+                  ALTER Table spp_cells ALTER COLUMN "CenterLong" TYPE DECIMAL(5,2);')
+
+#res <- dbGetQuery(con, 'CREATE TABLE cells_bkup AS SELECT * FROM cells;')
+res <- dbGetQuery(con, 'CREATE INDEX spp_cells_CenterLat ON spp_cells("CenterLat");')
+res <- dbGetQuery(con, 'CREATE INDEX spp_cells_CenterLong ON spp_cells("CenterLong");')
+res <- dbGetQuery(con, 'CREATE INDEX spp_cells_SpeciesID ON spp_cells("SpeciesID");')
+
+res <- dbGetQuery(con, "ALTER TABLE spp_cells ADD COLUMN cellid int4;")
+res <- dbGetQuery(con, '
+UPDATE spp_cells AS s
+SET cellid = c.cellid
+FROM cells AS c
+WHERE s."CenterLat" = c."CenterLat"
+  AND s."CenterLong" = c."CenterLong";')
+
+res <- dbGetQuery(con, "CREATE INDEX  spp_cells_cellid ON spp_cells(cellid);")
+
+# cells <- tbl(con, "cells") %>% 
+#   collect() %>% 
+#   left_join(
+#     bbnj_cells,
+#     by="cellid") %>% 
+#   mutate(
+#     cellid = as.integer(cellid))
+```
+
+```{r load tbls}
+spp       <- tbl(con, "spp")
+cells     <- tbl(con, "cells")
+spp_cells <- tbl(con, "spp_cells")
+obs_cells <- tbl(con, "obs_cells")
+```
+
+
+```{r}
+# TODO: add cellid with index to spp_cells, 
+#       index speciesid in spp_cells and spp
+
+res <- dbGetQuery(con, '
+UPDATE spp_cells AS s
+SET cellid = c.cellid
+FROM cells AS c
+WHERE s."CenterLat" = c."CenterLat"
+  AND s."CenterLong" = c."CenterLong";
+CREATE INDEX  spp_cells_cellid ON spp_cells(cellid);')
+
+spp_bbnj <- spp %>%
+  left_join(
+    spp_cells, by=c("SPECIESID"="SpeciesID")) %>% 
+  left_join(
+    cells %>% 
+      filter(in_bbnj == T), 
+    by="cellid") %>% 
+  group_by(group, genus_species, Kingdom, Phylum, Class, Family, iucn_category, iucn_weight) %>% 
+  collect()
+```
+
+

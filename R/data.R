@@ -8,7 +8,7 @@
 #' Polygon of areas beyond national jurisdiction, ie high seas area
 #'
 #' Global area [-180,180,-90,90] with land and Exclusive Economic Zones (EEZs)
-#' clipped out using the "Intersect_EEZ_IHO_v3_2018" product from MarineRegions.org.
+#' clipped out using the "Intersect_EEZ_IHO_v3_2018" product from \href{http://MarineRegions.org}{MarineRegions.org}.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
 "p_abnj"
@@ -16,7 +16,7 @@
 #' Polygon of Pelagic Provinces of the World (Spalding et al, 2012) for high
 #' seas
 #'
-#' See http://data.unep-wcmc.org/datasets/38. Clipped to high seas. TODO: merge
+#' See \url{http://data.unep-wcmc.org/datasets/38}. Clipped to high seas. TODO: merge
 #' small areas with larger ones.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
@@ -25,7 +25,7 @@
 #' Simplified polygon of Pelagic Provinces of the World (Spalding et al, 2012) for high
 #' seas
 #'
-#' See http://data.unep-wcmc.org/datasets/38. Clipped to high seas. TODO: merge
+#' See \url{http://data.unep-wcmc.org/datasets/38}. Clipped to high seas. TODO: merge
 #' small areas with larger ones. Simplified to 5% of original vertices for fast visualization.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
@@ -33,7 +33,7 @@
 
 #' Polygon of IHO Seas
 #'
-#' See http://www.marineregions.org/sources.php#iho. Clipped to high seas. TODO:
+#' See \url{http://www.marineregions.org/sources.php#iho}. Clipped to high seas. TODO:
 #' merge small areas with larger ones.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
@@ -41,7 +41,7 @@
 
 #' Simplified polygon of IHO Seas
 #'
-#' See http://www.marineregions.org/sources.php#iho. Clipped to high seas. TODO:
+#' See \url{http://www.marineregions.org/sources.php#iho}. Clipped to high seas. TODO:
 #' merge small areas with larger ones. Simplified to 5% of original vertices for fast visualization.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
@@ -50,7 +50,7 @@
 #' Simplified polygon of areas beyond national jurisdiction, ie high seas area
 #'
 #' Global area [-180,180,-90,90] with land and Exclusive Economic Zones (EEZs)
-#' clipped out using the "Intersect_EEZ_IHO_v3_2018" product from MarineRegions.org.
+#' clipped out using the "Intersect_EEZ_IHO_v3_2018" product from \href{http://MarineRegions.org}{MarineRegions.org}.
 #' Simplified to 5% of original vertices for fast visualization.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
@@ -58,7 +58,7 @@
 
 #' Simplified polygons of exclusive economic zones (EEZs)
 #'
-#' Downloaded World_EEZ_v10_20180221/eez_v10.shp from MarineRegions.org. For
+#' Downloaded World_EEZ_v10_20180221/eez_v10.shp from \href{http://MarineRegions.org}{MarineRegions.org}. For
 #' quick mapping applied simplification using
 #' \code{\link[rmapshaper]{ms_simplify}(keep = 0.5)} twice.
 #'

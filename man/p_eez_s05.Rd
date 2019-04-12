@@ -9,7 +9,7 @@
 p_eez_s05
 }
 \description{
-Downloaded World_EEZ_v10_20180221/eez_v10.shp from MarineRegions.org. For
+Downloaded World_EEZ_v10_20180221/eez_v10.shp from \href{http://MarineRegions.org}{MarineRegions.org}. For
 quick mapping applied simplification using
 \code{\link[rmapshaper]{ms_simplify}(keep = 0.5)} twice.
 }

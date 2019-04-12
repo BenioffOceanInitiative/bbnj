@@ -173,10 +173,10 @@ if (!file.exists(pu_id_tif) | redo_lyrs){
 # s_bio_gmbi ----
 if (!dir.exists("inst/data/bio_gmbi") | redo_lyrs){
   # get bio raster stack from gmbi
-  data(gmbi_indicators)
+  data(gmbi_stack)
 
   # mask stack
-  s_bio_gmbi <- gmbi_indicators %>%
+  s_bio_gmbi <- gmbi_stack %>%
     mask(r_pu_id)
 
   # write tifs

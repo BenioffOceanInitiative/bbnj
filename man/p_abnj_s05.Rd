@@ -10,7 +10,7 @@ p_abnj_s05
 }
 \description{
 Global area [-180,180,-90,90] with land and Exclusive Economic Zones (EEZs)
-clipped out using the "Intersect_EEZ_IHO_v3_2018" product from MarineRegions.org.
+clipped out using the "Intersect_EEZ_IHO_v3_2018" product from \href{http://MarineRegions.org}{MarineRegions.org}.
 Simplified to 5% of original vertices for fast visualization.
 }
 \keyword{datasets}

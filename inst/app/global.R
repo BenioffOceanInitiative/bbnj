@@ -87,11 +87,22 @@ if (!file.exists(lyrs_rda)){
   names(taxa_rls) <- str_replace(lyrs_rls, "rls_", "")
   names(taxa_rls) <- glue("Taxa.rls_{names(taxa_rls)}")
 
+  # 5. Scenarios
+  scenarios_tbl <- tibble(
+    tif = list.files(here("vignettes"), "^p.*tif$")) %>%
+    mutate(
+      scenario_num = map_chr(tif, function(x) str_extract(x, "[0-9]+")),
+      scenario     = glue("Scenario {scenario_num}"),
+      tif          = glue("{here('vignettes')}/{tif}"))
+  scenarios <- stack(scenarios_tbl$tif)
+  names(scenarios) <- scenarios_tbl$scenario
+
   lyrs_geo <- stack(
     features_original,
     features_rescaled,
     taxa_nspp,
-    taxa_rls)
+    taxa_rls,
+    scenarios)
 
   lyrs_mer <- projectRasterForLeaflet(lyrs_geo, "ngb")
 
@@ -128,14 +139,20 @@ lyr_choices <- list(
         str_subset("^Taxa.nspp.*"),
       names(lyrs_mer) %>%
         str_subset("^Taxa.nspp.*") %>%
-        str_replace("Taxa.nspp_", ""))
-  ,
+        str_replace("Taxa.nspp_", "")),
   `Taxa, rls` =
     setNames(
       names(lyrs_mer) %>%
         str_subset("^Taxa.rls.*"),
       names(lyrs_mer) %>%
         str_subset("^Taxa.rls.*") %>%
+        str_replace("Taxa.rls_", ""))),
+  `Scenario Solutions` =
+    setNames(
+      names(lyrs_mer) %>%
+        str_subset("^Scenario.*"),
+      names(lyrs_mer) %>%
+        str_subset("^Scenario.*") %>%
         str_replace("Taxa.rls_", "")))
 
 # 2. Features, 10%

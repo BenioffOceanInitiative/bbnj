@@ -10,7 +10,7 @@ seas}
 p_ppow_s05
 }
 \description{
-See http://data.unep-wcmc.org/datasets/38. Clipped to high seas. TODO: merge
+See \url{http://data.unep-wcmc.org/datasets/38}. Clipped to high seas. TODO: merge
 small areas with larger ones. Simplified to 5% of original vertices for fast visualization.
 }
 \keyword{datasets}
