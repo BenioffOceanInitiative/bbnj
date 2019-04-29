@@ -12,6 +12,10 @@ dashboardPage(
       "sel_lyr", label = "Layer",
       choices = lyr_choices),
 
+    conditionalPanel(
+      condition = "input.sel_lyr.substring(0,9) == 'Scenario.'",
+      actionButton("btn_report", "Scenario report")),
+
     sliderInput(
       "slider_opacity", "Opacity", 0, 1, 0.7, step=0.1)),
 

@@ -17,9 +17,12 @@ solve_log <- function(p, pfx= deparse(substitute(p)), redo=F){
 
   log <- glue("{pfx}_log.txt")
   tif <- glue("{pfx}_sol.tif")
+  rep <- glue("{pfx}_rep.csv")
 
-  if (all(file.exists(log,tif)) & !redo){
+  if (all(file.exists(log,tif,rep)) & !redo){
     s <- raster::raster(tif)
+    attr(s, "feature_representation") <- read_csv(rep)
+
     message(glue("Files found ({basename(tif)}) & redo=F, returning previously computed raster solution"))
     return(s)
   }
@@ -30,6 +33,10 @@ solve_log <- function(p, pfx= deparse(substitute(p)), redo=F){
 
   if ("RasterLayer" %in% class(s)){
     raster::writeRaster(s, tif, overwrite=T)
+
+    d <- feature_representation(p, s)
+    write_csv(d, rep)
+    attr(s, "feature_representation") <- d
   }
 
   s

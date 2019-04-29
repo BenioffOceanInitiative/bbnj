@@ -294,9 +294,15 @@ p01_sum <- raster::stackApply(p01_features, rep(1,nlayers(p01_features)), sum) %
   mask(r_pu_id)
 plot(p01_sum, col=cols)
 
+#plot(r_pu_areas, col = cols, main="pu_areas (sums to 1)")
+
 p01 <- problem(r_pu_areas, p01_features) %>%
   add_max_utility_objective(budget = 0.1) %>% # 10% of total high seas area
   add_gurobi_solver()
+
+
+# DEBUG
+devtools::load_all()
 
 p01_sol <- solve_log(p01, redo=F)
 
@@ -307,6 +313,8 @@ cellStats(r_pu_areas * p01_sol, "sum")
 
 # calculate how well features are represented in the solution
 feature_representation(p01, p01_sol)
+# Error in feature_representation(p01, p01_sol) : 
+#   planning units with NA cost data have non-zero allocations in the argument to solution
 ```
 
 Strategy:

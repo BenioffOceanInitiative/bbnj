@@ -8,6 +8,7 @@ library(mapview)
 library(here)
 library(glue)
 library(shiny)
+library(htmltools)
 library(shinydashboard)
 #library(plotly)
 library(bbnj)
@@ -21,7 +22,9 @@ data(p_eez_s05)
 data(p_abnj_s05)
 data(p_ppow_s05)
 
-lyrs_rda <- file.path(system.file(package="bbnj"), "app/lyrs.rda")
+#lyrs_rda <- file.path(system.file(package="bbnj"), "app/lyrs.rda")
+# DEBUG
+lyrs_rda <- here("inst/app/lyrs.rda")
 
 if (!file.exists(lyrs_rda)){
 
@@ -146,15 +149,11 @@ lyr_choices <- list(
         str_subset("^Taxa.rls.*"),
       names(lyrs_mer) %>%
         str_subset("^Taxa.rls.*") %>%
-        str_replace("Taxa.rls_", ""))),
+        str_replace("Taxa.rls_", "")),
   `Scenario Solutions` =
     setNames(
       names(lyrs_mer) %>%
         str_subset("^Scenario.*"),
       names(lyrs_mer) %>%
         str_subset("^Scenario.*") %>%
-        str_replace("Taxa.rls_", "")))
-
-# 2. Features, 10%
-# 3. Features, 30%
-# 4. Scenarios
+        str_replace("Scenario.", "")))

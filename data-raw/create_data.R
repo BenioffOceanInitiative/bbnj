@@ -28,6 +28,7 @@ raw_fish_saup_now_tif    <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections
 raw_fish_saup_future_tif <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif")
 raw_mine_claims_shp      <- glue("{dir_gdata}/raw/ISA_shapefiles/ISA_claim_areas_update_20181202.shp")
 raw_phys_seamounts_kml   <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 2011/KWSMTSv01.kml")
+raw_phys_seamounts_txt   <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 2011/KWSMTSv01.txt")
 raw_phys_scapes_arcinfo  <- glue("{dir_gdata}/raw/Harris and Whiteway 2009/Global_Seascapes/class_11")
 raw_phys_vents_csv       <- glue("{dir_gdata}/raw/Hydrothermal vents - Interridge Vent Database v3.4/vent_fields_all.csv")
 abnj_shp                 <- glue("{dir_data}/abnj.shp")
@@ -282,6 +283,7 @@ if (!dir.exists("inst/data/phys_scapes") | T){
 # r_phys_seamounts ----
 if (!file.exists(phys_seamounts_tif) | redo_lyrs){
 
+
   x <- read_xml(raw_phys_seamounts_kml)
 
   xpaths <- list(
@@ -292,6 +294,11 @@ if (!file.exists(phys_seamounts_tif) | redo_lyrs){
     xyz   = xml_find_all(x, xpaths$xyz) %>% xml_text()) %>%
     separate(xyz, c("x", "y", "z"), sep=",", convert=T) %>%
     st_as_sf(coords = c("x", "y"), crs = 4326)
+
+  readr::read_delim()
+  x <- read_csv(raw_phys_seamounts_txt)
+
+  pts <- st_as_sf(x, coords = c("x", "y"), crs = 4326)
 
   r_phys_seamounts <- rasterize(st_coordinates(pts), r_pu_id, fun='count', background=0) %>%
     mask(r_pu_id) # plot(r_phys_seamounts)

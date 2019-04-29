@@ -29,6 +29,17 @@ shinyServer(function(input, output, session) {
       fitBounds(-150, -60, 150, 60)
   })
 
+  observeEvent(input$btn_report, {
+    showModal(modalDialog(
+      size = "l",
+      title = input$sel_lyr,
+      tags$iframe(
+        #data-src="modal.html"
+        src="https://ecoquants.com/bbnj/articles/p01_rep.html",
+        height="100%", width="100%", frameborder="0")
+    ))
+  })
+
   # observe layer selection
   observe({
 
