@@ -9,11 +9,12 @@
 #'
 #' @examples
 #solve_log <- function(p, log, tif){
-solve_log <- function(p, pfx= deparse(substitute(p)), redo=F){
+solve_log <- function(p, pfx=deparse(substitute(p)), redo=F){
   library(prioritizr)
   library(raster)
   select = dplyr::select
   library(glue)
+  library(readr)
 
   log <- glue("{pfx}_log.txt")
   tif <- glue("{pfx}_sol.tif")
@@ -26,6 +27,9 @@ solve_log <- function(p, pfx= deparse(substitute(p)), redo=F){
     message(glue("Files found ({basename(tif)}) & redo=F, returning previously computed raster solution"))
     return(s)
   }
+  if (!file.exists(log)) message(glue("File NOT found 'log': {log}"))
+  if (!file.exists(tif)) message(glue("File NOT found 'tif': {tif}"))
+  if (!file.exists(rep)) message(glue("File NOT found 'log': {rep}"))
 
   sink(log)
   s <- prioritizr::solve(p)

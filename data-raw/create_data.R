@@ -180,8 +180,17 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_lyrs){
   s_bio_gmbi <- gmbi_stack %>%
     mask(r_pu_id)
 
+  # remove layers
+  mins <- cellStats(s_bio_gmbi, "min")
+
+  length(names(s_bio_gmbi))
+  s_bio_gmbi <- raster::subset(s_bio_gmbi, names(s_bio_gmbi)[mins!=Inf])
+
   # write tifs
   map(names(s_bio_gmbi), lyr_to_tif, s_bio_gmbi, "bio_gmbi")
+
+  # load into memory so not referencing local file and use_data() works
+  s_bio_gmbi <- raster::readAll(s_bio_gmbi)
 
   # use_data()
   use_data(s_bio_gmbi, overwrite = TRUE)
