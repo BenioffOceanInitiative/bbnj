@@ -35,7 +35,7 @@ shinyServer(function(input, output, session) {
       title = input$sel_lyr,
       tags$iframe(
         #data-src="modal.html"
-        src="https://ecoquants.com/bbnj/articles/p01_rep.html",
+        src="https://ecoquants.com/bbnj/articles/s01a_bio-10-gl-now.html",
         height="100%", width="100%", frameborder="0")
     ))
   })

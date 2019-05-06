@@ -24,9 +24,10 @@ data(p_ppow_s05)
 
 #lyrs_rda <- file.path(system.file(package="bbnj"), "app/lyrs.rda")
 # DEBUG
-lyrs_rda <- here("inst/app/lyrs.rda")
+lyrs_rda  <- here("inst/app/lyrs.rda")
+lyrs_redo <- F
 
-if (!file.exists(lyrs_rda)){
+if (!file.exists(lyrs_rda) | lyrs_redo){
 
   # 1. Features, Original
   features_original <- stack(
@@ -92,11 +93,14 @@ if (!file.exists(lyrs_rda)){
 
   # 5. Scenarios
   scenarios_tbl <- tibble(
-    tif = list.files(here("vignettes"), "^p.*tif$")) %>%
+    tif = list.files(here("inst/scenarios"), "^s.*\\_sol.tif$", full.names=T)) %>%
+    #View()
     mutate(
-      scenario_num = map_chr(tif, function(x) str_extract(x, "[0-9]+")),
-      scenario     = glue("Scenario {scenario_num}"),
-      tif          = glue("{here('vignettes')}/{tif}"))
+      #scenario_num = map_chr(tif, function(x) str_extract(x, "[0-9]+[a-z]+")),
+      #scenario     = glue("Scenario {scenario_num}"),
+      scenario     = map_chr(basename(tif), function(x) str_replace(x, "^(s.*)\\_sol.tif$", "\\1")))
+      #tif          = glue("{here('inst/scenarios')}/{tif}")) %>%
+    #View()
   scenarios <- stack(scenarios_tbl$tif)
   names(scenarios) <- scenarios_tbl$scenario
 
@@ -110,8 +114,9 @@ if (!file.exists(lyrs_rda)){
   lyrs_mer <- projectRasterForLeaflet(lyrs_geo, "ngb")
 
   lyrs_geo <- readAll(lyrs_geo)
+  #names(lyrs_geo)[67] <- "s01a.bio.10.gl.now"
   lyrs_mer <- readAll(lyrs_mer)
-
+  #names(lyrs_mer)[67] <- "s01a.bio.10.gl.now"
   #writeRaster(lyrs, lyrs_grd)
   save(lyrs_geo, lyrs_mer, file=lyrs_rda, compress="bzip2")
 } else {
@@ -152,8 +157,5 @@ lyr_choices <- list(
         str_replace("Taxa.rls_", "")),
   `Scenario Solutions` =
     setNames(
-      names(lyrs_mer) %>%
-        str_subset("^Scenario.*"),
-      names(lyrs_mer) %>%
-        str_subset("^Scenario.*") %>%
-        str_replace("Scenario.", "")))
+        str_subset(names(lyrs_mer), "^s.*"),
+        str_subset(names(lyrs_mer), "^s.*")))

@@ -13,7 +13,7 @@ dashboardPage(
       choices = lyr_choices),
 
     conditionalPanel(
-      condition = "input.sel_lyr.substring(0,9) == 'Scenario.'",
+      condition = "input.sel_lyr.substring(0,1) == 's'",
       actionButton("btn_report", "Scenario report")),
 
     sliderInput(
