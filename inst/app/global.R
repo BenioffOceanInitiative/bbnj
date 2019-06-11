@@ -1,3 +1,4 @@
+library(rgdal)
 library(raster)
 library(tidyverse)
 library(stringr)
@@ -16,6 +17,7 @@ library(bbnj)
 # devtools::install_github("ecoquants/bbnj", force=T)
 # devtools::install_local(force=T)
 #library(prioritizr)
+# rsconnect::showLogs() # show log on shinyapps.io to debug
 
 # 0. eez
 data(p_eez_s05)
@@ -24,10 +26,12 @@ data(p_ppow_s05)
 
 #lyrs_rda <- file.path(system.file(package="bbnj"), "app/lyrs.rda")
 # DEBUG
-lyrs_rda  <- here("inst/app/lyrs.rda")
+#lyrs_rda  <- here("inst/app/lyrs.rda")
+lyrs_rda  <- "lyrs.rda"
 lyrs_redo <- F
 
 if (!file.exists(lyrs_rda) | lyrs_redo){
+  message("redoing layers\n\n")
 
   # 1. Features, Original
   features_original <- stack(

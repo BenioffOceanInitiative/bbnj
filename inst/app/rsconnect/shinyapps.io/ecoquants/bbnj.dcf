@@ -1,0 +1,13 @@
+name: bbnj
+title: bbnj
+username:
+account: ecoquants
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 976495
+bundleId: 2146251
+url: https://ecoquants.shinyapps.io/bbnj/
+when: 1560279262.79436
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: global_solve-bits.R
