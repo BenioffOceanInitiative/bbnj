@@ -35,6 +35,9 @@ abnj_shp                 <- glue("{dir_data}/abnj.shp")
 abnj_s05_shp             <- glue("{dir_data}/abnj_s05.shp")
 iho_shp                  <- glue("{dir_data}/iho.shp")
 iho_s05_shp              <- glue("{dir_data}/iho_s05.shp")
+ihor_shp                 <- glue("{dir_data}/ihor.shp")
+ihor_s05_shp             <- glue("{dir_data}/ihor_s05.shp")
+ihor_tif                 <- glue("{dir_data}/ihor.tif")
 ppow_shp                 <- glue("{dir_data}/ppow.shp")
 ppow_s05_shp             <- glue("{dir_data}/ppow_s05.shp")
 eez_shp                  <- glue("{dir_data}/eez.shp")
@@ -48,6 +51,7 @@ phys_vents_tif           <- glue("{dir_data}/phys_vents.tif")
 # variables ----
 redo_eez  = F
 redo_abnj = F
+redo_ihor = F
 redo_lyrs = F
 
 # helper functions ----
@@ -87,7 +91,7 @@ if (!file.exists(eez_shp) | redo_eez){
   write_sf(p_eez_s05, eez_s05_shp)
 }
 
-# p_abnj ----
+# p_abnj, p_iho ----
 if (!file.exists(abnj_s05_shp) | redo_abnj){
   eez_iho <- read_sf(raw_eez_iho_shp)
 
@@ -115,7 +119,7 @@ if (!file.exists(abnj_s05_shp) | redo_abnj){
 
   # TODO: clip iho to high seas
   #p_iho <- st_intersection(p_iho, p_abnj)
-  #write_sf(p_iho, iho_shp)
+  write_sf(p_iho, iho_shp)
   use_data(p_iho, overwrite = TRUE)
 
   #p_iho <- read_sf(iho_shp)
@@ -130,6 +134,64 @@ if (!file.exists(abnj_s05_shp) | redo_abnj){
   p_abnj_s05 <- rmapshaper::ms_simplify(p_abnj, keep = 0.05)
   use_data(p_abnj_s05, overwrite = TRUE)
   write_sf(p_abnj_s05, abnj_s05_shp)
+}
+
+# r_ihor ----
+# raster (and polygon) of IHO seas revised (ihor), ie 7 seas
+if (!file.exists(ihor_s05_shp) | redo_ihor){
+
+  p_iho <- read_sf(iho_shp)
+
+  sz <- 2500000 # small (sm) < 2.5M km2 <= large (lg)
+  sm <- filter(p_iho, Area_km2  < sz)
+  lg <- filter(p_iho, Area_km2 >= sz)
+
+  p_ihor <- rbind(
+    lg,
+    sm %>%
+      select(-IHO_Sea) %>%
+      left_join(
+        st_join(
+          st_centroid(sm) %>% select(fid),
+          lg %>% select(IHO_Sea),
+          join = st_nearest_feature) %>%
+          st_drop_geometry(),
+        by = "fid"))
+
+  p_ihor <- p_ihor %>%
+    group_by(IHO_Sea) %>%
+    summarize(
+      Area_km2 = sum(Area_km2)) %>%
+    # Warning message:
+    #   In st_is_longlat(x) :
+    #     bounding box has potentially an invalid value range for longlat data
+    st_crop(bb) %>%
+    mutate(
+      area_km2 = st_area(geometry) %>% units::set_units(km2)) %>%
+    arrange(IHO_Sea) %>%
+    tibble::rowid_to_column("seaid") %>%
+    select(seaid, sea=IHO_Sea, area_km2)
+
+  write_sf(p_ihor, ihor_shp)
+  p_ihor <- read_sf(ihor_shp)
+  use_data(p_ihor, overwrite = TRUE)
+
+  p_ihor_s05 <- rmapshaper::ms_simplify(p_ihor, keep = 0.05)
+  use_data(p_ihor_s05, overwrite = TRUE)
+  write_sf(p_ihor_s05, ihor_s05_shp)
+
+  r_ihor <- rasterize(p_ihor, r_pu_id, field="seaid") %>%
+    mask(r_pu_id) # plot(r_ihor)
+  names(r_ihor) <- "seaid"
+  r_ihor <- ratify(r_ihor)
+  levels(r_ihor) <- p_ihor %>%
+    st_drop_geometry() %>%
+    select(ID=seaid, sea, area_km2) %>%
+    as.data.frame()
+  #factorValues(r_ihor, 1:7)
+
+  writeRaster(r_ihor, ihor_tif, overwrite = TRUE)
+  use_data(r_ihor, overwrite = TRUE)
 }
 
 # p_ppow ----

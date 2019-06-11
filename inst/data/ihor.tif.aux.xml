@@ -1,0 +1,14 @@
+<PAMDataset>
+  <PAMRasterBand band="1">
+    <CategoryNames>
+      <Category></Category>
+      <Category>Arctic Ocean</Category>
+      <Category>Indian Ocean</Category>
+      <Category>North Atlantic Ocean</Category>
+      <Category>North Pacific Ocean</Category>
+      <Category>South Atlantic Ocean</Category>
+      <Category>South Pacific Ocean</Category>
+      <Category>Southern Ocean</Category>
+    </CategoryNames>
+  </PAMRasterBand>
+</PAMDataset>

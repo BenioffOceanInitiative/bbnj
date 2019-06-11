@@ -37,7 +37,7 @@
 #' merge small areas with larger ones.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
-"p_ppow"
+"p_iho"
 
 #' Simplified polygon of IHO Seas
 #'
@@ -45,7 +45,41 @@
 #' merge small areas with larger ones. Simplified to 5% of original vertices for fast visualization.
 #'
 #' @format A \code{\link[sf]{sf}} object of a polygon.
-"p_ppow"
+"p_iho_s05"
+
+#' Polygon of IHO Seas Revised, ie Seven Seas
+#'
+#' See \url{http://www.marineregions.org/sources.php#iho}. Clipped to high seas.
+#' Merged smaller areas to the top 7 seas by taking the nearest sea from the
+#' centroid.
+#'
+#' @format A \code{\link[sf]{sf}} object of a polygon.
+"p_ihor"
+
+#' Raster for polygon of IHO Seas Revised, ie Seven Seas
+#'
+#' Global half-degree raster of seven seas in the high seas by seaid (alphabetical):
+#' \enumerate{
+#'   \item Arctic Ocean
+#'   \item Indian Ocean
+#'   \item North Atlantic Ocean
+#'   \item North Pacific Ocean
+#'   \item South Atlantic Ocean
+#'   \item South Pacific Ocean
+#'   \item Southern Ocean
+#' }
+#'
+#' @format A \code{\link[raster]{raster}} prence (1 or 0) of mine claim in cell.
+"r_ihor"
+
+#' Simplified polygon of IHO Seas Revised, ie Seven Seas
+#'
+#' See \url{http://www.marineregions.org/sources.php#iho}. Clipped to high seas.
+#' Merged smaller areas to the top 7 seas by taking the nearest sea from the
+#' centroid. Simplified to 5% of original vertices for fast visualization.
+#'
+#' @format A \code{\link[sf]{sf}} object of a polygon.
+"p_ihor_s05"
 
 #' Simplified polygon of areas beyond national jurisdiction, ie high seas area
 #'
