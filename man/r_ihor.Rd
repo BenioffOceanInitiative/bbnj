@@ -4,7 +4,7 @@
 \name{r_ihor}
 \alias{r_ihor}
 \title{Raster for polygon of IHO Seas Revised, ie Seven Seas}
-\format{A \code{\link[raster]{raster}} prence (1 or 0) of mine claim in cell.}
+\format{A \code{\link[raster]{raster}} of \code{seaid} [1-7] with raster attribute table providing \code{sea} and \code{area_km2} (see \code{\link[raster]{factorValues}()}).}
 \usage{
 r_ihor
 }
