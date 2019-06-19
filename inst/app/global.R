@@ -23,6 +23,7 @@ library(bbnj)
 data(p_eez_s05)
 data(p_abnj_s05)
 data(p_ppow_s05)
+data(p_ihor_s05)
 
 #lyrs_rda <- file.path(system.file(package="bbnj"), "app/lyrs.rda")
 # DEBUG

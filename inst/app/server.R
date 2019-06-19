@@ -18,25 +18,38 @@ shinyServer(function(input, output, session) {
       addPolygons(
         data=p_ppow_s05, group = "Pelagic Provinces",
         color = "blue", weight=3) %>%
+      addPolygons(
+        data=p_ihor_s05, group = "IHO 7 Seas",
+        color = "blue", weight=3) %>%
       addMouseCoordinates() %>%
       addLayersControl(
         baseGroups = c("Stamen TonerLite", "ESRI Ocean Basemap"),
-        overlayGroups = c("EEZ","High Seas","Pelagic Provinces"),
+        overlayGroups = c("EEZ","High Seas","Pelagic Provinces","IHO 7 Seas"),
         options = layersControlOptions(collapsed = T)) %>%
       hideGroup("EEZ") %>%
       hideGroup("High Seas") %>%
       hideGroup("Pelagic Provinces") %>%
+      hideGroup("IHO 7 Seas") %>%
       fitBounds(-150, -60, 150, 60)
   })
 
   observeEvent(input$btn_report, {
+    #browser()
+    # scenario <- input$sel_lyr %>%
+    #   str_replace("\\.", "_") %>%
+    #   str_replace_all("\\.", "-")
+    scenario <- input$sel_lyr
+    url <- glue("https://ecoquants.com/bbnj/articles/{scenario}.html")
+
     showModal(modalDialog(
       size = "l",
       title = input$sel_lyr,
-      tags$iframe(
-        #data-src="modal.html"
-        src="https://ecoquants.com/bbnj/articles/s01a_bio-10-gl-now.html",
-        height="100%", width="100%", frameborder="0")
+      tagList(
+        a(href=url, scenario),
+        p(),
+        tags$iframe(
+          src=url,
+          height="100%", width="100%", margin="0", `min-height`="700px", frameborder="0"))
     ))
   })
 

@@ -1,0 +1,12 @@
+.modal-body{
+  min-height:700px;
+}
+
+#map {
+  height: calc(100vh - 80px) !important;
+}
+
+#hist_var {
+  height: calc(100vh - 80px) !important;
+}
+

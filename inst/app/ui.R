@@ -20,8 +20,10 @@ dashboardPage(
       "slider_opacity", "Opacity", 0, 1, 0.7, step=0.1)),
 
   dashboardBody(
-    tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
-    tags$style(type = "text/css", "#hist_var {height: calc(100vh - 80px) !important;}"),
+    tags$head(
+        tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")),
+    # tags$style(type = "text/css", "#map {height: calc(100vh - 80px) !important;}"),
+    # tags$style(type = "text/css", "#hist_var {height: calc(100vh - 80px) !important;}"),
     tabItems(
       tabItem("tab_map",
               leafletOutput("map")),

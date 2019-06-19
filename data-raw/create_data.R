@@ -15,6 +15,8 @@ library(rlang)
 select = dplyr::select
 
 library(gmbi) #devtools::install_github("marinebon/gmbi", force=T) #devtools::install_local("~/github/gmbi")
+#remotes::install_local("~/github/gmbi", for)
+
 devtools::load_all()
 
 # paths ----
@@ -136,7 +138,7 @@ if (!file.exists(abnj_s05_shp) | redo_abnj){
   write_sf(p_abnj_s05, abnj_s05_shp)
 }
 
-# r_ihor ----
+# p_ihor, s_ihor ----
 # raster (and polygon) of IHO seas revised (ihor), ie 7 seas
 if (!file.exists(ihor_s05_shp) | redo_ihor){
 
@@ -182,16 +184,34 @@ if (!file.exists(ihor_s05_shp) | redo_ihor){
 
   r_ihor <- rasterize(p_ihor, r_pu_id, field="seaid") %>%
     mask(r_pu_id) # plot(r_ihor)
-  names(r_ihor) <- "seaid"
-  r_ihor <- ratify(r_ihor)
-  levels(r_ihor) <- p_ihor %>%
-    st_drop_geometry() %>%
-    select(ID=seaid, sea, area_km2) %>%
-    as.data.frame()
+  # OLD: all in one raster
+  # names(r_ihor) <- "seaid"
+  # r_ihor <- ratify(r_ihor)
+  # levels(r_ihor) <- p_ihor %>%
+  #   st_drop_geometry() %>%
+  #   select(ID=seaid, sea, area_km2) %>%
+  #   as.data.frame()
   #factorValues(r_ihor, 1:7)
+  # writeRaster(s_ihor, ihor_tif, overwrite = TRUE)
+  # use_data(r_ihor, overwrite = TRUE)
 
-  writeRaster(r_ihor, ihor_tif, overwrite = TRUE)
-  use_data(r_ihor, overwrite = TRUE)
+  # NEW: seperate each sea into own raster to use as representative target
+  seas = c("Arctic", "Indian", "N_Atlantic", "N_Pacific", "S_Atlantic", "S_Pacific", "Southern")
+  s_ihor = stack()
+  for (i in 1:length(seas)){ # i = 1
+    s_ihor = stack(s_ihor, r_ihor == i)
+    names(s_ihor)[i] = seas[i]
+    # plot(raster(s_ihor, i), main = seas[i])
+  }
+
+  # write tifs
+  map(names(s_ihor), lyr_to_tif, s_ihor, "bnd_ihor")
+
+  # load into memory so not referencing local file and use_data() works
+  s_ihor <- raster::readAll(s_ihor)
+
+  # use_data()
+  use_data(s_ihor, overwrite = TRUE)
 }
 
 # p_ppow ----
@@ -244,8 +264,7 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_lyrs){
 
   # remove layers
   mins <- cellStats(s_bio_gmbi, "min")
-
-  length(names(s_bio_gmbi))
+  #length(names(s_bio_gmbi))
   s_bio_gmbi <- raster::subset(s_bio_gmbi, names(s_bio_gmbi)[mins!=Inf])
 
   # write tifs

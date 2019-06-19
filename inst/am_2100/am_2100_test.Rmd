@@ -1,0 +1,31 @@
+---
+title: "am_2100 test"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(raster)
+library(glue)
+library(here)
+
+# TODO: iterate over species
+sp <- "Pseudanthias_evansi"
+
+# get netcdf file
+url <- glue("http://thredds.d4science.org/thredds/fileServer/public/netcdf/AquaMaps_08_2016/{sp}.nc")
+nc <- basename(url)
+download.file(url, nc)
+
+# read netcdf into raster
+r <- raster(nc, varname = "probability")
+
+# plot to check ok
+plot(r)
+```
+
