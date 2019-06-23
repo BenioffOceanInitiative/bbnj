@@ -4,20 +4,21 @@ library(tidyverse)
 library(xml2)
 library(purrr)
 library(raster)
+library(fasterize)
 library(usethis)
 library(sf)
 library(glue)
 library(here)
 library(rmapshaper)
 library(geojsonio)
-library(bbnj)
 library(rlang)
 select = dplyr::select
 
 library(gmbi) #devtools::install_github("marinebon/gmbi", force=T) #devtools::install_local("~/github/gmbi")
 #remotes::install_local("~/github/gmbi", for)
 
-devtools::load_all()
+library(bbnj) #devtools::install_github("ecoquants/bbnj", force=T) #devtools::install_local("~/github/bbnj")
+#devtools::load_all()
 
 # paths ----
 dir_data                 <- here("inst/data")
@@ -33,6 +34,7 @@ raw_phys_seamounts_kml   <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 201
 raw_phys_seamounts_txt   <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 2011/KWSMTSv01.txt")
 raw_phys_scapes_arcinfo  <- glue("{dir_gdata}/raw/Harris and Whiteway 2009/Global_Seascapes/class_11")
 raw_phys_vents_csv       <- glue("{dir_gdata}/raw/Hydrothermal vents - Interridge Vent Database v3.4/vent_fields_all.csv")
+raw_vgpm_dir             <- glue("{dir_gdata}/raw/VGPM_oregonstate.edu")
 abnj_shp                 <- glue("{dir_data}/abnj.shp")
 abnj_s05_shp             <- glue("{dir_data}/abnj_s05.shp")
 iho_shp                  <- glue("{dir_data}/iho.shp")
@@ -49,6 +51,7 @@ mine_claims_shp          <- glue("{dir_data}/mine-claims.shp")
 mine_claims_tif          <- glue("{dir_data}/mine-claims.tif")
 phys_seamounts_tif       <- glue("{dir_data}/phys_seamounts.tif")
 phys_vents_tif           <- glue("{dir_data}/phys_vents.tif")
+vgpm_tif                 <- glue("{dir_data}/vgpm.tif")
 
 # variables ----
 redo_eez  = F
@@ -182,7 +185,7 @@ if (!file.exists(ihor_s05_shp) | redo_ihor){
   use_data(p_ihor_s05, overwrite = TRUE)
   write_sf(p_ihor_s05, ihor_s05_shp)
 
-  r_ihor <- rasterize(p_ihor, r_pu_id, field="seaid") %>%
+  r_ihor <- fasterize(p_ihor, r_pu_id, field="seaid") %>%
     mask(r_pu_id) # plot(r_ihor)
   # OLD: all in one raster
   # names(r_ihor) <- "seaid"
@@ -246,11 +249,44 @@ if (!file.exists(pu_id_tif) | redo_lyrs){
   r_pu_id <- r_na
   values(r_pu_id) <- 1:ncell(r_na)
 
-  r_abnj  <- rasterize(abnj, r_na)
-  r_pu_id <- mask(r_pu_id, r_abnj)
+  r_abnj <- read_sf(abnj_shp) %>%
+    fasterize(r_na) # rasterize() resulted in horizontal slivers
+
+  r_pu_id <- mask(r_pu_id, r_abnj) # plot(r_pu_id)
 
   writeRaster(r_pu_id, pu_id_tif, overwrite=T)
   use_data(r_pu_id, overwrite = TRUE)
+}
+
+# r_vpgm ----
+if (!file.exists(vgpm_tif) | redo_lyrs){
+
+  # Downloaded vgpm.v.[YYYY].xyz.tar from [Ocean Productivity: Online Data: Standard VGPM - 2160 by 4320 Monthly XYZ files from VIIRS Data](http://orca.science.oregonstate.edu/2160.by.4320.monthly.xyz.vgpm.v.chl.v.sst.php)
+  # Feb 1 2013 - Jan 31 2019
+
+  # untar and ungzip
+  tars <- list.files(raw_vgpm_dir, ".tar", full.names=T)
+  lapply(tars, untar, exdir = path.expand(raw_vgpm_dir))
+  gzs <- list.files(raw_vgpm_dir, ".gz", full.names=T)
+  lapply(gzs, R.utils::gunzip)
+
+  # xyz to raster, in parallel
+  source(here("data-raw/vgpm_func.R"))
+  xyzs <- list.files(raw_vgpm_dir, ".xyz", full.names=T)
+  library(furrr)
+  plan(multiprocess)
+  out <- future_map(xyzs, vgpm.raster)
+  # vgpm.raster(file.path(raw_vgpm_dir, "vgpm.2019001.all.xyz"))
+
+  tifs <- list.files(raw_vgpm_dir, ".*\\.tif$", full.names = T)
+  r_vgpm <- stack(tifs) %>%
+    mean(na.rm=T) %>%
+    aggregate(fact=6) %>%
+    mask(r_pu_id)
+  plot(log(r_vgpm))
+
+  writeRaster(r_vgpm, vgpm_tif, overwrite=T)
+  use_data(r_vgpm, overwrite=T)
 }
 
 # s_bio_gmbi ----
@@ -373,7 +409,7 @@ if (!dir.exists("inst/data/phys_scapes") | T){
 # r_phys_seamounts ----
 if (!file.exists(phys_seamounts_tif) | redo_lyrs){
 
-
+  # OLD: read in XML since read_sf() was taking days
   x <- read_xml(raw_phys_seamounts_kml)
 
   xpaths <- list(
@@ -385,10 +421,9 @@ if (!file.exists(phys_seamounts_tif) | redo_lyrs){
     separate(xyz, c("x", "y", "z"), sep=",", convert=T) %>%
     st_as_sf(coords = c("x", "y"), crs = 4326)
 
-  readr::read_delim()
-  x <- read_csv(raw_phys_seamounts_txt)
-
-  pts <- st_as_sf(x, coords = c("x", "y"), crs = 4326)
+  # NEW TODO: easier to read CSV
+  #x <- read_csv(raw_phys_seamounts_txt)
+  #pts <- st_as_sf(x, coords = c("x", "y"), crs = 4326)
 
   r_phys_seamounts <- rasterize(st_coordinates(pts), r_pu_id, fun='count', background=0) %>%
     mask(r_pu_id) # plot(r_phys_seamounts)

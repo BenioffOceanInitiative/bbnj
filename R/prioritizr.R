@@ -46,6 +46,40 @@ solve_log <- function(p, pfx=deparse(substitute(p)), redo=F){
   s
 }
 
+#' Display table of target representaiton in conservation problem solution
+#'
+#' @param csv comma-seperated value output from \code{\link{solve_log}}
+#'
+#' @return \code{\link[formattable]{formattable}} in form of
+#'   \code{\link[DT]{datatable}} with horizontal bars indicating percent held
+#'   per target.
+#' @export
+#'
+#' @examples
+tbl_target_representation <- function(csv = glue("{pfx}_rep.csv")){
+  # csv = here("inst/scenarios/s01a.bio.10.gl.now_rep.csv")
+  library(readr)
+  library(formattable)
+  library(dplyr)
+  library(DT)
+
+  d <- readr::read_csv(csv)
+
+  stopifnot(c("feature", "relative_held", "absolute_held") %in% names(d))
+
+  d %>%
+    dplyr::mutate(
+      relative_held = ifelse(is.nan(relative_held), 0, relative_held),
+      relative_held = formattable::percent(relative_held),
+      absolute_held = formattable::accounting(absolute_held)) %>%
+    formattable(list(
+      relative_held = formattable::normalize_bar())) %>%
+    formattable::as.datatable(
+      options = list(
+        pageLength = 1000,
+        columnDefs = list(list(className = 'dt-right', targets = c(2,3)))))
+}
+
 #' Produce diagnostics table for setting relative targets of features
 #'
 #' @param pu planning unit raster

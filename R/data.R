@@ -56,9 +56,9 @@
 #' @format A \code{\link[sf]{sf}} object of a polygon.
 "p_ihor"
 
-#' Raster for polygon of IHO Seas Revised, ie Seven Seas
+#' Stack of rasters describing presence of seven seas from IHO revised (IHOR)
 #'
-#' Global half-degree raster of seven seas in the high seas by seaid (alphabetical):
+#' Global half-degree stack of seven seas in the high seas by seaid (alphabetical):
 #' \enumerate{
 #'   \item Arctic Ocean
 #'   \item Indian Ocean
@@ -69,8 +69,10 @@
 #'   \item Southern Ocean
 #' }
 #'
-#' @format A \code{\link[raster]{raster}} of \code{seaid} [1-7] with raster attribute table providing \code{sea} and \code{area_km2} (see \code{\link[raster]{factorValues}()}).
-"r_ihor"
+#' @format A \code{\link[raster]{stack}} of \code{seaid} [1-7] with raster
+#'   attribute table providing \code{sea} and \code{area_km2} (see
+#'   \code{\link[raster]{factorValues}()}).
+"s_ihor"
 
 #' Simplified polygon of IHO Seas Revised, ie Seven Seas
 #'
@@ -180,3 +182,13 @@
 #'   \item Abyssal, hilly plains, large (arched) uplifted structures, flat abyssal plains, flat, very low PP, very thin sediment
 #' }
 "s_phys_scapes"
+
+#' Raster for average Vertically Generalized Production Model (VGPM)
+#'
+#' Global half-degree raster of mean primary production using the Vertically
+#' Generalized Production Model (Standard VGPM 2013-02-01 to 2019-01-31) using
+#' \href{Standard VGPM - 2160 by 4320 Monthly XYZ files from VIIRS
+#' Data}{http://orca.science.oregonstate.edu/2160.by.4320.monthly.xyz.vgpm.v.chl.v.sst.php}
+#'
+#' @format A \code{\link[raster]{raster}} of half-degree cells
+"r_vgpm"

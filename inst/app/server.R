@@ -12,19 +12,20 @@ shinyServer(function(input, output, session) {
       addPolygons(
         data=p_eez_s05, label = ~GeoName, group = "EEZ",
         color = "gray", weight=2) %>%
-      addPolygons(
-        data=p_abnj_s05, group = "High Seas",
-        color = "black", weight=4) %>%
-      addPolygons(
-        data=p_ppow_s05, group = "Pelagic Provinces",
-        color = "blue", weight=3) %>%
+      # addPolygons(
+      #   data=p_abnj_s05, group = "High Seas",
+      #   color = "black", weight=4) %>%
+      # addPolygons(
+      #   data=p_ppow_s05, group = "Pelagic Provinces",
+      #   color = "blue", weight=3) %>%
       addPolygons(
         data=p_ihor_s05, group = "IHO 7 Seas",
         color = "blue", weight=3) %>%
       addMouseCoordinates() %>%
       addLayersControl(
         baseGroups = c("Stamen TonerLite", "ESRI Ocean Basemap"),
-        overlayGroups = c("EEZ","High Seas","Pelagic Provinces","IHO 7 Seas"),
+        #overlayGroups = c("EEZ","High Seas","Pelagic Provinces", "IHO 7 Seas"),
+        overlayGroups = c("EEZ","IHO 7 Seas"),
         options = layersControlOptions(collapsed = T)) %>%
       hideGroup("EEZ") %>%
       hideGroup("High Seas") %>%
@@ -80,7 +81,8 @@ shinyServer(function(input, output, session) {
           str_replace("_", "<br>")) %>%
       addLayersControl(
         baseGroups = c("Stamen TonerLite", "ESRI Ocean Basemap"),
-        overlayGroups = c("EEZ","High Seas","Pelagic Provinces", "Layer"),
+        #overlayGroups = c("EEZ","High Seas","Pelagic Provinces", "Layer"),
+        overlayGroups = c("EEZ","IHO 7 Seas"),
         options = layersControlOptions(collapsed = T))
   })
 
