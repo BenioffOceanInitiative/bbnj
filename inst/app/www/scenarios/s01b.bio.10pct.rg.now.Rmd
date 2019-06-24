@@ -22,6 +22,7 @@ area   = raster::area
 select = dplyr::select
 
 rmd <- knitr::current_input(dir = T)
+#rmd <- file.path(getwd(), "s01b.bio.10pct.rg.now.Rmd")
 pfx <- rmd %>% fs::path_ext_remove()
 ```
 
@@ -47,6 +48,7 @@ s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
 
 # feature: s01a + s_ihor ----
 s_features <- stack(
+  r_vgpm,
   s_bio_now,
   #raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>%
   #    gap_fill_raster() %>%
@@ -57,12 +59,13 @@ s_features <- stack(
   s_phys_scapes,
   s_ihor)
 names(s_features) <- c(
+  "bio_vgpm",
   names(s_bio_now),
-  #"gfw_profits.subsidized",
-  #"saup_mcp.now",
-  "seamounts_count",
-  "vents_count",
-  glue("benthscape_{1:11}"),
+  #"fish_profit.subs"
+  #"fish_mcp.2004",
+  "phys_seamounts",
+  "phys_vents",
+  glue("phys_scape.{1:11}"),
   glue("sea_{names(s_ihor)}"))
 
 # problem ----

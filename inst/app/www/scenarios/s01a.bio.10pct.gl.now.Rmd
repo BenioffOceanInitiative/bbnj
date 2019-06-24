@@ -23,8 +23,8 @@ library(formattable)
 area   = raster::area
 select = dplyr::select
 
-#rmd <- knitr::current_input(dir = T)
-rmd <- file.path(getwd(), "s01a.bio.10pct.gl.now.Rmd")
+rmd <- knitr::current_input(dir = T)
+#rmd <- file.path(getwd(), "s01a.bio.10pct.gl.now.Rmd")
 pfx <- rmd %>% path_ext_remove()
 ```
 
@@ -50,6 +50,7 @@ s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
 
 # features ----
 s_features <- stack(
+  r_vgpm,
   s_bio_now,
   #raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>%
   #    gap_fill_raster() %>%
@@ -59,12 +60,13 @@ s_features <- stack(
   r_phys_vents,
   s_phys_scapes)
 names(s_features) <- c(
+  "bio_vgpm",
   names(s_bio_now),
-  #"gfw_profits.subsidized",
-  #"saup_mcp.now",
-  "seamounts_count",
-  "vents_count",
-  glue("benthscape_{1:11}"))
+  #"fish_profit.subs"
+  #"fish_mcp.2004",
+  "phys_seamounts",
+  "phys_vents",
+  glue("phys_scape.{1:11}"))
 
 # problem ----
 p <- problem(r_pu, s_features) %>%

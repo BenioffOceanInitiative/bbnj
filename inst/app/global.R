@@ -77,7 +77,8 @@ names(lyrs_mer) <- names(lyrs_gcs)
 lyr_choices <- bind_rows(
     features_label,
     scenarios_label) %>%
-  select(type, label)
+  select(type, label) %>%
+  arrange(type, label)
 
 lyrs_mismatch <- setdiff(names(lyrs_mer), lyr_choices$label)
 stopifnot(length(lyrs_mismatch) == 0)
