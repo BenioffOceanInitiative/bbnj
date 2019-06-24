@@ -1,3 +1,5 @@
+# bbnj 0.4.1
+
 # bbnj 0.4
 
 * Fixed modal window to resize and include full report
