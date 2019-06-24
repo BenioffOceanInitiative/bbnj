@@ -7,7 +7,7 @@ editor_options:
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo=T, message=F)
+knitr::opts_chunk$set(echo=T, message=F, warning=F)
 ```
 
 ```{r libraries & path}
@@ -32,8 +32,8 @@ pfx <- rmd %>% path_ext_remove()
 
 # `r basename(pfx)`
 
-- Planning unit:
-    - inverse of fishing profitability, ie minimize impacts to fishing
+- Planning unit cost:
+    - fishing profitability, ie minimize impacts to fishing
 
 - Feature targets:
     - _30%_ of each input feature amount
@@ -57,8 +57,8 @@ redo       <- F
 # planning unit: inverse of fishing profitability ----
 r_fish_profits <- raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") # plot(r_fish_profits)
 r_pu <- r_fish_profits %>%
-  gap_fill_raster() %>%
-  rescale_raster(inverse=T) # plot(r_pu)
+  gap_fill_raster() # %>%
+  # rescale_raster(inverse=T) # plot(r_pu)
 
 # biodiversity: now, not 2100 ----
 lyrs_bio_now <- names(s_bio_gmbi) %>% 
@@ -94,8 +94,20 @@ p <- problem(r_pu, s_features) %>%
 
 # solve ----
 s <- solve_log(p, pfx, redo=redo)
+```
 
-# plot 
+```{r area}
+r_pu_area <- area(r_pu_id) %>%  # in km2
+  mask(r_pu_id)
+#tif <- "/Users/bbest/github/bbnj/inst/app/www/scenarios/s03a.biofish.30pct.gl.now_sol.tif"
+tif <- glue("{pfx}_sol.tif")
+r_sol <- raster(tif)
+area_km2 <- cellStats(r_pu_area * r_sol, "sum")
+```
+
+Area ($km^2$): `r format(area_km2, big.mark=",")`
+
+```{r table}
 tbl_target_representation(glue("{pfx}_rep.csv"))
 ```
 

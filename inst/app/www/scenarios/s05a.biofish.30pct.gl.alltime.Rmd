@@ -7,7 +7,7 @@ editor_options:
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo=T, message=F)
+knitr::opts_chunk$set(echo=T, message=F, warning=F)
 ```
 
 ```{r libraries & path}
@@ -33,14 +33,14 @@ pfx <- rmd %>% path_ext_remove()
 # `r basename(pfx)`
 
 - Planning unit cost:
-    - fishing maximum catch potential [_2050_], ie minimize impacts to future fishing
+    - fishing profitability, ie minimize impacts to fishing
 
 - Feature targets:
     - _30%_ of each input feature amount
     - **Biodiversity:
         - `bio_vgpm`: Vertically Generalized Production Model
-        - `nspp_*`: number of species by taxonomic group from AquaMaps [_now_]
-        - `rls_*`: Red List sum of extinction risk by taxonomic group from AquaMaps [_now_]
+        - `nspp_*`: number of species by taxonomic group from AquaMaps [_now_ + _future_]
+        - `rls_*`: Red List sum of extinction risk by taxonomic group from AquaMaps [_now_ + _future_]
     - Physical:
         - `phys_vents`: hydrothermal vent count
         - `phys_seamounts`: seamounts count
@@ -52,23 +52,24 @@ pfx <- rmd %>% path_ext_remove()
 ```{r solutions}
 # variables: target 30% ----
 rel_target <- 0.3
-redo       <- T
+redo       <- F
 
-# planning unit: inverse of future fishing potential ----
-r_fish_mcp2050 <- raster(s_fish_ubc, "mcp_2050") # plot(r_fish_mcp2050)
-r_pu <- r_fish_mcp2050 %>%
+# planning unit: inverse of fishing profitability ----
+r_fish_profits <- raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") # plot(r_fish_profits)
+r_pu <- r_fish_profits %>%
   gap_fill_raster() # %>%
   # rescale_raster(inverse=T) # plot(r_pu)
 
-# biodiversity: 2100 ----
-lyrs_bio_future <- str_subset(names(s_bio_gmbi), "2100$") %>% 
+# biodiversity: now + 2100 ----
+lyrs_bio_alltime <- names(s_bio_gmbi) %>% 
+  setdiff(c("nspp_all", "nspp_na", "rls_all", "rls_na")) %>% 
   setdiff(c("nspp_all_2100", "nspp_na_2100", "rls_all_2100", "rls_na_2100"))
-s_bio_future <- subset(s_bio_gmbi, lyrs_bio_future)
+s_bio_alltime <- subset(s_bio_gmbi, lyrs_bio_alltime)
 
 # features ----
 s_features <- stack(
   r_vgpm,
-  s_bio_future,
+  s_bio_alltime,
   #raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>%
   #    gap_fill_raster() %>%
   #    rescale_raster(inverse=T),
@@ -78,7 +79,7 @@ s_features <- stack(
   s_phys_scapes)
 names(s_features) <- c(
   "bio_vgpm",
-  names(s_bio_future),
+  names(s_bio_alltime),
   #"fish_profit.subs"
   #"fish_mcp.2004",
   "phys_seamounts",
@@ -92,8 +93,20 @@ p <- problem(r_pu, s_features) %>%
 
 # solve ----
 s <- solve_log(p, pfx, redo=redo)
+```
 
-# plot 
+```{r area}
+r_pu_area <- area(r_pu_id) %>%  # in km2
+  mask(r_pu_id)
+#tif <- "/Users/bbest/github/bbnj/inst/app/www/scenarios/s03a.biofish.30pct.gl.now_sol.tif"
+tif <- glue("{pfx}_sol.tif")
+r_sol <- raster(tif)
+area_km2 <- cellStats(r_pu_area * r_sol, "sum")
+```
+
+Area ($km^2$): `r format(area_km2, big.mark=",")`
+
+```{r table}
 tbl_target_representation(glue("{pfx}_rep.csv"))
 ```
 
