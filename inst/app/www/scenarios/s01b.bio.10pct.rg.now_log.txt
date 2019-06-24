@@ -7,7 +7,7 @@ Coefficient statistics:
   RHS range        [3e+00, 5e+06]
 Found heuristic solution: objective 3.628348e+07
 Presolve removed 0 rows and 19448 columns
-Presolve time: 2.21s
+Presolve time: 2.08s
 Presolved: 48 rows, 79379 columns, 1095144 nonzeros
 Variable types: 0 continuous, 79379 integer (74115 binary)
 Presolved: 48 rows, 79379 columns, 1095144 nonzeros
@@ -70,7 +70,7 @@ Starting sifting (using dual simplex for sub-problems)...
 Sifting complete
 
 
-Root relaxation: objective 2.075770e+07, 4808 iterations, 1.43 seconds
+Root relaxation: objective 2.075770e+07, 4808 iterations, 1.37 seconds
 
     Nodes    |    Current Node    |     Objective Bounds      |     Work
  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
@@ -78,7 +78,7 @@ Root relaxation: objective 2.075770e+07, 4808 iterations, 1.43 seconds
      0     0 2.0758e+07    0   21 3.6283e+07 2.0758e+07  42.8%     -    3s
 H    0     0                    2.076074e+07 2.0758e+07  0.01%     -    4s
 
-Explored 1 nodes (4809 simplex iterations) in 4.73 seconds
+Explored 1 nodes (4809 simplex iterations) in 4.49 seconds
 Thread count was 1 (of 12 available processors)
 
 Solution count 2: 2.07607e+07 3.62835e+07 

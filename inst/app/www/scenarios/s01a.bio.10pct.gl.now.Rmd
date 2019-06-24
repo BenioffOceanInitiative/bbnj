@@ -17,12 +17,15 @@ library(dplyr)
 library(stringr)
 library(glue)
 library(here)
+library(fs)
+library(knitr)
 library(formattable)
 area   = raster::area
 select = dplyr::select
 
-rmd <- knitr::current_input(dir = T)
-pfx <- rmd %>% fs::path_ext_remove()
+#rmd <- knitr::current_input(dir = T)
+rmd <- file.path(getwd(), "s01a.bio.10pct.gl.now.Rmd")
+pfx <- rmd %>% path_ext_remove()
 ```
 
 # `r basename(pfx)`
@@ -44,12 +47,6 @@ lyrs_bio_now <- names(s_bio_gmbi) %>%
   # use taxonomic groups, so exclude all and NA layers
   setdiff(c("nspp_all", "nspp_na", "rls_all", "rls_na"))
 s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
-
-lyrs_bio_now <- names(s_bio_gmbi) %>% 
-  setdiff(str_subset(names(s_bio_gmbi), "2100$")) %>% 
-  setdiff(c("nspp_all", "nspp_na", "rls_all", "rls_na"))
-s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
-
 
 # features ----
 s_features <- stack(

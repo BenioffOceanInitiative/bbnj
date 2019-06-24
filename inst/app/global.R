@@ -50,7 +50,7 @@ names(scenarios_stack) <- scenarios_label$label
 # layers: features + scenarios ----
 lyrs_gcs <- stack(features_stack, scenarios_stack)
 
-# project stack from geographic coordinate system (gcs) to web Mercator (mer) for leaflet ----
+# project raster stack from gcs to mer for leaflet ----
 if (any(!file.exists(na_mer_tif, id_gcs2mer_csv))){
   r_pu_id_mer      <- projectRasterForLeaflet(r_pu_id, "ngb")
   r_na_mer         <- r_pu_id_mer

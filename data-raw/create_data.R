@@ -323,7 +323,7 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_lyrs){
 
 
 # s_fish_gfw ----
-if (!dir.exists("inst/data/fish_gfw") | T){
+if (!dir.exists("inst/data/fish_gfw") | redo_lyrs){
 
   # read csv, identify cell_id
   d_fish_gfw <- read_csv(raw_fish_gfw_csv) %>%
@@ -352,6 +352,9 @@ if (!dir.exists("inst/data/fish_gfw") | T){
   # write tifs
   map(lyrs, lyr_to_tif, s_fish_gfw, "fish_gfw")
 
+  # load into memory so not referencing local file and use_data() works
+  s_fish_gfw <- raster::readAll(s_fish_gfw)
+
   # use_data()
   use_data(s_fish_gfw, overwrite = TRUE)
 }
@@ -368,12 +371,15 @@ if (!dir.exists("inst/data/fish_saup") | redo_lyrs){
   # write tifs
   map(lyrs, lyr_to_tif, s_fish_saup, "fish_saup")
 
+  # load into memory so not referencing local file and use_data() works
+  s_fish_saup <- raster::readAll(s_fish_saup)
+
   # use_data()
   use_data(s_fish_saup, overwrite = TRUE)
 }
 
 # s_phys_scapes ----
-if (!dir.exists("inst/data/phys_scapes") | T){
+if (!dir.exists("inst/data/phys_scapes") | redo_lyrs){
 
   # load raster in 0.1 deg resolution
   r_scapes <- raster(raw_phys_scapes_arcinfo)
@@ -401,6 +407,9 @@ if (!dir.exists("inst/data/phys_scapes") | T){
 
   # write tifs
   map(lyrs, lyr_to_tif, s_phys_scapes, "phys_scapes")
+
+  # load into memory so not referencing local file and use_data() works
+  s_phys_scapes <- raster::readAll(s_phys_scapes)
 
   # use_data()
   use_data(s_phys_scapes, overwrite = TRUE)
