@@ -17,24 +17,22 @@ library(dplyr)
 library(stringr)
 library(glue)
 library(here)
-library(fs)
-library(knitr)
 library(formattable)
 area   = raster::area
 select = dplyr::select
 
 rmd <- knitr::current_input(dir = T)
-#rmd <- file.path(getwd(), "s01a.bio.10pct.gl.now.Rmd")
-pfx <- rmd %>% path_ext_remove()
+#rmd <- file.path(getwd(), "s01b.bio.10pct.rg.now.Rmd")
+pfx <- rmd %>% fs::path_ext_remove()
 ```
 
 # `r basename(pfx)`
 
-Obtain 10% for each biodiversity and habitat target in the high seas globally.
+Obtain 30% for each biodiversity and habitat target in the high seas with regional representation of the Seven Seas.
 
 ```{r solutions}
-# variables: target 10% ----
-rel_target <- 0.1
+# variables: target 30% ----
+rel_target <- 0.3
 redo       <- T
 
 # planning unit: cost by area ----
@@ -48,7 +46,7 @@ lyrs_bio_now <- names(s_bio_gmbi) %>%
   setdiff(c("nspp_all", "nspp_na", "rls_all", "rls_na"))
 s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
 
-# features ----
+# feature: s01a + s_ihor ----
 s_features <- stack(
   r_vgpm,
   s_bio_now,
@@ -58,7 +56,8 @@ s_features <- stack(
   #raster(s_fish_ubc, "mcp_2004"),
   r_phys_seamounts,
   r_phys_vents,
-  s_phys_scapes)
+  s_phys_scapes,
+  s_ihor)
 names(s_features) <- c(
   "bio_vgpm",
   names(s_bio_now),
@@ -66,7 +65,8 @@ names(s_features) <- c(
   #"fish_mcp.2004",
   "phys_seamounts",
   "phys_vents",
-  glue("phys_scape.{1:11}"))
+  glue("phys_scape.{1:11}"),
+  glue("sea_{names(s_ihor)}"))
 
 # problem ----
 p <- problem(r_pu, s_features) %>%

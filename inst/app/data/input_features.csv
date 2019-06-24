@@ -4,6 +4,12 @@ F,input_general,"raster(s_bio_gmbi, ""nspp_all_2100"")","""bio_nspp_2100"""
 F,input_general,"raster(s_bio_gmbi, ""rls_all"")","""bio_rls"""
 F,input_general,"raster(s_bio_gmbi, ""rls_all_2100"")","""bio_rls_2100"""
 T,input_general,"raster(s_fish_gfw, ""mean_scaled_profits_with_subsidies"")","""fish_profit.subs"""
+T,input_general,"raster(s_fish_gfw, ""mean_scaled_profits_with_subsidies"")  %>%
+  gap_fill_raster() %>%
+  rescale_raster(inverse=T)","""fish_profit.subs_inv.fill.pu"""
+T,input_general,"raster(s_fish_ubc, ""mcp_2050"")  %>%
+  gap_fill_raster() %>%
+  rescale_raster(inverse=T)","""fish_mcp.2050_inv.fill.pu"""
 T,input_general,s_fish_ubc,"c(""fish_mcp.2004"",""fish_mcp.2050"")"
 T,input_general,r_phys_seamounts,"""phys_seamounts"""
 T,input_general,r_phys_vents,"""phys_vents"""

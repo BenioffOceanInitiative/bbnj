@@ -2,6 +2,8 @@
 output: 
   html_document:
       code_folding: hide
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include = FALSE}
@@ -17,27 +19,46 @@ library(dplyr)
 library(stringr)
 library(glue)
 library(here)
+library(fs)
+library(knitr)
 library(formattable)
 area   = raster::area
 select = dplyr::select
 
 rmd <- knitr::current_input(dir = T)
-#rmd <- file.path(getwd(), "s01b.bio.10pct.rg.now.Rmd")
-pfx <- rmd %>% fs::path_ext_remove()
+#rmd <- file.path(getwd(), "s01a.bio.10pct.gl.now.Rmd")
+pfx <- rmd %>% path_ext_remove()
 ```
 
 # `r basename(pfx)`
 
-Obtain 10% for each biodiversity and habitat target in the high seas with regional representation of the Seven Seas.
+- Planning unit:
+    - inverse of fishing profitability, ie minimize impacts to fishing
+
+- Feature targets:
+    - _30%_ of each input feature amount
+    - **Biodiversity:
+        - `bio_vgpm`: Vertically Generalized Production Model
+        - `nspp_*`: number of species by taxonomic group from AquaMaps [_now_]
+        - `rls_*`: Red List sum of extinction risk by taxonomic group from AquaMaps [_now_]
+    - Physical:
+        - `phys_vents`: hydrothermal vent count
+        - `phys_seamounts`: seamounts count
+        - `phys_scape.*`: benthic seascapes (11 types)
+  
+- Regionalization:
+    - none, ie global
 
 ```{r solutions}
-# variables: target 10% ----
-rel_target <- 0.1
-redo       <- T
+# variables: target 30% ----
+rel_target <- 0.3
+redo       <- F
 
-# planning unit: cost by area ----
-r_pu <- area(r_pu_id) %>% 
-  mask(r_pu_id) # plot(r_pu)
+# planning unit: inverse of fishing profitability ----
+r_fish_profits <- raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") # plot(r_fish_profits)
+r_pu <- r_fish_profits %>%
+  gap_fill_raster() %>%
+  rescale_raster(inverse=T) # plot(r_pu)
 
 # biodiversity: now, not 2100 ----
 lyrs_bio_now <- names(s_bio_gmbi) %>% 
@@ -46,7 +67,7 @@ lyrs_bio_now <- names(s_bio_gmbi) %>%
   setdiff(c("nspp_all", "nspp_na", "rls_all", "rls_na"))
 s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
 
-# feature: s01a + s_ihor ----
+# features ----
 s_features <- stack(
   r_vgpm,
   s_bio_now,
@@ -56,8 +77,7 @@ s_features <- stack(
   #raster(s_fish_ubc, "mcp_2004"),
   r_phys_seamounts,
   r_phys_vents,
-  s_phys_scapes,
-  s_ihor)
+  s_phys_scapes)
 names(s_features) <- c(
   "bio_vgpm",
   names(s_bio_now),
@@ -65,8 +85,7 @@ names(s_features) <- c(
   #"fish_mcp.2004",
   "phys_seamounts",
   "phys_vents",
-  glue("phys_scape.{1:11}"),
-  glue("sea_{names(s_ihor)}"))
+  glue("phys_scape.{1:11}"))
 
 # problem ----
 p <- problem(r_pu, s_features) %>%
