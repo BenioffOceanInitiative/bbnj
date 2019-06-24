@@ -11,7 +11,8 @@ library(glue)
 library(shiny)
 library(htmltools)
 library(shinydashboard)
-library(bbnj) # devtools::load_all() # devtools::install_local(force=T)
+library(bbnj)
+# devtools::load_all() # devtools::install_local(force=T) # devtools::install_github("ecoquants/bbnj")
 library(bsplus)
 select = dplyr::select
 
@@ -22,18 +23,19 @@ if (!"global.R" %in% list.files(getwd())) setwd(here("inst/app"))
 
 # paths
 input_features_csv <- "data/input_features.csv"
-dir_scenarios      <- "www/scenarios"
 id_gcs2mer_csv     <- "data/id_gcs2mer.csv"
+na_mer_tif         <- "data/na_mer.tif"
+dir_scenarios      <- "www/scenarios"
 
 # input features ----
 features        <- read_csv(input_features_csv) %>%
   filter(active)
-features_label <- lyrs %>%
+features_label <- features %>%
   mutate(
     label = map(r_labels, function(x) eval(parse(text=x), envir=globalenv()))) %>%
   select(type, label) %>%
   unnest(label) # View(lyrs_labels)
-features_stack    <- map(lyrs$r_data, function(x) eval(parse(text=x))) %>% stack()
+features_stack    <- map(features$r_data, function(x) eval(parse(text=x))) %>% stack()
 names(features_stack) <- features_label$label
 
 # output scenarios ----
@@ -49,17 +51,20 @@ names(scenarios_stack) <- scenarios_label$label
 lyrs_gcs <- stack(features_stack, scenarios_stack)
 
 # project stack from geographic coordinate system (gcs) to web Mercator (mer) for leaflet ----
-if (!file.exists(id_gcs2mer_csv)){
+if (any(!file.exists(na_mer_tif, id_gcs2mer_csv))){
   r_pu_id_mer      <- projectRasterForLeaflet(r_pu_id, "ngb")
   r_na_mer         <- r_pu_id_mer
-  values(r_na_mer) <-  NA
+  values(r_pu_id_mer) <-  NA
+  writeRaster(r_pu_id_mer, na_mer_tif)
+
   id <- tibble(
     mer = 1:ncell(r_pu_id_mer),
     gcs = values(r_pu_id_mer)) %>%
     filter(!is.na(gcs))
   write_csv(id, id_gcs2mer_csv)
 } else {
-  id <- read_csv(id_gcs2mer_csv)
+  id       <- read_csv(id_gcs2mer_csv)
+  r_na_mer <- raster(na_mer_tif)
 }
 
 lyrs_mer <- stack(lapply(1:nlayers(lyrs_gcs), function(x) r_na_mer))

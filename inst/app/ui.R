@@ -5,8 +5,8 @@ dashboardPage(
   dashboardSidebar(
 
     sidebarMenu(
-      menuItem("map", tabName = "tab_map", icon = icon("map")),
-      menuItem("histogram", tabName = "tab_hist", icon = icon("bar-chart"))),
+      menuItem("map", tabName = "tab_map", icon = icon("map"))),
+      # menuItem("histogram", tabName = "tab_hist", icon = icon("bar-chart"))),
 
     selectInput(
       "sel_type", label = "type",
