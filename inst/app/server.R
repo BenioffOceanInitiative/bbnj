@@ -1,5 +1,6 @@
 shinyServer(function(input, output, session) {
 
+  # initial map ----
   output$map <- renderLeaflet({
     # input = list(sel_lyr = lyr_choices[[1]][[1]], slider_opacity=0.7)
 
@@ -34,30 +35,30 @@ shinyServer(function(input, output, session) {
       fitBounds(-150, -60, 150, 60)
   })
 
-  observeEvent(input$btn_report, {
-    #browser()
-    # scenario <- input$sel_lyr %>%
-    #   str_replace("\\.", "_") %>%
-    #   str_replace_all("\\.", "-")
-    scenario <- input$sel_lyr
-    url <- glue("https://ecoquants.com/bbnj/articles/{scenario}.html")
+  # observe sel_type ----
+  observe({
+    x <- input$sel_type
 
-    showModal(modalDialog(
-      size = "l",
-      title = input$sel_lyr,
-      tagList(
-        a(href=url, scenario),
-        p(),
-        tags$iframe(
-          src=url,
-          height="100%", width="100%", margin="0", `min-height`="700px", frameborder="0"))
-    ))
+    updateSelectInput(
+      session, "sel_lyr", "layer",
+      choices = lyr_choices %>%
+        filter(type == x) %>%
+        pull(label))
   })
 
-  # observe layer selection
-  observe({
+  # observe btn_report ----
+  observeEvent(input$btn_report, {
+    scenario <- input$sel_lyr
 
-    #browser()
+    session$sendCustomMessage(
+      type = 'modalmessage',
+      message = list(
+        title = scenario,
+        src = glue("scenarios/{scenario}.html")))
+  })
+
+  # observe sel_lyr and map ----
+  observe({
 
     r <- raster(lyrs_mer, input$sel_lyr)
     opacity <- input$slider_opacity
@@ -87,7 +88,7 @@ shinyServer(function(input, output, session) {
   })
 
 
-  ## observe map clicks
+  # observe map_click ----
   observeEvent(input$map_click, {
 
     #browser()

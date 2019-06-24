@@ -1,0 +1,13 @@
+﻿active,type,r_data,r_labels
+F,input_general,"raster(s_bio_gmbi, ""nspp_all"")","""bio_nspp"""
+F,input_general,"raster(s_bio_gmbi, ""nspp_all_2100"")","""bio_nspp_2100"""
+F,input_general,"raster(s_bio_gmbi, ""rls_all"")","""bio_rls"""
+F,input_general,"raster(s_bio_gmbi, ""rls_all_2100"")","""bio_rls_2100"""
+T,input_general,"raster(s_fish_gfw, ""mean_scaled_profits_with_subsidies"")","""fish_profit.subs"""
+T,input_general,s_fish_ubc,"c(""fish_mcp.2004"",""fish_mcp.2050"")"
+T,input_general,r_phys_seamounts,"""phys_seamounts"""
+T,input_general,r_phys_vents,"""phys_vents"""
+T,input_general,r_mine_claims,"""mine_claims"""
+T,input_general,s_phys_scapes," as.character(glue(""phys_scape.{1:11}""))"
+T,input_taxa_now,"subset(s_bio_gmbi, lyrs_bio_now)","lyrs_bio_now <- setdiff(names(s_bio_gmbi) , str_subset(names(s_bio_gmbi), ""2100$"")); lyrs_bio_now"
+T,input_taxa_2100,"subset(s_bio_gmbi, lyrs_bio_now)","lyrs_bio_2100 <- str_subset(names(s_bio_gmbi), ""2100$""); lyrs_bio_2100"

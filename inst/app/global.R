@@ -2,165 +2,77 @@ library(rgdal)
 library(raster)
 library(tidyverse)
 library(stringr)
-select = dplyr::select
 library(sf)
 library(leaflet)
 library(mapview)
+library(leafem)
 library(here)
 library(glue)
 library(shiny)
 library(htmltools)
 library(shinydashboard)
-#library(plotly)
-library(bbnj)
-# devtools::load_all()
-# devtools::install_github("ecoquants/bbnj", force=T)
-# devtools::install_local(force=T)
-#library(prioritizr)
+library(bbnj) # devtools::load_all() # devtools::install_local(force=T)
+library(bsplus)
+select = dplyr::select
+
 # rsconnect::showLogs() # show log on shinyapps.io to debug
 
-# 0. eez
-data(p_eez_s05)
-data(p_abnj_s05)
-data(p_ppow_s05)
-data(p_ihor_s05)
+# setwd if working from github repo vs shinyapps.io; reset: setwd(here())
+if (!"global.R" %in% list.files(getwd())) setwd(here("inst/app"))
 
-#lyrs_rda <- file.path(system.file(package="bbnj"), "app/lyrs.rda")
-# DEBUG
-#lyrs_rda  <- here("inst/app/lyrs.rda")
-lyrs_rda  <- "lyrs.rda"
-lyrs_redo <- F
+# paths
+input_features_csv <- "data/input_features.csv"
+dir_scenarios      <- "www/scenarios"
+id_gcs2mer_csv     <- "data/id_gcs2mer.csv"
 
-if (!file.exists(lyrs_rda) | lyrs_redo){
-  message("redoing layers\n\n")
+# input features ----
+features        <- read_csv(input_features_csv) %>%
+  filter(active)
+features_label <- lyrs %>%
+  mutate(
+    label = map(r_labels, function(x) eval(parse(text=x), envir=globalenv()))) %>%
+  select(type, label) %>%
+  unnest(label) # View(lyrs_labels)
+features_stack    <- map(lyrs$r_data, function(x) eval(parse(text=x))) %>% stack()
+names(features_stack) <- features_label$label
 
-  # 1. Features, Original
-  features_original <- stack(
-    raster(s_bio_gmbi, "nspp_all"),
-    raster(s_bio_gmbi, "rls_all"),
-    raster(s_fish_gfw, "mean_scaled_profits_with_subsidies"),
-    s_fish_ubc,
-    r_phys_seamounts,
-    r_phys_vents,
-    r_mine_claims,
-    s_phys_scapes)
-  names(features_original) <- c(
-    "bio_nspp",
-    "bio_rls",
-    "fish_profit.subs",
-    "fish_mcp.2004",
-    "fish_mcp.2050",
-    "phys_seamounts",
-    "phys_vents",
-    "mine_claims",
-    glue("phys_scape.{1:11}"))
-  names(features_original) <- glue("Features.original_{names(features_original)}")
+# output scenarios ----
+scenarios_label <- tibble(
+  type = "output_scenario",
+  tif  = list.files(dir_scenarios, "^s.*\\_sol.tif$", full.names=T)) %>%
+  mutate(
+    label     = map_chr(basename(tif), function(x) str_replace(x, "^(s.*)\\_sol.tif$", "\\1")))
+scenarios_stack        <- stack(scenarios_label$tif)
+names(scenarios_stack) <- scenarios_label$label
 
-  # 2. Features, Rescaled
-  features_rescaled <- stack(
-    raster(s_bio_gmbi, "nspp_all") %>%
-      rescale_raster(multiply_area=T),
-    raster(s_bio_gmbi, "rls_all") %>%
-      rescale_raster(multiply_area=T),
-    raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>%
-      gap_fill_raster() %>%
-      rescale_raster(inverse=T),
-    rescale_stack(s_fish_ubc, inverse=T),
-    rescale_raster(r_phys_seamounts),
-    rescale_raster(r_phys_vents),
-    r_mine_claims,
-    rescale_stack(s_phys_scapes))
-  names(features_rescaled) <- c(
-    "bio_nspp",
-    "bio_rls",
-    "fish_profit.subs",
-    "fish_mcp.2004",
-    "fish_mcp.2050",
-    "phys_seamounts",
-    "phys_vents",
-    "mine_claims",
-    glue("phys_scape.{1:11}"))
-  names(features_rescaled) <- glue("Features.rescaled_{names(features_rescaled)}")
+# layers: features + scenarios ----
+lyrs_gcs <- stack(features_stack, scenarios_stack)
 
-  # 3. Taxa, nspp
-  lyrs_nspp <- names(s_bio_gmbi) %>% str_subset("^nspp_(?!all)")
-
-  taxa_nspp <- subset(s_bio_gmbi, lyrs_nspp)
-  names(taxa_nspp) <- str_replace(lyrs_nspp, "nspp_", "")
-  names(taxa_nspp) <- glue("Taxa.nspp_{names(taxa_nspp)}")
-
-  # 4. Taxa, rls
-  lyrs_rls <- names(s_bio_gmbi) %>% str_subset("^rls_(?!all)")
-
-  taxa_rls <- subset(s_bio_gmbi, lyrs_rls)
-  names(taxa_rls) <- str_replace(lyrs_rls, "rls_", "")
-  names(taxa_rls) <- glue("Taxa.rls_{names(taxa_rls)}")
-
-  # 5. Scenarios
-  scenarios_tbl <- tibble(
-    tif = list.files(here("inst/scenarios"), "^s.*\\_sol.tif$", full.names=T)) %>%
-    #View()
-    mutate(
-      #scenario_num = map_chr(tif, function(x) str_extract(x, "[0-9]+[a-z]+")),
-      #scenario     = glue("Scenario {scenario_num}"),
-      scenario     = map_chr(basename(tif), function(x) str_replace(x, "^(s.*)\\_sol.tif$", "\\1")))
-      #tif          = glue("{here('inst/scenarios')}/{tif}")) %>%
-    #View()
-  scenarios <- stack(scenarios_tbl$tif)
-  names(scenarios) <- scenarios_tbl$scenario
-
-  lyrs_geo <- stack(
-    features_original,
-    features_rescaled,
-    taxa_nspp,
-    taxa_rls,
-    scenarios)
-
-  lyrs_mer <- projectRasterForLeaflet(lyrs_geo, "ngb")
-
-  lyrs_geo <- readAll(lyrs_geo)
-  #names(lyrs_geo)[67] <- "s01a.bio.10.gl.now"
-  lyrs_mer <- readAll(lyrs_mer)
-  #names(lyrs_mer)[67] <- "s01a.bio.10.gl.now"
-  #writeRaster(lyrs, lyrs_grd)
-  save(lyrs_geo, lyrs_mer, file=lyrs_rda, compress="bzip2")
+# project stack from geographic coordinate system (gcs) to web Mercator (mer) for leaflet ----
+if (!file.exists(id_gcs2mer_csv)){
+  r_pu_id_mer      <- projectRasterForLeaflet(r_pu_id, "ngb")
+  r_na_mer         <- r_pu_id_mer
+  values(r_na_mer) <-  NA
+  id <- tibble(
+    mer = 1:ncell(r_pu_id_mer),
+    gcs = values(r_pu_id_mer)) %>%
+    filter(!is.na(gcs))
+  write_csv(id, id_gcs2mer_csv)
 } else {
-  #lyrs <- stack(lyrs_grd)
-  load(lyrs_rda)
-  #lyrs_geo <- readAll(lyrs_geo)
-  #lyrs_mer <- readAll(lyrs_mer)
+  id <- read_csv(id_gcs2mer_csv)
 }
 
-lyr_choices <- list(
-  `Features, original` =
-    setNames(
-      names(lyrs_mer) %>%
-        str_subset("^Features.original.*"),
-      names(lyrs_mer) %>%
-        str_subset("^Features.original.*") %>%
-        str_replace("Features.original_", "")),
-  `Features, rescaled` =
-    setNames(
-      names(lyrs_mer) %>%
-        str_subset("^Features.rescaled.*"),
-      names(lyrs_mer) %>%
-        str_subset("^Features.rescaled.*") %>%
-        str_replace("Features.rescaled_", "")),
-  `Taxa, nspp` =
-    setNames(
-      names(lyrs_mer) %>%
-        str_subset("^Taxa.nspp.*"),
-      names(lyrs_mer) %>%
-        str_subset("^Taxa.nspp.*") %>%
-        str_replace("Taxa.nspp_", "")),
-  `Taxa, rls` =
-    setNames(
-      names(lyrs_mer) %>%
-        str_subset("^Taxa.rls.*"),
-      names(lyrs_mer) %>%
-        str_subset("^Taxa.rls.*") %>%
-        str_replace("Taxa.rls_", "")),
-  `Scenario Solutions` =
-    setNames(
-        str_subset(names(lyrs_mer), "^s.*"),
-        str_subset(names(lyrs_mer), "^s.*")))
+lyrs_mer <- stack(lapply(1:nlayers(lyrs_gcs), function(x) r_na_mer))
+for (i in 1:nlayers(lyrs_gcs)){ # i = 1
+  lyrs_mer[[i]][id$mer] <- lyrs_gcs[[i]][id$gcs]
+}
+names(lyrs_mer) <- names(lyrs_gcs)
+
+# setup ui layer choices ----
+lyr_choices <- bind_rows(
+    features_label,
+    scenarios_label) %>%
+  select(type, label)
+
+lyrs_mismatch <- setdiff(names(lyrs_mer), lyr_choices$label)
+stopifnot(length(lyrs_mismatch) == 0)

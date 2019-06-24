@@ -45,6 +45,12 @@ lyrs_bio_now <- names(s_bio_gmbi) %>%
   setdiff(c("nspp_all", "nspp_na", "rls_all", "rls_na"))
 s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
 
+lyrs_bio_now <- names(s_bio_gmbi) %>% 
+  setdiff(str_subset(names(s_bio_gmbi), "2100$")) %>% 
+  setdiff(c("nspp_all", "nspp_na", "rls_all", "rls_na"))
+s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
+
+
 # features ----
 s_features <- stack(
   s_bio_now,
