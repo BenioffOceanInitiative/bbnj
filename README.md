@@ -27,12 +27,14 @@ help(package="bbnj")
 ## Run Shiny app
 
 ```r
-# install shiny if you need it
-# install.packages("shiny")
-
-# run shiny app
-shiny::runGitHub("ecoquants/bbnj", subdir="inst/app")
+run_app()
 ```
+
+## Scenario Building Notes
+
+The scenarios are located under the package's `inst/app/www/scenarios`, which you can access via the local copy of the repository (for editing) or the installed package (for viewing only; ).
+
+
 
 ## Developer Notes
 

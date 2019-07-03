@@ -15,7 +15,10 @@ Imports:
     leaflet,
     sf,
     prioritizr,
-    scales
+    scales,
+    leafem,
+    shinydashboard,
+    formattable
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,
