@@ -133,12 +133,17 @@
 #' @format A \code{\link[raster]{stack}} with layers of results from analyses.
 "s_fish_ubc"
 
-#' Raster for count of seamounts (Kim & Wessel, 2011)
+#' Stack for count of seamounts (Kim & Wessel, 2011) based on depth bin
 #'
 #' Global half-degree raster of high seas.
 #'
-#' @format A \code{\link[raster]{raster}} count of seamount features within cell.
-"r_phys_seamounts"
+#' @format A \code{\link[raster]{raster}} count of seamount features within cell based on depth of summit:
+#' \enumerate{
+#'   \item 0 - 200 m; <= 200 m: \code{lteq200m}
+#'   \item 200 - 800 m; > 200 & <= 800 m: \code{gt200lteq800m}
+#'   \item 800 - Inf m; > 800 m: \code{gt800m}
+#' }
+"s_phys_seamounts"
 
 #' Raster for count of hydrothermal vents (Interridge Vent Database v3.4)
 #'

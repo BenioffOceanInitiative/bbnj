@@ -56,7 +56,7 @@ s_features <- stack(
   #    gap_fill_raster() %>%
   #    rescale_raster(inverse=T),
   #raster(s_fish_ubc, "mcp_2004"),
-  r_phys_seamounts,
+  s_phys_seamounts,
   r_phys_vents,
   s_phys_scapes)
 names(s_features) <- c(
@@ -64,7 +64,7 @@ names(s_features) <- c(
   names(s_bio_now),
   #"fish_profit.subs"
   #"fish_mcp.2004",
-  "phys_seamounts",
+  sprintf("phys_seamounts_%sm", c("0to200","gt200to800","gt800")),
   "phys_vents",
   glue("phys_scape.{1:11}"))
 

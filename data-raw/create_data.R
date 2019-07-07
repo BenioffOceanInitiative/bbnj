@@ -283,7 +283,7 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
     mean(na.rm=T) %>%
     aggregate(fact=6) %>%
     mask(r_pu_id)
-  plot(log(r_vgpm))
+  #plot(log(r_vgpm))
 
   writeRaster(r_vgpm, vgpm_tif, overwrite=T)
   use_data(r_vgpm, overwrite=T)
@@ -415,31 +415,101 @@ if (!dir.exists("inst/data/phys_scapes") | redo_lyrs){
   use_data(s_phys_scapes, overwrite = TRUE)
 }
 
-# r_phys_seamounts ----
+# s_phys_seamounts ----
 if (!file.exists(phys_seamounts_tif) | redo_lyrs){
 
   # OLD: read in XML since read_sf() was taking days
-  x <- read_xml(raw_phys_seamounts_kml)
-
-  xpaths <- list(
-    name = "/d1:kml/d1:Document/d1:Folder/d1:Folder/d1:name",
-    xyz  = "/d1:kml/d1:Document/d1:Folder/d1:Folder/d1:Placemark/d1:Point/d1:coordinates")
-  pts <- tibble(
-    names = xml_find_all(x, xpaths$name) %>% xml_text(),
-    xyz   = xml_find_all(x, xpaths$xyz) %>% xml_text()) %>%
-    separate(xyz, c("x", "y", "z"), sep=",", convert=T) %>%
-    st_as_sf(coords = c("x", "y"), crs = 4326)
+  # x <- read_xml(raw_phys_seamounts_kml)
+  #
+  # xpaths <- list(
+  #   name = "/d1:kml/d1:Document/d1:Folder/d1:Folder/d1:name",
+  #   xyz  = "/d1:kml/d1:Document/d1:Folder/d1:Folder/d1:Placemark/d1:Point/d1:coordinates")
+  # pts <- tibble(
+  #   names = xml_find_all(x, xpaths$name) %>% xml_text(),
+  #   xyz   = xml_find_all(x, xpaths$xyz) %>% xml_text()) %>%
+  #   separate(xyz, c("x", "y", "z"), sep=",", convert=T) %>%
+  #   st_as_sf(coords = c("x", "y"), crs = 4326)
 
   # NEW TODO: easier to read CSV
-  #x <- read_csv(raw_phys_seamounts_txt)
-  #pts <- st_as_sf(x, coords = c("x", "y"), crs = 4326)
+  # Global Seamount Database from Kim, S.-S., and P. Wessel (2011), Geophys. J. Int., in revision.
+  # This file contains 24,646 potential seamounts from the entire ocean basins.
+  # The columns are:
+  # Col 1: Longitude (-180/+180). Center of each seamount (in degrees)
+  # Col 2: Latitude (-90/+90). Center of each seamount (in degrees)
+  # Col 3: Estimated azimuth of the basal ellipse (in degree)
+  # Col 4: Estimated major axis of the basal ellipse of each seamount (in km)
+  # Col 5: Estimated minor axis of the basal ellipse of each seamount (in km)
+  # Col 6: Seamount height obtained from the prediced bathymetry TOPO V12 (in m)
+  # Col 7: Maximum amplitude of the Free-Air Gravity Anomaly (in mGal)
+  # Col 8: Maximum amplitude of the Vertical Gravity Gradient Anomaly (in Eotvos)
+  # Col 9: Regional depth of each seamount (in m)
+  # Col 10: Age of underlying seafloor from the AGE 3.2 grid (in Myr)
+  # Col 11: ID for each seamount (plate_###)
+  d <- read_tsv(
+    raw_phys_seamounts_txt, skip=18,
+    col_names = c("lon", "lat", "azimuth_deg", "axis_major_km", "axis_minor_km", "height_m", "max_faa_mgal", "max_vgg_eotvos", "depth_m", "crustage_myr", "id"))
 
-  r_phys_seamounts <- rasterize(st_coordinates(pts), r_pu_id, fun='count', background=0) %>%
-    mask(r_pu_id) # plot(r_phys_seamounts)
-  names(r_phys_seamounts) <- "count"
+  brks <- c(0, 200, 800, Inf)
+  lbls <- c("lteq200m","gt200lteq800m","gt800m")
 
-  writeRaster(r_phys_seamounts, phys_seamounts_tif, overwrite = TRUE)
-  use_data(r_phys_seamounts, overwrite = TRUE)
+  pts <- d %>%
+    # remove odd lines like "> AF 3888 seamounts" (original line 18),"> AN 4837 seamounts" (imported line 3889)
+    slice(setdiff(1:nrow(d), problems(d) %>% pull(row))) %>%
+    mutate(
+      lon = as.numeric(lon),
+      lat = as.numeric(lat),
+      summit_depth_m     = (-1 * depth_m) - height_m,
+      summit_depth_m_brk = cut(summit_depth_m, brks)) %>%
+    rowid_to_column() %>%
+    st_as_sf(coords = c("lon", "lat"), crs = 4326, remove=F) %>%
+    filter(summit_depth_m > 0) # presumably islands: remove 158 pts of 24,643
+
+  # range(pts$depth_m)          #  -7699.2   -90.9
+  # range(pts$height_m)         #    100.0  6593.2
+  # range(pts$summit_depth_m)   #  -2783.7  5962.3
+  # sum(pts$summit_depth_m < 0) # 158 pts of 24,643
+
+  # # scatter plot
+  # p <- ggplot(data = pts %>% st_drop_geometry(), aes(x = depth_m, y = summit_depth_m, label = rowid)) +
+  #   geom_point()
+  # plotly::ggplotly(p) # slow b/c many pts
+  #
+  # # before: filter(summit_depth_m < 0)
+  # pts_q <- pts %>%
+  #   #st_drop_geometry() %>%
+  #   filter(summit_depth_m < 0) %>%
+  #   arrange(summit_depth_m) # %>% View()
+  #
+  # # map all islands and zoom to specific ones
+  # library(mapview)
+  # names(leaflet::providers) %>% sort()
+  # mapviewOptions(basemaps = c("Esri.OceanBasemap", "Esri.WorldTopoMap"))
+  #
+  # pt <- pts_q %>%
+  #   filter(rowid == 22358)
+  # mapview(pts_q, zcol = "summit_depth_m", legend=T) %>%
+  #   leafem::addMouseCoordinates() %>%
+  #   leaflet::flyTo(pt$lon, pt$lat, zoom = 10)
+
+  r_lvl <- function(brk){
+    pts %>%
+      filter(summit_depth_m_brk == brk) %>%
+      st_coordinates() %>%
+      rasterize(r_pu_id, fun='count', background=0)
+  }
+
+  lvls                    <- levels(pts$summit_depth_m_brk)
+  s_phys_seamounts        <- stack(sapply(lvls, r_lvl))
+  names(s_phys_seamounts) <- lbls
+
+  # write tifs
+  map(lbls, lyr_to_tif, s_phys_seamounts, "phys_seamounts")
+
+  # load into memory so not referencing local file and use_data() works
+  s_phys_seamounts <- raster::readAll(s_phys_seamounts)
+
+  # use_data()
+  use_data(s_phys_seamounts, overwrite = TRUE)
 }
 
 # r_phys_vents ----
