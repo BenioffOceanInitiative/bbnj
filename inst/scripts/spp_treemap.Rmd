@@ -1,0 +1,85 @@
+---
+title: "Taxonomic Group Treemap"
+author: "Morgan Visalli"
+date: "7/12/2019"
+output:
+  html_document:
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exploring Taxonomic Groups
+
+```{r libraries}
+suppressPackageStartupMessages({
+  library(dplyr)
+  library(treemap)
+  library(ggplot2)
+})
+```
+
+####Reassign taxonomic groups using code from [gmbi package](https://github.com/marinebon/gmbi/blob/master/vignettes/calc.Rmd) to reflect [recent changes in groups](https://github.com/ecoquants/bbnj/issues/3)
+
+
+```{r}
+#Reassign taxonomic groups
+spp <- read.csv('extdata/spp.csv')
+
+spp_cols <- spp %>% head(1) %>% collect() %>% names()
+
+spp <- spp %>% 
+    mutate(
+      group = case_when(
+        Class == "Actinopterygii" & !Family %in% c("Scombridae", "Istiophoridae", "Xiphiidae") ~ "Bony fishes",
+        Class == "Cephalopoda" ~ "Cephalopods",
+        Family %in% c("Odobenidae", "Otariidae", "Phocidae") ~ "Pinnipeds",
+        Class == "Anthozoa" ~ "Corals",
+        Order == "Alismatales" ~ "Seagrasses",
+        Genus == "Avicennia" & Species == "germinans" ~ "Mangroves",
+        Family %in% c("Scombridae", "Istiophoridae", "Xiphiidae") ~ "Tunas & billfishes",
+        Order == "Cetacea" ~ "Cetaceans",
+        Order == "Euphausiacea" ~ "Euphausiids",
+        Class %in% c("Malacostraca","Ostracoda","Branchiopoda","Cephalocarida","Maxillopoda") ~ "Crustaceans",
+        Class == "Pycnogonida" ~ "Sea spiders",
+        Class == "Gastropoda" ~ "Gastropods",
+        Class == "Bivalvia" ~ "Bivalves",
+        Class == "Polyplacophora" ~ "Chitons",
+        Class %in% c("Ascidiacea","Thaliacea") ~ "Tunicates",
+        Class == "Elasmobranchii" ~ "Sharks & rays",
+        Class == "Reptilia"~ "Reptiles",
+        Phylum == "Echinodermata"~ "Echinoderms",
+        Phylum == "Porifera" ~ "Sponges",
+        Phylum %in% c("Annelida", "Sipuncula") ~ "Worms",
+        Class == "Hydrozoa" ~ "Hydrozoans"))
+
+#Count number of unique species in each group
+
+group_count <- spp %>%
+  group_by(group) %>%
+  summarise(nspp = n_distinct(genus_species))
+
+knitr::kable(
+  group_count
+)
+
+
+```
+
+
+####Create treemap where size of rectangle corresoonds to number of species in each group
+
+
+```{r out.width = '1200px'}
+#Create treemap where size of rectangle corresponds to number of species in each group
+
+taxa_treemap<- treemap(group_count,
+                       index="group",
+                       vSize="nspp",
+                       type="index",
+                       force.print.labels = TRUE
+)
+```
+
