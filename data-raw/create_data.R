@@ -5,6 +5,7 @@ library(xml2)
 library(purrr)
 library(raster)
 library(fasterize)
+library(rnaturalearth)
 library(usethis)
 library(sf)
 library(glue)
@@ -17,8 +18,8 @@ select = dplyr::select
 library(gmbi) #devtools::install_github("marinebon/gmbi", force=T) #devtools::install_local("~/github/gmbi")
 #remotes::install_local("~/github/gmbi", for)
 
-library(bbnj) #devtools::install_github("ecoquants/bbnj", force=T) #devtools::install_local("~/github/bbnj")
-#devtools::load_all()
+#library(bbnj) #devtools::install_github("ecoquants/bbnj", force=T) #devtools::install_local("~/github/bbnj")
+devtools::load_all()
 
 # paths ----
 dir_data                 <- here("inst/data")
@@ -35,6 +36,7 @@ raw_phys_seamounts_txt   <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 201
 raw_phys_scapes_arcinfo  <- glue("{dir_gdata}/raw/Harris and Whiteway 2009/Global_Seascapes/class_11")
 raw_phys_vents_csv       <- glue("{dir_gdata}/raw/Hydrothermal vents - Interridge Vent Database v3.4/vent_fields_all.csv")
 raw_vgpm_dir             <- glue("{dir_gdata}/raw/VGPM_oregonstate.edu")
+countries_shp            <- glue("{dir_data}/countries.shp")
 abnj_shp                 <- glue("{dir_data}/abnj.shp")
 abnj_s05_shp             <- glue("{dir_data}/abnj_s05.shp")
 iho_shp                  <- glue("{dir_data}/iho.shp")
@@ -48,40 +50,73 @@ eez_shp                  <- glue("{dir_data}/eez.shp")
 eez_s05_shp              <- glue("{dir_data}/eez_s05.shp")
 pu_id_tif                <- glue("{dir_data}/pu_id.tif")
 mine_claims_shp          <- glue("{dir_data}/mine-claims.shp")
-mine_claims_tif          <- glue("{dir_data}/mine-claims.tif")
-phys_seamounts_tif       <- glue("{dir_data}/phys_seamounts.tif")
-phys_vents_tif           <- glue("{dir_data}/phys_vents.tif")
-vgpm_tif                 <- glue("{dir_data}/vgpm.tif")
 
 # variables ----
 redo_eez  = F
 redo_abnj = F
 redo_ihor = F
 redo_lyrs = F
+redo_project_polygons = F
+redo_project_pu_id_tifs = F
 
 # helper functions ----
-lyr_to_tif <- function(lyr, s, pfx){
-  dir_tif <- here(glue("inst/data/{pfx}"))
-  if (!dir.exists(dir_tif)) dir.create(dir_tif)
-  tif <- glue("{dir_tif}/{lyr}.tif")
-  r <- raster(s, lyr) %>%
-    mask(r_pu_id)
-  writeRaster(r, tif, overwrite=T)
-}
 
 # globe
-bb = st_sf(
-  tibble(
-    one = 1,
-    geom = st_sfc(st_polygon(list(rbind(
-      c(-180, -90),
-      c( 180, -90),
-      c( 180,  90),
-      c(-180,  90),
-      c(-180, -90)))), crs = 4326)))
+bb <- get_global_bb(crs=4326)
+
+# projections ----
+
+# r_gcs     <- get_grid(val=1)
+# r_gcs_km2 <- area(r_gcs)
+# c_gcs_km2 <- cellStats(r_gcs_km2, stat='mean')
+# c_gcs_km  <- c_gcs_km2^0.5 # 44.28597 # 50
+
+# list of projections, possibly with multiple resolutions
+projections_lst <- list(
+  gcs  =
+    list(
+      default = T,
+      name = "Geographic",
+      proj = leaflet:::epsg4326,
+      epsg = 4326,
+      res_num = list(
+        "0.5d" = 0.5)),
+  mer  =
+    list(
+      default = F,
+      name = "Mercator",
+      proj = leaflet:::epsg3857,
+      epsg = 3857,
+      res_num = list(
+        #"56x16km" = c(55659.75, 156862.8))),
+        "36km" = 36000)), # split difference of original non-rectilinear cell resolution
+  mol =
+    list(
+      default = F,
+      name = "Mollweide",
+      proj = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
+      epsg = 54009,
+      res_num  = list(
+        "50km"  =  50000,
+        "10km"  =  10000,
+        "100km" = 100000)))
+
+# table of projections, flattening nested resolutions
+projections_tbl <- map_df(
+  projections_lst,
+  function(x){
+    as_tibble(x) %>% unnest(res_num, .id="res")},
+  .id="prj") %>%
+  mutate(
+    prjres = ifelse(
+      prj == "gcs" & res == "0.5d",
+      "",
+      glue("_{prj}{res}")))
+use_data(projections_lst, overwrite = TRUE)
+use_data(projections_tbl, overwrite = TRUE)
 
 # p_eez ----
-if (!file.exists(eez_shp) | redo_eez){
+if (!file.exists(eez_s05_shp) | redo_eez){
   p_eez <- read_sf(raw_eez_shp)
   #write_sf(p_eez, eez_shp)  # TOO BIG: 159.9 MB
   #use_data(p_eez, overwrite = TRUE) # TOO BIG: 121.8 MB
@@ -215,6 +250,13 @@ if (!file.exists(ihor_s05_shp) | redo_ihor){
 
   # use_data()
   use_data(s_ihor, overwrite = TRUE)
+
+  # create stacks in other projections
+  # devtools::load_all()
+  walk(
+    projections_tbl$prjres[-1],
+    s_to_prjres, s_ihor, "bnd_ihor", "ngb", debug=F)
+
 }
 
 # p_ppow ----
@@ -238,11 +280,58 @@ if (!file.exists(ppow_s05_shp) | redo_lyrs){
   # TODO: r_ppow: assign numeric id for raster
 }
 
+# p_countries ----
+p_countries <- rnaturalearth::ne_countries(
+  scale = 110, type = "countries", returnclass = "sf") %>%
+  mutate(
+    pop_est = pop_est / 1000) %>%
+  rename(pop_est_k = pop_est)
+
+write_sf(p_countries, countries_shp)
+p_countries <- read_sf(countries_shp)
+use_data(p_countries, overwrite = TRUE)
+
+# p_*_[prj] for non-gcs projections ----
+shps_tbl <- tribble(
+  ~pfx       , ~shp,
+  "countries", countries_shp,
+  "eez_s05"  , eez_s05_shp,
+  "abnj"     , abnj_shp,
+  "abnj_s05" , abnj_s05_shp,
+  "ihor"     , ihor_shp,
+  "ihor_s05" , ihor_s05_shp,
+  "ppow"     , ppow_shp,
+  "ppow_s05" , ppow_s05_shp)
+
+# iterate over new projections (prj, res)
+prjs <- projections_tbl %>%
+  group_by(prj) %>%
+  summarize(
+    epsg = first(epsg))
+
+if (redo_project_polygons){
+  for (i in 2:length(projections_lst)){ # i=3
+    prj  <- names(projections_lst)[i]
+    epsg <- projections_lst[[i]]$epsg
+
+    # iterate over shapefiles
+    for (j in 1:nrow(shps_gcs)){ # j=1
+      s <- shps_tbl[j,]
+
+      o_shp <- glue("{dirname(s$shp)}/{s$pfx}_{prj}.shp")
+
+      read_sf(s$shp, quiet=T) %>%
+        st_transform(o, crs = epsg) %>%
+        st_write(o_shp, delete_layer = T)
+    }
+  }
+}
+
 # r_na ----
 # for assigning fresh values later
 r_na <- raster(
   xmn = -180, xmx = 180, ymn = -90, ymx = 90,
-  resolution=0.5, crs=leaflet:::epsg4326, vals=NA)
+  resolution=0.5, crs=projections$gcs$proj, vals=NA)
 
 # r_pu_id ----
 if (!file.exists(pu_id_tif) | redo_lyrs){
@@ -256,6 +345,37 @@ if (!file.exists(pu_id_tif) | redo_lyrs){
 
   writeRaster(r_pu_id, pu_id_tif, overwrite=T)
   use_data(r_pu_id, overwrite = TRUE)
+}
+
+# pu_id_[prj][res].tif ----
+if (redo_project_pu_id_tifs){
+
+  for (i in 2:nrow(projections_tbl)){ # i = 3
+    p <- projections_tbl[i,]
+    pu_id_pr_tif <- glue("{dir_data}/pu_id_{p$prjres}.tif")
+    message(p$prjres)
+
+    r_na_pr <- suppressWarnings(
+      projectRaster(
+        from = r_na,
+        #to = projectExtent(r_na, crs = sp::CRS(p$proj)),
+        crs = p$proj,
+        res = p$res_num,
+        method = "ngb"))
+
+    r_abnj_pr <- get_dataset_prj_res("p_abnj", p$prj) %>%
+      fasterize(r_na_pr)     # rasterize() resulted in horizontal slivers
+    crs(r_abnj_pr) <- p$proj # presume same projection for raster
+
+    r_pu_id_pr <- r_na_pr %>%
+      setValues(1:ncell(r_na_pr)) %>%
+      mask(r_abnj_pr)
+
+    #plot(r_pu_id_pr, main = p$prjres)
+    #message(paste("  res:", res(r_pu_id_pr)))
+
+    writeRaster(r_pu_id_pr, pu_id_pr_tif, overwrite=T)
+  }
 }
 
 # r_vpgm ----
@@ -279,20 +399,44 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
   # vgpm.raster(file.path(raw_vgpm_dir, "vgpm.2019001.all.xyz"))
 
   tifs <- list.files(raw_vgpm_dir, ".*\\.tif$", full.names = T)
-  r_vgpm <- stack(tifs) %>%
-    mean(na.rm=T) %>%
-    aggregate(fact=6) %>%
-    mask(r_pu_id)
-  #plot(log(r_vgpm))
+  r_vgpm_0 <- stack(tifs) %>%
+    mean(na.rm=T) #%>%
+    #aggregate(fact=6) %>%
+    #mask(r_pu_id)
+  #plot(log(r_vgpm_0))
 
-  writeRaster(r_vgpm, vgpm_tif, overwrite=T)
-  use_data(r_vgpm, overwrite=T)
+  #for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
+  for (prjres in projections_tbl$prjres[-1]){ # prjres = projections_tbl$prjres[4]
+
+    vgpm_tif   <- glue("{dir_data}/vgpm{prjres}.tif")
+    r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
+
+    if (prjres == ""){
+      # gcs 0.5d works out to exactly 6 cells
+      r_vgpm <- r_vgpm_0 %>%
+        aggregate(fact=6, fun=mean) %>%
+        mask(r_pu_id_pr)
+      #plot(log(r_vgpm))
+
+      use_data(r_vgpm, overwrite=T)
+    } else {
+      r_vgpm <- projectRaster(
+            from = r_vgpm_0,
+            to = r_pu_id_pr,
+            method = "bilinear") %>%
+        mask(r_pu_id_pr)
+    }
+
+    # write gcs raster for general use
+    writeRaster(r_vgpm, vgpm_tif, overwrite=T)
+  }
 }
 
 # s_bio_gmbi ----
 if (!dir.exists("inst/data/bio_gmbi") | redo_lyrs){
   # get bio raster stack from gmbi
   data(gmbi_stack)
+  data("r_pu_id")
 
   # mask stack
   s_bio_gmbi <- gmbi_stack %>%
@@ -311,6 +455,11 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_lyrs){
 
   # use_data()
   use_data(s_bio_gmbi, overwrite = TRUE)
+
+  # create stacks in other projections
+  walk(
+    projections_tbl$prjres[-1],
+    s_to_prjres, s_bio_gmbi, "bio_gmbi", "bilinear", debug=F)
 }
 
 # s_bio_gmbi: seagrass? ----
@@ -357,6 +506,11 @@ if (!dir.exists("inst/data/fish_gfw") | redo_lyrs){
 
   # use_data()
   use_data(s_fish_gfw, overwrite = TRUE)
+
+  # create stacks in other projections
+  walk(
+    projections_tbl$prjres[-1],
+    s_to_prjres, s_fish_gfw, "fish_gfw", "bilinear", debug=F)
 }
 
 # s_fish_saup ----
@@ -376,6 +530,11 @@ if (!dir.exists("inst/data/fish_saup") | redo_lyrs){
 
   # use_data()
   use_data(s_fish_saup, overwrite = TRUE)
+
+  # create stacks in other projections
+  walk(
+    projections_tbl$prjres[-1],
+    s_to_prjres, s_fish_saup, "fish_saup", "bilinear", debug=F)
 }
 
 # s_phys_scapes ----
@@ -383,6 +542,8 @@ if (!dir.exists("inst/data/phys_scapes") | redo_lyrs){
 
   # load raster in 0.1 deg resolution
   r_scapes <- raster(raw_phys_scapes_arcinfo)
+  scapes_tif <- sprintf("%s/class_11.tif", raw_phys_scapes_arcinfo %>% dirname() %>% dirname())
+  writeRaster(r_scapes, scapes_tif)
 
   # create raster stack of benthicscape classes
   # with each layer containing amount of class in 0.5 deg cell
@@ -413,6 +574,11 @@ if (!dir.exists("inst/data/phys_scapes") | redo_lyrs){
 
   # use_data()
   use_data(s_phys_scapes, overwrite = TRUE)
+
+  # create stacks in other projections
+  walk(
+    projections_tbl$prjres[-1],
+    s_to_prjres, s_phys_scapes, "phys_scapes", "bilinear", debug=F)
 }
 
 # s_phys_seamounts ----
@@ -491,25 +657,38 @@ if (!file.exists(phys_seamounts_tif) | redo_lyrs){
   #   leafem::addMouseCoordinates() %>%
   #   leaflet::flyTo(pt$lon, pt$lat, zoom = 10)
 
-  r_lvl <- function(brk){
-    pts %>%
+  r_lvl <- function(brk, prjres){ # brk="(800,Inf]"
+    r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
+    epsg <- projections_tbl %>% filter(prjres==!!prjres) %>% pull(epsg)
+    p <- pts %>%
       filter(summit_depth_m_brk == brk) %>%
-      st_coordinates() %>%
-      rasterize(r_pu_id, fun='count', background=0)
+      st_transform(epsg) %>%
+      st_coordinates()
+    r <- rasterize(p, r_pu_id_pr, fun='count', background=0) %>%
+      mask(r_pu_id_pr)
+    #plot(r)
+    r
   }
 
-  lvls                    <- levels(pts$summit_depth_m_brk)
-  s_phys_seamounts        <- stack(sapply(lvls, r_lvl))
-  names(s_phys_seamounts) <- lbls
+  lvls <- levels(pts$summit_depth_m_brk)
 
-  # write tifs
-  map(lbls, lyr_to_tif, s_phys_seamounts, "phys_seamounts")
+  for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
+  #for (prjres in projections_tbl$prjres[-1]){ # prjres = projections_tbl$prjres[1]
 
-  # load into memory so not referencing local file and use_data() works
-  s_phys_seamounts <- raster::readAll(s_phys_seamounts)
+    s_phys_seamounts        <- stack(sapply(lvls, r_lvl, prjres))
+    names(s_phys_seamounts) <- lbls
 
-  # use_data()
-  use_data(s_phys_seamounts, overwrite = TRUE)
+    # write tifs
+    map(lbls, lyr_to_tif, s_phys_seamounts, glue("phys_seamounts{prjres}"))
+
+    if (prjres == ""){
+      # load into memory so not referencing local file and use_data() works
+      s_phys_seamounts <- raster::readAll(s_phys_seamounts)
+
+      # use_data()
+      use_data(s_phys_seamounts, overwrite = TRUE)
+    }
+  }
 }
 
 # r_phys_vents ----
@@ -518,13 +697,22 @@ if (!file.exists(phys_vents_tif) | redo_lyrs){
     st_as_sf(
       coords = c("Longitude", "Latitude"), crs = 4326, remove=F)
 
-  r_phys_vents <- rasterize(
-    st_coordinates(pts_vents), r_pu_id, fun='count', background=0) %>%
-    mask(r_pu_id) # plot(r_phys_seamounts)
-  names(r_phys_vents) <- "count"
+  for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
 
-  writeRaster(r_phys_vents, phys_vents_tif, overwrite = TRUE)
-  use_data(r_phys_vents, overwrite = TRUE)
+    phys_vents_tif <- glue("{dir_data}/phys_vents{prjres}.tif")
+    r_pu_id_pr     <- get_d_prjres("r_pu_id", prjres)
+
+    r_phys_vents <- rasterize(
+      st_coordinates(pts_vents), r_pu_id_pr, fun='count', background=0) %>%
+      mask(r_pu_id_pr) # plot(r_phys_seamounts)
+    names(r_phys_vents) <- "count"
+
+    writeRaster(r_phys_vents, phys_vents_tif, overwrite = TRUE)
+
+    if (prjres == ""){
+      use_data(r_phys_vents, overwrite = TRUE)
+    }
+  }
 }
 
 # r_mine_claims ----
@@ -532,7 +720,8 @@ if (!file.exists(mine_claims_tif) | redo_lyrs){
 
   p_mine_claims <- read_sf(raw_mine_claims_shp) %>%
     # remove: APEI (Area of Particular Environmental Interest)
-    filter(area_type != "apei")
+    filter(area_type != "apei") %>%
+    lwgeom::st_make_valid()
   #table(p_mine_claims$area_type)
   # apei    claim reserved
   #    9     1330      174
@@ -551,9 +740,19 @@ if (!file.exists(mine_claims_tif) | redo_lyrs){
   write_sf(p_mine_claims, mine_claims_shp)
   use_data(p_mine_claims, overwrite = TRUE)
 
-  r_mine_claims <- rasterize(p_mine_claims, r_pu_id, field=1, background=0) %>%
-    mask(r_pu_id) # plot(r_mine_claims)
-  names(r_mine_claims) <- "present"
-  writeRaster(r_mine_claims, mine_claims_tif, overwrite = TRUE)
-  use_data(r_mine_claims, overwrite = TRUE)
+  for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
+  #for (prjres in projections_tbl$prjres[-1]){ # prjres = projections_tbl$prjres[2]
+
+    mine_claims_tif  <- glue("{dir_data}/mine-claims{prjres}.tif")
+    r_pu_id_pr       <- get_d_prjres("r_pu_id", prjres)
+
+    r_mine_claims <- rasterize(p_mine_claims, r_pu_id_pr, field=1, background=0) %>%
+      mask(r_pu_id_pr) # plot(r_mine_claims)
+    names(r_mine_claims) <- "present"
+    writeRaster(r_mine_claims, mine_claims_tif, overwrite = TRUE)
+  }
+  if (prjres == ""){
+    use_data(r_mine_claims, overwrite = TRUE)
+  }
+
 }

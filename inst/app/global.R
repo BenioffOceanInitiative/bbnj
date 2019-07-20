@@ -1,6 +1,9 @@
 library(rgdal)
 library(raster)
-library(tidyverse)
+library(readr)
+library(purrr)
+library(dplyr)
+library(tidyr)
 library(stringr)
 library(sf)
 library(leaflet)
@@ -11,8 +14,8 @@ library(glue)
 library(shiny)
 library(htmltools)
 library(shinydashboard)
-library(bbnj)
-# devtools::load_all() # devtools::install_local(force=T) # devtools::install_github("ecoquants/bbnj")
+#library(bbnj)
+devtools::load_all() # devtools::install_local(force=T) # devtools::install_github("ecoquants/bbnj")
 library(bsplus)
 select = dplyr::select
 
@@ -21,64 +24,149 @@ select = dplyr::select
 # setwd if working from github repo vs shinyapps.io; reset: setwd(here())
 if (!"global.R" %in% list.files(getwd())) setwd(here("inst/app"))
 
+# variables
+#prjres            <- "" # see projections_tbl$prjres
+redo_features_rds <- F
+debug <- T
+
 # paths
-input_features_csv <- "data/input_features.csv"
-id_gcs2mer_csv     <- "data/id_gcs2mer.csv"
-na_mer_tif         <- "data/na_mer.tif"
-dir_scenarios      <- "www/scenarios"
+features_csv <- "data/input_features.csv"
+features_rds <- "data/features.rds"
+#feature_layers_csv  <- "data/input_feature_layers.csv"
+#id_gcs2mer_csv   <- "data/id_gcs2mer.csv"
+#na_mer_tif       <- "data/na_mer.tif"
+#id_gcs2mol_csv   <- "data/id_gcs2mol.csv"
+#na_mol_tif       <- "data/na_mol.tif"
+dir_scenarios <- "www/scenarios"
 
 # input features ----
-features        <- read_csv(input_features_csv) %>%
-  filter(active)
-features_label <- features %>%
+features <- read_csv(features_csv) %>%
+  filter(active) %>%
+  mutate(
+    #prjres = ifelse(is.na(prjres), "", prjres))
+    prjres = "_mer36km")
+feature_labels <- features %>%
   mutate(
     label = map(r_labels, function(x) eval(parse(text=x), envir=globalenv()))) %>%
-  select(type, label) %>%
-  unnest(label) # View(lyrs_labels)
-features_stack    <- map(features$r_data, function(x) eval(parse(text=x))) %>% stack()
-names(features_stack) <- features_label$label
+  select(type, label, prjres) %>%
+  unnest(label)
+
+# redo features_rds if features_csv modified more recently
+redo_features_rds <- features_csv %>%
+  fs::file_info() %>%
+  pull(modification_time) >
+  features_rds %>%
+  fs::file_info() %>%
+  pull(modification_time)
+#redo_features_rds <- T
+if (redo_features_rds){
+  #for (prjres in unique(features$prjres)){ # prjres = "_mer36km"
+  # TODO: update this to reflect that only geographic projection mappable
+  s_features <- features %>%
+    #filter(prjres == !!prjres) %>%
+    mutate(
+      raster = map(r_data, function(x) eval(parse(text=x)))) %>%
+    pull(raster) %>%
+    stack()
+
+  s_lbls <- feature_labels %>%
+    #filter(prjres == !!prjres) %>%
+    pull(label)
+
+  nlyrs <- nlayers(s_features)
+  nlbls <- length(s_lbls)
+  stopifnot(nlyrs == nlbls)
+  # debug
+  # nmax <- max(nlyrs, nlbls)
+  # d <- tibble(
+  #   lyr = c(names(s), rep(NA, nmax - nlyrs)),
+  #   lbl = c(s_lbls, rep(NA, nmax - nlbls)))
+  # View(d)
+  # View(features)
+  #s_features <- leaflet::projectRasterForLeaflet(s_features)
+  #s_features <- s_to_prjres("_mer36km", s_features, )
+
+  r_pu_id_pr <- get_d_prjres("r_pu_id", "_mer36km")
+  s_features <- suppressWarnings(
+    projectRaster(
+      from = s_features,
+      to = r_pu_id_pr,
+      method = "bilinear")) %>%
+    mask(r_pu_id_pr)
+
+  names(s_features) <- s_lbls
+  saveRDS(s_features, features_rds)
+  #}
+}
+
+# read in features
+# for (prjres in unique(features$prjres)){ # prjres = ""
+#   assign(
+#     glue("s_features{prjres}"),
+#     readRDS(glue("data/features{prjres}.rds")))
+# }
+s_features <-  readRDS(features_rds)
+
+# %>%
+  #write_csv(feature_layers_csv) # features
+ # View(lyrs_labels)
+  #features_stack    <- map(features$r_data, function(x) eval(parse(text=x))) %>% stack()
+  #names(features_stack) <- features_label$label
+#}
 
 # output scenarios ----
-scenarios_label <- tibble(
+scenarios <- tibble(
   type = "output_scenario",
   tif  = list.files(dir_scenarios, "^s.*\\_sol.tif$", full.names=T)) %>%
   mutate(
-    label     = map_chr(basename(tif), function(x) str_replace(x, "^(s.*)\\_sol.tif$", "\\1")))
-scenarios_stack        <- stack(scenarios_label$tif)
-names(scenarios_stack) <- scenarios_label$label
+    label   = map_chr(basename(tif), function(x) str_replace(x, "^(s.*)\\_sol.tif$", "\\1")),
+    prjres  = map_chr(tif, function(x) get_tif_projection(x, debug=F)$prjres),
+    gcs_shp = map_chr(tif, function(x) glue("{fs::path_ext_remove(x)}_gcs.shp")),
+    has_shp = map_lgl(gcs_shp, file.exists))
+# TODO: show scenario overview table; get total & percent area
+
+stopifnot(all(scenarios$has_shp))
+# scenarios <- scenarios %>%
+#   mutate(
+#     has_shp = map_lgl(gcs_shp, file.exists),
+#     tif_to_shp_gcs())
+# scenarios %>%
+#   filter(!has_shp) %>%
+#   pull(tif) %>%
+#   walk(tif_to_shp_gcs)
+
+# scenarios_stack        <- stack(scenarios_label$tif)
+# names(scenarios_stack) <- scenarios_label$label
+# for (prjres in unique(scenarios$prjres)){ # prjres = "_mol50km"
+#   v_pr <- glue("s_scenarios{prjres}")
+#   d_pr <- filter(scenarios, prjres == !!prjres)
+#
+#   s_pr        <- pull(d_pr, tif) %>% stack()
+#   names(s_pr) <- pull(d_pr, label)
+#   assign(v_pr, s_pr)
+# }
 
 # layers: features + scenarios ----
-lyrs_gcs <- stack(features_stack, scenarios_stack)
+#prjres_lyrs <- unique(c(features$prjres, scenarios$prjres))
+prjres_lyrs <- unique(scenarios$prjres)
+# for (prjres in prjres_lyrs){ # prjres = ""
+#   v_pr <- glue("s_layers{prjres}")
+#   s_pr <- stack(
+#     get(glue("s_features{prjres}")),
+#     get(glue("s_scenarios{prjres}")))
+#   assign(v_pr, s_pr)
+# }
 
-# project raster stack from gcs to mer for leaflet ----
-if (any(!file.exists(na_mer_tif, id_gcs2mer_csv))){
-  r_pu_id_mer      <- projectRasterForLeaflet(r_pu_id, "ngb")
-  r_na_mer         <- r_pu_id_mer
-  values(r_pu_id_mer) <-  NA
-  writeRaster(r_pu_id_mer, na_mer_tif)
-
-  id <- tibble(
-    mer = 1:ncell(r_pu_id_mer),
-    gcs = values(r_pu_id_mer)) %>%
-    filter(!is.na(gcs))
-  write_csv(id, id_gcs2mer_csv)
-} else {
-  id       <- read_csv(id_gcs2mer_csv)
-  r_na_mer <- raster(na_mer_tif)
-}
-
-lyrs_mer <- stack(lapply(1:nlayers(lyrs_gcs), function(x) r_na_mer))
-for (i in 1:nlayers(lyrs_gcs)){ # i = 1
-  lyrs_mer[[i]][id$mer] <- lyrs_gcs[[i]][id$gcs]
-}
-names(lyrs_mer) <- names(lyrs_gcs)
-
-# setup ui layer choices ----
+# setup ui choices ----
 lyr_choices <- bind_rows(
-    features_label,
-    scenarios_label) %>%
-  select(type, label) %>%
-  arrange(type, label)
+    feature_labels,
+    scenarios %>% select(type, label, prjres)) %>%
+  select(type, label, prjres) %>%
+  arrange(type, label, prjres)
+# View(lyr_choices)
 
-lyrs_mismatch <- setdiff(names(lyrs_mer), lyr_choices$label)
-stopifnot(length(lyrs_mismatch) == 0)
+prjres_choices <- projections_tbl %>%
+  mutate(
+    lbl = glue("{name} {res}")) %>%
+  filter(prjres %in% prjres_lyrs) %>%
+  select(lbl, prjres)

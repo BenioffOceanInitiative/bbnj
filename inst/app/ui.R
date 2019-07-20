@@ -9,6 +9,11 @@ dashboardPage(
       # menuItem("histogram", tabName = "tab_hist", icon = icon("bar-chart"))),
 
     selectInput(
+      "sel_prjres", label = "projection",
+      choices =
+        with(prjres_choices, setNames(prjres, lbl))),
+
+    selectInput(
       "sel_type", label = "type",
       choices = list(
         "input" = list(
@@ -20,12 +25,12 @@ dashboardPage(
           "scenarios" = "output_scenario")),
       selected = "output_scenario"),
 
+    #uiOutput("ui_lyr"),
     selectInput(
       "sel_lyr", label = "layer",
-      choices = lyr_choices$label),
-      # choices = lyr_choices %>%
-      #   filter(type == "output_scenario") %>%
-      #   pull(label)),
+      choices = lyr_choices %>%
+        filter(type == "output_scenario") %>%
+        pull(label)),
 
     conditionalPanel(
       condition = "input.sel_lyr.substring(0,1) == 's'",

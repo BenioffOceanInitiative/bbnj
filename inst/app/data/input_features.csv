@@ -1,21 +1,27 @@
-﻿active,type,r_data,r_labels
-F,input_general,"raster(s_bio_gmbi, ""nspp_all"")","""bio_nspp"""
-F,input_general,"raster(s_bio_gmbi, ""nspp_all_2100"")","""bio_nspp_2100"""
-F,input_general,"raster(s_bio_gmbi, ""rls_all"")","""bio_rls"""
-F,input_general,"raster(s_bio_gmbi, ""rls_all_2100"")","""bio_rls_2100"""
-T,input_general,"raster(s_fish_gfw, ""mean_scaled_profits_with_subsidies"")","""fish_profit.subs"""
+﻿active,type,r_data,r_labels,prjres
+F,input_general,"raster(s_bio_gmbi, ""nspp_all"")","""bio_nspp""",
+F,input_general,"raster(s_bio_gmbi, ""nspp_all_2100"")","""bio_nspp_2100""",
+F,input_general,"raster(s_bio_gmbi, ""rls_all"")","""bio_rls""",
+F,input_general,"raster(s_bio_gmbi, ""rls_all_2100"")","""bio_rls_2100""",
+T,input_general,"raster(s_fish_gfw, ""mean_scaled_profits_with_subsidies"")","""fish_profit.subs""",
 T,input_general,"raster(s_fish_gfw, ""mean_scaled_profits_with_subsidies"")  %>%
-  gap_fill_raster()","""fish_profit.subs_fill.pu"""
+  gap_fill_raster()","""fish_profit.subs_fill.pu""",
 T,input_general,"raster(s_fish_gfw, ""mean_scaled_profits_with_subsidies"")  %>%
   gap_fill_raster() %>%
-  rescale_raster()","""fish_profit.subs_fill.rescale.pu"""
+  rescale_raster()","""fish_profit.subs_fill.rescale.pu""",
 T,input_general,"raster(s_fish_ubc, ""mcp_2050"")  %>%
-  gap_fill_raster()","""fish_mcp.2050_fill.pu"""
-T,input_general,s_fish_ubc,"c(""fish_mcp.2004"",""fish_mcp.2050"")"
-T,input_general,r_phys_seamounts,"""phys_seamounts"""
-T,input_general,r_phys_vents,"""phys_vents"""
-T,input_general,r_mine_claims,"""mine_claims"""
-T,input_general,s_phys_scapes," as.character(glue(""phys_scape.{1:11}""))"
-T,input_general,r_vgpm,"""bio_vgpm"""
-T,input_taxa_now,"subset(s_bio_gmbi, lyrs_bio_now)","lyrs_bio_now <- setdiff(names(s_bio_gmbi) , str_subset(names(s_bio_gmbi), ""2100$"")); lyrs_bio_now"
-T,input_taxa_2100,"subset(s_bio_gmbi, lyrs_bio_now)","lyrs_bio_2100 <- str_subset(names(s_bio_gmbi), ""2100$""); lyrs_bio_2100"
+  gap_fill_raster()","""fish_mcp.2050_fill.pu""",
+T,input_general,s_fish_ubc,"c(""fish_mcp.2004"",""fish_mcp.2050"")",
+T,input_general,s_phys_seamounts," as.character(glue(""phys_seamounts_{names(s_phys_seamounts)}""))",
+T,input_general,r_phys_vents,"""phys_vents""",
+T,input_general,r_mine_claims,"""mine_claims""",
+T,input_general,s_phys_scapes," as.character(glue(""phys_scape.{1:11}""))",
+T,input_general,r_vgpm,"""bio_vgpm""",
+T,input_taxa_now,"subset(s_bio_gmbi, lyrs_bio_now)","lyrs_bio <- names(s_bio_gmbi); lyrs_bio_now <- setdiff(lyrs_bio , str_subset(lyrs_bio, ""2100$"")); lyrs_bio_now",
+T,input_taxa_2100,"subset(s_bio_gmbi, lyrs_bio_2100)","lyrs_bio_2100 <- str_subset(lyrs_bio, ""2100$""); lyrs_bio_2100",
+F,input_taxa_now,"subset(get_o_prjres(""s_bio_gmbi"", ""_mol50km""), lyrs_bio_now)","lyrs_bio_mol50km <- names(s_bio_gmbi); lyrs_bio_now_mol50km <- setdiff(lyrs_bio , str_subset(lyrs_bio, ""2100$"")); lyrs_bio_now_mol50km",_mol50km
+F,input_taxa_2100,"subset(get_o_prjres(""s_bio_gmbi"", ""_mol50km""), lyrs_bio_2100)","lyrs_bio_2100_mol50km <- str_subset(lyrs_bio, ""2100$""); lyrs_bio_2100_mol50km",_mol50km
+F,input_taxa_now,"subset(get_o_prjres(""s_bio_gmbi"", ""_mer36km""), lyrs_bio_now)","lyrs_bio_mer36km <- names(s_bio_gmbi); lyrs_bio_now_mer36km <- setdiff(lyrs_bio , str_subset(lyrs_bio, ""2100$"")); lyrs_bio_now_mer36km",_mer36km
+F,input_taxa_2100,"subset(get_o_prjres(""s_bio_gmbi"", ""_mer36km""), lyrs_bio_2100)","lyrs_bio_2100_mer36km <- str_subset(lyrs_bio, ""2100$""); lyrs_bio_2100_mer36km",_mer36km
+F,input_taxa_now,"subset(get_o_prjres(""s_bio_gmbi"", ""_mol100km""), lyrs_bio_now)","lyrs_bio_mol100km <- names(s_bio_gmbi); lyrs_bio_now_mol100km <- setdiff(lyrs_bio , str_subset(lyrs_bio, ""2100$"")); lyrs_bio_now_mol100km",_mol100km
+F,input_taxa_2100,"subset(get_o_prjres(""s_bio_gmbi"", ""_mol100km""), lyrs_bio_2100)","lyrs_bio_2100_mol100km <- str_subset(lyrs_bio, ""2100$""); lyrs_bio_2100_mol100km",_mol100km

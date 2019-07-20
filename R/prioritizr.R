@@ -9,7 +9,7 @@
 #'
 #' @examples
 #solve_log <- function(p, log, tif){
-solve_log <- function(p, pfx=deparse(substitute(p)), redo=F){
+solve_log <- function(p, pfx=deparse(substitute(p)), redo=F, debug=F){
   library(prioritizr)
   library(raster)
   select = dplyr::select
@@ -21,30 +21,94 @@ solve_log <- function(p, pfx=deparse(substitute(p)), redo=F){
   rep <- glue("{pfx}_rep.csv")
 
   if (all(file.exists(log,tif,rep)) & !redo){
-    s <- raster::raster(tif)
-    attr(s, "feature_representation") <- read_csv(rep)
+    r_sol <- raster::raster(tif)
+    attr(r_sol, "feature_representation") <- read_csv(rep)
 
-    message(glue("Files found ({basename(tif)}) & redo=F, returning previously computed raster solution"))
-    return(s)
+    if (debug) message(glue("Files found ({basename(tif)}) & redo=F, returning previously computed raster solution"))
+    return(tif)
   }
-  if (!file.exists(log)) message(glue("File NOT found 'log': {log}"))
-  if (!file.exists(tif)) message(glue("File NOT found 'tif': {tif}"))
-  if (!file.exists(rep)) message(glue("File NOT found 'log': {rep}"))
+  if (debug){
+    if (!file.exists(log)) message(glue("File NOT found 'log': {log}"))
+    if (!file.exists(tif)) message(glue("File NOT found 'tif': {tif}"))
+    if (!file.exists(rep)) message(glue("File NOT found 'log': {rep}"))
+  }
 
   sink(log)
-  s <- prioritizr::solve(p)
+  r_sol <- prioritizr::solve(p)
   sink()
 
-  if ("RasterLayer" %in% class(s)){
-    raster::writeRaster(s, tif, overwrite=T)
+  if ("RasterLayer" %in% class(r_sol)){
+    raster::writeRaster(r_sol, tif, overwrite=T)
 
-    d <- feature_representation(p, s)
+    #P <- get_tif_projection(tif)
+    #if (P$prj != "mer")
+    attr(r_sol, "shapefile_gcs") <- tif_to_shp_gcs(tif)
+
+    d <- feature_representation(p, r_sol)
     write_csv(d, rep)
-    attr(s, "feature_representation") <- d
+    attr(r_sol, "feature_representation") <- d
+
+    S <- get_tif_area_stats(tif)
+
+    d_a <- tibble(
+      feature = "_area_km2",
+      absolute_held = S$highseas_km2,
+      relative_held = S$pct_solution)
+    d <- bind_rows(d_a, d)
   }
 
-  s
+  tif
 }
+
+get_tif_area_stats <- function(tif){
+  P <- get_tif_projection(tif)
+  r_sol <- raster(tif)
+
+  if (P$prj == "gcs"){
+    #tif <- "/Users/bbest/github/bbnj/inst/app/www/scenarios/s00b.bio.30pct.gl.gcs0.5d_sol.tif"
+    #r_sol <- raster(tif) # plot(r_sol==1); plot(r_sol)
+    r_hs_a <- area(r_sol) %>%
+      mask(r_sol, maskvalue=NA)
+    r_sol_a <- r_hs_a %>%
+      mask(r_sol, maskvalue=0)
+    a_hs  <- sum(values(r_hs_a), na.rm=T)
+    a_sol <- sum(values(r_sol_a), na.rm=T)
+  } else {
+    # tif <- "/Users/bbest/github/bbnj/inst/app/www/scenarios/s00a.bio.30pct.gl.mol100km_sol.tif"
+    # r_sol <- raster(tif) # plot(r_sol==1); plot(r_sol)
+    a_cell <- prod(res(r_sol))/(1000*1000)
+    a_hs   <- sum(values(!is.na(r_sol))) * a_cell
+    a_sol  <- sum(values(r_sol == 1), na.rm=T) * a_cell
+  }
+
+  A <- list(
+    highseas_km2 = a_hs,
+    solution_km2 = a_sol,
+    pct_solution = a_sol/a_hs)
+  A$summary = glue(
+      "Solution : {str_pad(format(A$solution_km2, big.mark=','), nchar(format(A$highseas_km2, big.mark=',')))} km2 ({round(A$pct_solution*100, 2)}%)
+       High seas: {format(A$highseas_km2, big.mark=',')} km2")
+
+
+  A
+}
+
+get_tif_solution <- function(tif){
+  pfx <- str_replace(tif, "_sol.tif", "")
+  log <- glue("{pfx}_log.txt")
+  rep <- glue("{pfx}_rep.csv")
+  shp <- glue("{fs::path_ext_remove(tif)}_gcs.shp")
+
+  r_sol <- raster(tif)
+  attr(r_sol, "feature_representation") <- read_csv(rep)
+  attr(r_sol, "log")                    <- readLines(log)
+  attr(r_sol, "area_stats")             <- get_tif_area_stats(tif)
+  attr(r_sol, "projection")             <- get_tif_projection(tif)
+  attr(r_sol, "shapefile_gcs")          <- shp
+
+  r_sol
+}
+
 
 #' Display table of target representaiton in conservation problem solution
 #'
@@ -79,6 +143,46 @@ tbl_target_representation <- function(csv = glue("{pfx}_rep.csv")){
         pageLength = 1000,
         columnDefs = list(list(className = 'dt-right', targets = c(2,3)))))
 }
+
+report_solution <- function(tif){
+  # tif <- "~/github/bbnj/inst/app/www/scenarios/s00a.bio.30pct.gl.gcs0.5d_sol.tif"
+
+  sol_png <- glue("{fs::path_ext_remove(tif)}_map.png")
+  sol_pdf <- glue("{fs::path_ext_remove(tif)}_map.pdf")
+  r_sol   <- get_tif_solution(tif)
+  P       <- get_tif_projection(tif)
+  A       <- get_tif_area_stats(tif)
+
+  # area ----
+  cat(A$summary)
+  #(markdown::renderMarkdown(text = "Hello World!"))
+
+  # plot ----
+  if (!file.exists(sol_png)){
+    countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+      st_transform(P$epsg)
+    graticules <- st_graticule(countries)
+
+    map_sol <- function(){
+      #op <- par(mar = rep(0, 4))
+      #op <- par(bg=NA,mar=c(0,0,0,0),oma=c(0,0,0,0))
+      plot(r_sol, legend=F, axes=F, box=F)
+      plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+      plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+      #par(op)
+    }
+
+    pdf(sol_pdf); map_sol(); dev.off()
+    png(sol_png); map_sol(); dev.off()
+  }
+  #map_sol()
+  knitr::include_graphics(sol_png)
+
+  # table ----
+  tbl_target_representation(glue("{pfx}_rep.csv"))
+}
+
+
 
 #' Produce diagnostics table for setting relative targets of features
 #'
