@@ -1,3 +1,5 @@
+# bbnj 0.5.0 now working with different projections
+
 # bbnj 0.4.1
 
 # bbnj 0.4
