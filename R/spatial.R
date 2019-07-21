@@ -297,16 +297,19 @@ get_d_prjres <- function(dataset, prjres="", debug=F){
   type  <- str_sub(dataset, end=1)
   name  <- str_sub(dataset, start=3)
 
-  p <- projections_tbl %>%
+  P <- projections_tbl %>%
     filter(prjres == !!prjres)
 
   #browser()
   if (type == "p"){
     # polygon
-    path <- glue("{dir_data}/{name}{prjres}.shp")
+    prj <- ifelse(P$prj == "gcs", "", glue("_{P$prj}"))
+    path <- glue("{dir_data}/{name}{prj}.shp")
     if (!file.exists(path)) stop(glue("Missing path: {path}"))
     if (debug) message(glue("path: {path}"))
-    return(read_sf(path))
+    p <- read_sf(path)
+    st_crs(p) <- P$proj
+    return(p)
   }
   if (type == "r"){
     # raster
@@ -314,7 +317,7 @@ get_d_prjres <- function(dataset, prjres="", debug=F){
     if (!file.exists(path)) stop(glue("Missing path: {path}"))
     if (debug) message(glue("path: {path}"))
     r <- raster(path)
-    crs(r) <- p$proj
+    crs(r) <- P$proj
     return(r)
   }
   if (type == "s"){
@@ -323,7 +326,7 @@ get_d_prjres <- function(dataset, prjres="", debug=F){
     if (!dir.exists(path)) stop(glue("Missing path: {path}"))
     if (debug) message(glue("path: {path}"))
     s <- stack(list.files(path, ".*\\.tif$", full.names=T))
-    crs(s) <- p$proj
+    crs(s) <- P$proj
     return(s)
   }
   # TODO: "s" for stack is folder w/ tifs inside
@@ -345,14 +348,14 @@ get_d_prjres <- function(dataset, prjres="", debug=F){
 r_to_prjres <- function(prjres, r, name, method = c("bilinear", "ngb"), debug=F){
   # prjres = projections_tbl$prjres[2]; r = r_vgpm_0; name = "vgpm"; method = c("bilinear","ngb")
 
-  p <- projections_tbl %>%
+  P <- projections_tbl %>%
     filter(prjres == !!prjres)
   stopifnot(nrow(p) == 1)
   r_pr_tif <- glue("{dir_data}/{name}{prjres}.tif")
   message(basename(r_pr_tif))
 
   #devtools::load_all()
-  r_pu_id_pr <- get_dataset_prj_res("r_pu_id", p$prj, p$res)
+  r_pu_id_pr <- get_dataset_prj_res("r_pu_id", P$prj, P$res)
 
   r_pr <- suppressWarnings(
     projectRaster(

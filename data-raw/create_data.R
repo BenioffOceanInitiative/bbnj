@@ -50,6 +50,7 @@ eez_shp                  <- glue("{dir_data}/eez.shp")
 eez_s05_shp              <- glue("{dir_data}/eez_s05.shp")
 pu_id_tif                <- glue("{dir_data}/pu_id.tif")
 mine_claims_shp          <- glue("{dir_data}/mine-claims.shp")
+scapes_tif               <- sprintf("%s/class_11.tif", raw_phys_scapes_arcinfo %>% dirname() %>% dirname())
 
 # variables ----
 redo_eez  = F
@@ -220,43 +221,39 @@ if (!file.exists(ihor_s05_shp) | redo_ihor){
   use_data(p_ihor_s05, overwrite = TRUE)
   write_sf(p_ihor_s05, ihor_s05_shp)
 
-  r_ihor <- fasterize(p_ihor, r_pu_id, field="seaid") %>%
-    mask(r_pu_id) # plot(r_ihor)
-  # OLD: all in one raster
-  # names(r_ihor) <- "seaid"
-  # r_ihor <- ratify(r_ihor)
-  # levels(r_ihor) <- p_ihor %>%
-  #   st_drop_geometry() %>%
-  #   select(ID=seaid, sea, area_km2) %>%
-  #   as.data.frame()
-  #factorValues(r_ihor, 1:7)
-  # writeRaster(s_ihor, ihor_tif, overwrite = TRUE)
-  # use_data(r_ihor, overwrite = TRUE)
+  #cat(paste(p_ihor$sea, collapse='` = "",\n`'))
+  sea_keys <- c(
+    `Arctic Ocean`         = "Arctic",
+    `Indian Ocean`         = "Indian",
+    `North Atlantic Ocean` = "N_Atlantic",
+    `North Pacific Ocean`  = "N_Pacific",
+    `South Atlantic Ocean` = "S_Atlantic",
+    `South Pacific Ocean`  = "S_Pacific",
+    `Southern Ocean`       = "Southern")
 
-  # NEW: seperate each sea into own raster to use as representative target
-  seas = c("Arctic", "Indian", "N_Atlantic", "N_Pacific", "S_Atlantic", "S_Pacific", "Southern")
-  s_ihor = stack()
-  for (i in 1:length(seas)){ # i = 1
-    s_ihor = stack(s_ihor, r_ihor == i)
-    names(s_ihor)[i] = seas[i]
-    # plot(raster(s_ihor, i), main = seas[i])
+  # make alternate polygon for regions
+  # see section: p_*_[prj] for non-gcs projections
+  # make rasters in projections
+  for (prjres in projections_tbl$prjres){ # prjres = "_mol50km"
+    dir_s   <- glue("bnd_ihor{prjres}")
+
+    #projections_lst$mer$proj
+    r_pu_id <- get_d_prjres("r_pu_id", prjres)
+    p_ihor  <- get_d_prjres("p_ihor", prjres) #%>%
+
+    r_ihor <- fasterize(p_ihor, r_pu_id, field="seaid") %>%
+      mask(r_pu_id)
+
+    s_ihor <- prioritizr::binary_stack(r_ihor)
+    names(s_ihor) <- sea_keys
+
+    map(names(s_ihor), lyr_to_tif, s_ihor, dir_s)
+
+    if (prjres == ""){
+      s_ihor <- raster::readAll(s_ihor)
+      use_data(s_ihor, overwrite = TRUE)
+    }
   }
-
-  # write tifs
-  map(names(s_ihor), lyr_to_tif, s_ihor, "bnd_ihor")
-
-  # load into memory so not referencing local file and use_data() works
-  s_ihor <- raster::readAll(s_ihor)
-
-  # use_data()
-  use_data(s_ihor, overwrite = TRUE)
-
-  # create stacks in other projections
-  # devtools::load_all()
-  walk(
-    projections_tbl$prjres[-1],
-    s_to_prjres, s_ihor, "bnd_ihor", "ngb", debug=F)
-
 }
 
 # p_ppow ----
@@ -331,7 +328,8 @@ if (redo_project_polygons){
 # for assigning fresh values later
 r_na <- raster(
   xmn = -180, xmx = 180, ymn = -90, ymx = 90,
-  resolution=0.5, crs=projections$gcs$proj, vals=NA)
+  resolution=0.5, crs=projections_lst$gcs$proj, vals=NA)
+#r_na_mer <- leaflet::projectRasterForLeaflet(r_na, "ngb")
 
 # r_pu_id ----
 if (!file.exists(pu_id_tif) | redo_lyrs){
@@ -350,29 +348,28 @@ if (!file.exists(pu_id_tif) | redo_lyrs){
 # pu_id_[prj][res].tif ----
 if (redo_project_pu_id_tifs){
 
-  for (i in 2:nrow(projections_tbl)){ # i = 3
-    p <- projections_tbl[i,]
-    pu_id_pr_tif <- glue("{dir_data}/pu_id_{p$prjres}.tif")
-    message(p$prjres)
+  for (prjres in projections_tbl$prjres){ # prjres = "" # _mer36km _mer36km
+    P <- projections_tbl %>% filter(prjres == !!prjres)
+    pu_id_pr_tif <- glue("{dir_data}/pu_id{prjres}.tif")
+    message(glue("{prjres}: {pu_id_pr_tif}"))
 
-    r_na_pr <- suppressWarnings(
-      projectRaster(
-        from = r_na,
-        #to = projectExtent(r_na, crs = sp::CRS(p$proj)),
-        crs = p$proj,
-        res = p$res_num,
-        method = "ngb"))
+    r_na_pr <- suppressWarnings(raster::projectRaster(
+      r_na, raster::projectExtent(r_na, crs = sp::CRS(P$proj)),
+      res = P$res_num))
 
-    r_abnj_pr <- get_dataset_prj_res("p_abnj", p$prj) %>%
+    r_abnj_pr <- get_d_prjres("p_abnj", prjres) %>%
       fasterize(r_na_pr)     # rasterize() resulted in horizontal slivers
-    crs(r_abnj_pr) <- p$proj # presume same projection for raster
+    crs(r_abnj_pr) <- P$proj # presume same projection for raster
 
     r_pu_id_pr <- r_na_pr %>%
       setValues(1:ncell(r_na_pr)) %>%
       mask(r_abnj_pr)
+    #mapview::mapview(r_pu_id_pr)
 
-    #plot(r_pu_id_pr, main = p$prjres)
-    #message(paste("  res:", res(r_pu_id_pr)))
+    if (prjres == ""){
+      r_pu_id <- r_pu_id_pr
+      use_data(r_pu_id, overwrite=T)
+    }
 
     writeRaster(r_pu_id_pr, pu_id_pr_tif, overwrite=T)
   }
@@ -401,12 +398,12 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
   tifs <- list.files(raw_vgpm_dir, ".*\\.tif$", full.names = T)
   r_vgpm_0 <- stack(tifs) %>%
     mean(na.rm=T) #%>%
-    #aggregate(fact=6) %>%
-    #mask(r_pu_id)
+  #aggregate(fact=6) %>%
+  #mask(r_pu_id)
   #plot(log(r_vgpm_0))
 
   #for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
-  for (prjres in projections_tbl$prjres[-1]){ # prjres = projections_tbl$prjres[4]
+  for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[4]
 
     vgpm_tif   <- glue("{dir_data}/vgpm{prjres}.tif")
     r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
@@ -421,9 +418,9 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
       use_data(r_vgpm, overwrite=T)
     } else {
       r_vgpm <- projectRaster(
-            from = r_vgpm_0,
-            to = r_pu_id_pr,
-            method = "bilinear") %>%
+        from = r_vgpm_0,
+        to = r_pu_id_pr,
+        method = "bilinear") %>%
         mask(r_pu_id_pr)
     }
 
@@ -542,43 +539,35 @@ if (!dir.exists("inst/data/phys_scapes") | redo_lyrs){
 
   # load raster in 0.1 deg resolution
   r_scapes <- raster(raw_phys_scapes_arcinfo)
-  scapes_tif <- sprintf("%s/class_11.tif", raw_phys_scapes_arcinfo %>% dirname() %>% dirname())
   writeRaster(r_scapes, scapes_tif)
+  r_scapes <- raster(scapes_tif)
 
-  # create raster stack of benthicscape classes
-  # with each layer containing amount of class in 0.5 deg cell
-  if (exists("s_scapes")) rm(s_scapes)
-  r_a <- area(r_scapes)
-  for (i in 1:11){ # i = 2
-    r_i <- (r_scapes == i) * r_a
-    r_ia <- aggregate(r_i, fact=5, fun=sum, expand=F, na.rm=T)
-    #plot(r_ia, col=cols)
+  for (prjres in projections_tbl$prjres){ # prjres = ""
+    #P <- projections_tbl %>% filter(prjres == !!prjres)
+    r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
+    r_scapes_pr <- r_scapes %>%
+      projectRaster(r_pu_id_pr, method = "ngb") %>%
+      mask(r_pu_id_pr)
 
-    #if (!exists("s_scapes")){
-    if (!env_has(global_env(), "s_scapes")){
-      s_scapes <- r_ia
-    } else {
-      s_scapes <- stack(s_scapes, r_ia)
+    s_phys_scapes        <- prioritizr::binary_stack(r_scapes_pr)
+    names(s_phys_scapes) <- glue("class_{1:11}")
+
+    # write tifs
+    map(names(s_phys_scapes), lyr_to_tif, s_phys_scapes, glue("phys_scapes{prjres}"))
+
+    if (prjres == ""){
+      # load into memory so not referencing local file and use_data() works
+      s_phys_scapes <- raster::readAll(s_phys_scapes)
+
+      # use_data()
+      use_data(s_phys_scapes, overwrite = TRUE)
     }
   }
-  lyrs <- names(s_scapes) <- glue("class_{1:11}")
 
-  # mask stack
-  s_phys_scapes <- s_scapes <- mask(s_scapes, r_pu_id)
-
-  # write tifs
-  map(lyrs, lyr_to_tif, s_phys_scapes, "phys_scapes")
-
-  # load into memory so not referencing local file and use_data() works
-  s_phys_scapes <- raster::readAll(s_phys_scapes)
-
-  # use_data()
-  use_data(s_phys_scapes, overwrite = TRUE)
-
-  # create stacks in other projections
-  walk(
-    projections_tbl$prjres[-1],
-    s_to_prjres, s_phys_scapes, "phys_scapes", "bilinear", debug=F)
+  # # create stacks in other projections
+  # walk(
+  #   projections_tbl$prjres[-1],
+  #   s_to_prjres, s_phys_scapes, "phys_scapes", "bilinear", debug=F)
 }
 
 # s_phys_seamounts ----
@@ -673,7 +662,7 @@ if (!file.exists(phys_seamounts_tif) | redo_lyrs){
   lvls <- levels(pts$summit_depth_m_brk)
 
   for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
-  #for (prjres in projections_tbl$prjres[-1]){ # prjres = projections_tbl$prjres[1]
+    #for (prjres in projections_tbl$prjres[-1]){ # prjres = projections_tbl$prjres[1]
 
     s_phys_seamounts        <- stack(sapply(lvls, r_lvl, prjres))
     names(s_phys_seamounts) <- lbls
@@ -740,8 +729,10 @@ if (!file.exists(mine_claims_tif) | redo_lyrs){
   write_sf(p_mine_claims, mine_claims_shp)
   use_data(p_mine_claims, overwrite = TRUE)
 
+  p_mine_claims <- read_sf(mine_claims_shp) %>%
+    lwgeom::st_make_valid()
   for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
-  #for (prjres in projections_tbl$prjres[-1]){ # prjres = projections_tbl$prjres[2]
+    #for (prjres in projections_tbl$prjres[-1]){ # prjres = projections_tbl$prjres[2]
 
     mine_claims_tif  <- glue("{dir_data}/mine-claims{prjres}.tif")
     r_pu_id_pr       <- get_d_prjres("r_pu_id", prjres)
@@ -750,9 +741,10 @@ if (!file.exists(mine_claims_tif) | redo_lyrs){
       mask(r_pu_id_pr) # plot(r_mine_claims)
     names(r_mine_claims) <- "present"
     writeRaster(r_mine_claims, mine_claims_tif, overwrite = TRUE)
-  }
-  if (prjres == ""){
-    use_data(r_mine_claims, overwrite = TRUE)
+
+    if (prjres == ""){
+      use_data(r_mine_claims, overwrite = TRUE)
+    }
   }
 
 }
