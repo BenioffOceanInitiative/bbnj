@@ -8,10 +8,10 @@ dashboardPage(
       menuItem("map", tabName = "tab_map", icon = icon("map"))),
       # menuItem("histogram", tabName = "tab_hist", icon = icon("bar-chart"))),
 
-    selectInput(
-      "sel_prjres", label = "projection",
-      choices =
-        with(prjres_choices, setNames(prjres, lbl))),
+    # selectInput(
+    #   "sel_prjres", label = "projection",
+    #   choices =
+    #     with(prjres_choices, setNames(prjres, lbl))),
 
     selectInput(
       "sel_type", label = "type",

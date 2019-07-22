@@ -1,3 +1,5 @@
+# bbnj 0.5.3 fixed input features in app with raster::readAll()
+
 # bbnj 0.5.2 rendering 300dpi maps in scenario report
 
 # bbnj 0.5.1 fixed pu_id projections

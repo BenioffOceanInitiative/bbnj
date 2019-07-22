@@ -26,7 +26,7 @@ if (!"global.R" %in% list.files(getwd())) setwd(here("inst/app"))
 
 # variables
 #prjres            <- "" # see projections_tbl$prjres
-redo_features_rds <- F
+redo_features_rds <- T
 debug <- T
 
 # paths
@@ -90,6 +90,7 @@ if (redo_features_rds | mod_features_rds){
     mask(r_pu_id_pr)
 
   names(s_features) <- s_lbls
+  s_features <- raster::readAll(s_features)
   saveRDS(s_features, features_rds)
   #}
 }
