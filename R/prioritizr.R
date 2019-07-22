@@ -60,6 +60,12 @@ solve_log <- function(p, pfx=deparse(substitute(p)), redo=F, debug=F){
   tif
 }
 
+#' get area statistics from tif of solution
+#'
+#' @param tif
+#'
+#' @return named list of area stats for high seas (\code{!is.na(value)}) and solution (\code{value=1})
+#' @export
 get_tif_area_stats <- function(tif){
   P <- get_tif_projection(tif)
   r_sol <- raster(tif)
@@ -93,6 +99,12 @@ get_tif_area_stats <- function(tif){
   A
 }
 
+#' get raster solution of tif
+#'
+#' @param tif
+#'
+#' @return raster solution of tif with attributes appended
+#' @export
 get_tif_solution <- function(tif){
   pfx <- str_replace(tif, "_sol.tif", "")
   log <- glue("{pfx}_log.txt")
@@ -144,11 +156,17 @@ tbl_target_representation <- function(csv = glue("{pfx}_rep.csv")){
         columnDefs = list(list(className = 'dt-right', targets = c(2,3)))))
 }
 
-report_solution <- function(tif){
+#' Report on conservation solution
+#'
+#' @param tif path to raster tif of solution
+#'
+#' @return for use in reports to spit out area stats, map and table of resulting scenario
+#' @export
+report_solution <- function(tif, fig_ht_in=2){
   # tif <- "~/github/bbnj/inst/app/www/scenarios/s00a.bio.30pct.gl.gcs0.5d_sol.tif"
 
   sol_png <- glue("{fs::path_ext_remove(tif)}_map.png")
-  sol_pdf <- glue("{fs::path_ext_remove(tif)}_map.pdf")
+  #sol_pdf <- glue("{fs::path_ext_remove(tif)}_map.pdf")
   r_sol   <- get_tif_solution(tif)
   P       <- get_tif_projection(tif)
   A       <- get_tif_area_stats(tif)
@@ -171,18 +189,17 @@ report_solution <- function(tif){
       plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
       #par(op)
     }
-
-    pdf(sol_pdf); map_sol(); dev.off()
-    png(sol_png); map_sol(); dev.off()
+    png(sol_png, width=480*4, height = 480*4, res=300, type="cairo", units='px'); map_sol(); dev.off()
+    sol_png %>%
+      magick::image_read() %>% magick::image_trim() %>%
+      magick::image_write(sol_png)
   }
-  #map_sol()
-  knitr::include_graphics(sol_png)
+  img <- magick::image_read(sol_png) %>%
+    grid::grid.raster()
 
   # table ----
   tbl_target_representation(glue("{pfx}_rep.csv"))
 }
-
-
 
 #' Produce diagnostics table for setting relative targets of features
 #'
@@ -239,6 +256,6 @@ problem_diagnostics <- function(pu, features, budget, pfx= deparse(substitute(fe
 
   sink()
 
-  write_csv(d, csv)
+  readr::write_csv(d, csv)
   d
 }

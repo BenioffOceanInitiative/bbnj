@@ -14,8 +14,8 @@ library(glue)
 library(shiny)
 library(htmltools)
 library(shinydashboard)
-#library(bbnj)
-devtools::load_all() # devtools::install_local(force=T) # devtools::install_github("ecoquants/bbnj")
+library(bbnj)
+#devtools::load_all() # devtools::install_local(force=T) # devtools::install_github("ecoquants/bbnj")
 library(bsplus)
 select = dplyr::select
 
@@ -52,16 +52,19 @@ feature_labels <- features %>%
   unnest(label)
 
 # redo features_rds if features_csv modified more recently
-redo_features_rds <- features_csv %>%
+mod_features_rds <- features_csv %>%
   fs::file_info() %>%
   pull(modification_time) >
   features_rds %>%
   fs::file_info() %>%
   pull(modification_time)
 #redo_features_rds <- T
-if (redo_features_rds){
+if (redo_features_rds | mod_features_rds){
   #for (prjres in unique(features$prjres)){ # prjres = "_mer36km"
   # TODO: update this to reflect that only geographic projection mappable
+
+  # raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") # "fish_profit.subs"
+  r_pu_id <- get_d_prjres("r_pu_id", "")
   s_features <- features %>%
     #filter(prjres == !!prjres) %>%
     mutate(
@@ -76,22 +79,14 @@ if (redo_features_rds){
   nlyrs <- nlayers(s_features)
   nlbls <- length(s_lbls)
   stopifnot(nlyrs == nlbls)
-  # debug
-  # nmax <- max(nlyrs, nlbls)
-  # d <- tibble(
-  #   lyr = c(names(s), rep(NA, nmax - nlyrs)),
-  #   lbl = c(s_lbls, rep(NA, nmax - nlbls)))
-  # View(d)
-  # View(features)
-  #s_features <- leaflet::projectRasterForLeaflet(s_features)
-  #s_features <- s_to_prjres("_mer36km", s_features, )
 
-  r_pu_id_pr <- get_d_prjres("r_pu_id", "_mer36km")
+  prjres <- "_mer36km"
+  P <- projections_tbl %>% filter(prjres == !!prjres)
+  r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
   s_features <- suppressWarnings(
-    projectRaster(
-      from = s_features,
-      to = r_pu_id_pr,
-      method = "bilinear")) %>%
+    raster::projectRaster(
+      s_features, raster::projectExtent(s_features, crs = sp::CRS(P$proj)),
+      res = P$res_num)) %>%
     mask(r_pu_id_pr)
 
   names(s_features) <- s_lbls

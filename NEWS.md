@@ -1,3 +1,5 @@
+# bbnj 0.5.2
+
 # bbnj 0.5.1 fixed pu_id projections
 
 # bbnj 0.5.0 now working with different projections

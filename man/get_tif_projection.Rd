@@ -4,7 +4,7 @@
 \alias{get_tif_projection}
 \title{Get projection info for tif of raster}
 \usage{
-get_tif_projection(tif)
+get_tif_projection(tif, debug = F)
 }
 \arguments{
 \item{tif}{path to raster tif}
