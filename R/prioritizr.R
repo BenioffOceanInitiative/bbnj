@@ -45,8 +45,6 @@ solve_log <- function(p, pfx=deparse(substitute(p)), redo=F, debug=F){
     attr(r_sol, "shapefile_gcs") <- tif_to_shp_gcs(tif)
 
     d <- feature_representation(p, r_sol)
-    write_csv(d, rep)
-    attr(r_sol, "feature_representation") <- d
 
     S <- get_tif_area_stats(tif)
 
@@ -55,6 +53,9 @@ solve_log <- function(p, pfx=deparse(substitute(p)), redo=F, debug=F){
       absolute_held = S$highseas_km2,
       relative_held = S$pct_solution)
     d <- bind_rows(d_a, d)
+
+    write_csv(d, rep)
+    attr(r_sol, "feature_representation") <- d
   }
 
   tif

@@ -1,3 +1,5 @@
+# bbnj 0.5.4 fixed get_tif_projection() & prepending _area_km2
+
 # bbnj 0.5.3 fixed input features in app with raster::readAll()
 
 # bbnj 0.5.2 rendering 300dpi maps in scenario report

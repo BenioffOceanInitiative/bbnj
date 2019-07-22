@@ -26,7 +26,7 @@ if (!"global.R" %in% list.files(getwd())) setwd(here("inst/app"))
 
 # variables
 #prjres            <- "" # see projections_tbl$prjres
-redo_features_rds <- T
+redo_features_rds <- F
 debug <- T
 
 # paths

@@ -437,11 +437,26 @@ lyr_to_tif <- function(lyr, s, s_dir, debug=F){
 #' @export
 get_tif_projection <- function(tif, debug=F){
   #tif  = list.files(dir_scenarios, "^s.*\\_sol.tif$", full.names=T)[1]
+
   r <- raster(tif)
+  # r_mol50km <- get_d_prjres("r_pu_id", "_mol50km")
+  # r_gcs05d <- get_d_prjres("r_pu_id", "")
+  # r <- r_mol50km
+  # r <- r_gcs05d
+  # plot(r)
+  # r
+
+  # get projection with matching projection and closest resolution
+  r_proj_str11 <- str_sub(as.character(crs(r)), end=11)
+  r_res_num    <- res(r)[1]
   P <- projections_tbl %>%
+    mutate(
+      proj_str11  = str_sub(projections_tbl$proj, end=11),
+      res_num_dif = abs(res_num - !!r_res_num)) %>%
     filter(
-      str_sub(projections_tbl$proj, end=11) == str_sub(as.character(crs(r)), end=11),
-      res_num == res(r)[1]) #%>%
+      proj_str11  == !!r_proj_str11,
+      res_num_dif == min(res_num_dif))
+
   #pull(prjres)
   if (debug){
     message(glue(
