@@ -19,7 +19,8 @@ Imports:
     leafem,
     shinydashboard,
     formattable,
-    stringr
+    stringr,
+    magick
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,
