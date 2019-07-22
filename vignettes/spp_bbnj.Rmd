@@ -1,6 +1,8 @@
 ---
 title: "Untitled"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -15,29 +17,45 @@ library(raster)
 library(DBI)
 library(RPostgreSQL)
 # library(gmbi)
+#library(bbnj)
+#devtools::load_all()
+select = dplyr::select
 
 # database connection
 con <- gmbi::get_db_con(password=readLines("~/private/pg_pass"))
-con
+dbListTables(con)
 ```
 
 ```{r, eval=F}
-#library(bbnj)
-devtools::load_all()
-
-data("r_pu_id")
+r_pu_id <- raster(here("inst/data/pu_id.tif"))
 
 bbnj_cells <- tibble(
   cellid = values(r_pu_id)) %>% 
   filter(!is.na(cellid)) %>% 
   mutate(in_bbnj = T)
 
+cells_ocean_area <- tbl(con, "cells") %>% 
+  left_join(
+    tbl(con, "env_cells"),
+    by = c("CenterLat","CenterLong")) %>% 
+  select(cellid, OceanArea) %>% 
+  collect()
+
+hist(cells_ocean_area$OceanArea)
+r_ocean_area <- setValues(r_pu_id, NA)
+r_ocean_area[cells_ocean_area$cellid] <- cells_ocean_area$OceanArea
+mapview::mapview(r_ocean_area)
+plot(r_pu_id)
+plot(r_ocean_area)
+
 cells <- tbl(con, "cells") %>% 
   collect() %>% 
+  select(-in_bbnj) %>% 
   left_join(
     bbnj_cells,
     by="cellid") %>% 
   mutate(
+    in_bbnj = replace_na(in_bbnj, F),
     cellid = as.integer(cellid))
 
 copy_to(
