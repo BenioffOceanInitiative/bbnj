@@ -422,6 +422,16 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
         to = r_pu_id_pr,
         method = "bilinear") %>%
         mask(r_pu_id_pr)
+      # TODO: check above since previously created int'l dateline gap when mapping in leaflet
+      # preferred projectRaster():
+          # prjres <- "_mer36km"
+          # P <- projections_tbl %>% filter(prjres == !!prjres)
+          # r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
+          # s_features <- suppressWarnings(
+          #   raster::projectRaster(
+          #     s_features, raster::projectExtent(s_features, crs = sp::CRS(P$proj)),
+          #     res = P$res_num)) %>%
+          #   mask(r_pu_id_pr)
     }
 
     # write gcs raster for general use
