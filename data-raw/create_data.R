@@ -51,7 +51,6 @@ eez_s05_shp              <- glue("{dir_data}/eez_s05.shp")
 pu_id_tif                <- glue("{dir_data}/pu_id.tif")
 mine_claims_shp          <- glue("{dir_data}/mine-claims.shp")
 scapes_tif               <- sprintf("%s/class_11.tif", raw_phys_scapes_arcinfo %>% dirname() %>% dirname())
-scapes_hetero_tif        <- glue("{dir_data}/scapes_hetero.tif")
 
 # variables ----
 redo_eez  = F
@@ -600,7 +599,7 @@ if (redo_phys_scapes_hetero){
 
   for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
 
-    scapes_hetero_tif   <- glue("{dir_data}/scapes_hetero{prjres}.tif")
+    scapes_hetero_tif   <- glue("{dir_data}/phys_scapes_hetero{prjres}.tif")
     r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
 
     r_phys_scapes_hetero <- projectRaster(

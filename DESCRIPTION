@@ -20,7 +20,8 @@ Imports:
     shinydashboard,
     formattable,
     stringr,
-    magick
+    magick,
+    glue
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,
