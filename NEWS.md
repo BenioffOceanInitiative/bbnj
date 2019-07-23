@@ -1,10 +1,12 @@
-# bbnj 0.5.4 fixed get_tif_projection() & prepending _area_km2
+# bbnj 0.6.0 added `r_phys_scapes_hetero`
 
-# bbnj 0.5.3 fixed input features in app with raster::readAll()
+# bbnj 0.5.4 fixed `get_tif_projection()` & prepending `_area_km2`
+
+# bbnj 0.5.3 fixed input features in app with `raster::readAll()`
 
 # bbnj 0.5.2 rendering 300dpi maps in scenario report
 
-# bbnj 0.5.1 fixed pu_id projections
+# bbnj 0.5.1 fixed `pu_id` projections
 
 # bbnj 0.5.0 now working with different projections
 

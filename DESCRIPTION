@@ -1,6 +1,6 @@
 Package: bbnj
 Title: Biodiversity Beyond National Jurisdiction
-Version: 0.5.4
+Version: 0.6.0
 Authors@R: person("Ben", "Best", email = "ben@ecoquants.com", role = c("aut", "cre"))
 Description: This package represents prioritization analysis for assessing 
   marine protected areas in the high seas in areas beyond national jurisdication, 
