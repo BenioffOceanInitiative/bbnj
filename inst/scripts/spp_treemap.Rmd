@@ -69,7 +69,7 @@ knitr::kable(
 ```
 
 
-####Create treemap where size of rectangle corresoonds to number of species in each group
+####Create treemap where size of rectangle corresponds to number of species in each group
 
 
 ```{r out.width = '1200px'}

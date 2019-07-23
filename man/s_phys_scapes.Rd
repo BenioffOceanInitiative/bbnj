@@ -20,7 +20,7 @@
   \item Lower Bathyal, island arcs, steep, high DO (seascape 5)
 }
 
-Note that seascape numbers differ from those in Harris & Whiteway 2009}
+Note that seascape numbers differ from those in Harris & Whiteway 2009. Numbers in parenthesis correspond to numbers from Harris & Whiteway 2009.}
 \usage{
 s_phys_scapes
 }
