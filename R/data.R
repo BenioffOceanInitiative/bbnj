@@ -190,6 +190,13 @@
 #' Note that seascape numbers differ from those in Harris & Whiteway 2009
 "s_phys_scapes"
 
+#' Raster of heterogeneity of 1 thru 11 classes of benthic seascapes (Harris
+#' & Whiteway, 2009)
+#'
+#' Focal variety, ie number of unique classes, within a 20-cell radius. See \code{\link{s_phys_scapes}}.
+#'
+"r_phys_scapes_hetero"
+
 #' Raster for average Vertically Generalized Production Model (VGPM)
 #'
 #' Global half-degree raster of mean primary production using the Vertically

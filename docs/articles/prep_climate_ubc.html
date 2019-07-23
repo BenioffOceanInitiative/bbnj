@@ -30,7 +30,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">bbnj</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.4</span>
       </span>
     </div>
 
@@ -92,7 +92,7 @@
       <h1>Prep climate UBC data</h1>
                         <h4 class="author">Ben Best</h4>
             
-            <h4 class="date">2019-04-22</h4>
+            <h4 class="date">2019-07-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ecoquants/bbnj/blob/master/vignettes/prep_climate_ubc.Rmd"><code>vignettes/prep_climate_ubc.Rmd</code></a></small>
       <div class="hidden name"><code>prep_climate_ubc.Rmd</code></div>
@@ -161,23 +161,23 @@ r_now    &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdo
 r_future &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/raster">raster</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/file.path">file.path</a></span>(dir_ubc, <span class="st">"MCP2050_RCP85.tif"</span>))
 
 r_now
-<span class="co">#&gt; class       : RasterLayer </span>
-<span class="co">#&gt; dimensions  : 360, 720, 259200  (nrow, ncol, ncell)</span>
-<span class="co">#&gt; resolution  : 0.5, 0.5  (x, y)</span>
-<span class="co">#&gt; extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
-<span class="co">#&gt; coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
-<span class="co">#&gt; data source : /Users/bbest/Gdrive Ecoquants/projects/bbnj/data/raw/UBC-exploited-fish-projections/Current_MCP1.tif </span>
-<span class="co">#&gt; names       : Current_MCP1 </span>
-<span class="co">#&gt; values      : -3.402823e+38, 484.9129  (min, max)</span>
+<span class="co">#&gt; class      : RasterLayer </span>
+<span class="co">#&gt; dimensions : 360, 720, 259200  (nrow, ncol, ncell)</span>
+<span class="co">#&gt; resolution : 0.5, 0.5  (x, y)</span>
+<span class="co">#&gt; extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
+<span class="co">#&gt; crs        : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
+<span class="co">#&gt; source     : /Users/bbest/Gdrive Ecoquants/projects/bbnj/data/raw/UBC-exploited-fish-projections/Current_MCP1.tif </span>
+<span class="co">#&gt; names      : Current_MCP1 </span>
+<span class="co">#&gt; values     : -3.402823e+38, 484.9129  (min, max)</span>
 r_future
-<span class="co">#&gt; class       : RasterLayer </span>
-<span class="co">#&gt; dimensions  : 360, 720, 259200  (nrow, ncol, ncell)</span>
-<span class="co">#&gt; resolution  : 0.5, 0.5  (x, y)</span>
-<span class="co">#&gt; extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
-<span class="co">#&gt; coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
-<span class="co">#&gt; data source : /Users/bbest/Gdrive Ecoquants/projects/bbnj/data/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif </span>
-<span class="co">#&gt; names       : MCP2050_RCP85 </span>
-<span class="co">#&gt; values      : 0, 535.1569  (min, max)</span>
+<span class="co">#&gt; class      : RasterLayer </span>
+<span class="co">#&gt; dimensions : 360, 720, 259200  (nrow, ncol, ncell)</span>
+<span class="co">#&gt; resolution : 0.5, 0.5  (x, y)</span>
+<span class="co">#&gt; extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
+<span class="co">#&gt; crs        : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
+<span class="co">#&gt; source     : /Users/bbest/Gdrive Ecoquants/projects/bbnj/data/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif </span>
+<span class="co">#&gt; names      : MCP2050_RCP85 </span>
+<span class="co">#&gt; values     : 0, 535.1569  (min, max)</span>
 
 <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(r_now, <span class="dt">col =</span> cols, <span class="dt">main=</span><span class="st">"now"</span>)</code></pre></div>
 <p><img src="prep_climate_ubc_files/figure-html/unnamed-chunk-2-1.png" width="691.2"></p>
@@ -192,23 +192,23 @@ r_future
 <h4 class="hasAnchor">
 <a href="#log-now-future" class="anchor"></a>Log Now &amp; Future</h4>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(r_now)
-<span class="co">#&gt; class       : RasterLayer </span>
-<span class="co">#&gt; dimensions  : 360, 720, 259200  (nrow, ncol, ncell)</span>
-<span class="co">#&gt; resolution  : 0.5, 0.5  (x, y)</span>
-<span class="co">#&gt; extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
-<span class="co">#&gt; coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
-<span class="co">#&gt; data source : in memory</span>
-<span class="co">#&gt; names       : layer </span>
-<span class="co">#&gt; values      : -Inf, 6.183969  (min, max)</span>
+<span class="co">#&gt; class      : RasterLayer </span>
+<span class="co">#&gt; dimensions : 360, 720, 259200  (nrow, ncol, ncell)</span>
+<span class="co">#&gt; resolution : 0.5, 0.5  (x, y)</span>
+<span class="co">#&gt; extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
+<span class="co">#&gt; crs        : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
+<span class="co">#&gt; source     : memory</span>
+<span class="co">#&gt; names      : layer </span>
+<span class="co">#&gt; values     : -Inf, 6.183969  (min, max)</span>
 <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(r_future)
-<span class="co">#&gt; class       : RasterLayer </span>
-<span class="co">#&gt; dimensions  : 360, 720, 259200  (nrow, ncol, ncell)</span>
-<span class="co">#&gt; resolution  : 0.5, 0.5  (x, y)</span>
-<span class="co">#&gt; extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
-<span class="co">#&gt; coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
-<span class="co">#&gt; data source : in memory</span>
-<span class="co">#&gt; names       : layer </span>
-<span class="co">#&gt; values      : -Inf, 6.28256  (min, max)</span>
+<span class="co">#&gt; class      : RasterLayer </span>
+<span class="co">#&gt; dimensions : 360, 720, 259200  (nrow, ncol, ncell)</span>
+<span class="co">#&gt; resolution : 0.5, 0.5  (x, y)</span>
+<span class="co">#&gt; extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
+<span class="co">#&gt; crs        : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
+<span class="co">#&gt; source     : memory</span>
+<span class="co">#&gt; names      : layer </span>
+<span class="co">#&gt; values     : -Inf, 6.28256  (min, max)</span>
 
 <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(r_now), <span class="dt">col =</span> cols, <span class="dt">main=</span><span class="st">"log(now)"</span>)</code></pre></div>
 <p><img src="prep_climate_ubc_files/figure-html/unnamed-chunk-3-1.png" width="691.2"></p>
@@ -231,32 +231,32 @@ r_dif_clamped1[r_dif <span class="op">&gt;</span><span class="st">  </span><span
 r_dif_clamped1[r_dif <span class="op">&lt;</span><span class="st"> </span><span class="op">-</span><span class="dv">1</span>] &lt;-<span class="st"> </span><span class="op">-</span><span class="dv">1</span>
 
 r_dif
-<span class="co">#&gt; class       : RasterLayer </span>
-<span class="co">#&gt; dimensions  : 360, 720, 259200  (nrow, ncol, ncell)</span>
-<span class="co">#&gt; resolution  : 0.5, 0.5  (x, y)</span>
-<span class="co">#&gt; extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
-<span class="co">#&gt; coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
-<span class="co">#&gt; data source : in memory</span>
-<span class="co">#&gt; names       : layer </span>
-<span class="co">#&gt; values      : -112.9701, 92.71387  (min, max)</span>
+<span class="co">#&gt; class      : RasterLayer </span>
+<span class="co">#&gt; dimensions : 360, 720, 259200  (nrow, ncol, ncell)</span>
+<span class="co">#&gt; resolution : 0.5, 0.5  (x, y)</span>
+<span class="co">#&gt; extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
+<span class="co">#&gt; crs        : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
+<span class="co">#&gt; source     : memory</span>
+<span class="co">#&gt; names      : layer </span>
+<span class="co">#&gt; values     : -112.9701, 92.71387  (min, max)</span>
 r_dif_clamped0
-<span class="co">#&gt; class       : RasterLayer </span>
-<span class="co">#&gt; dimensions  : 360, 720, 259200  (nrow, ncol, ncell)</span>
-<span class="co">#&gt; resolution  : 0.5, 0.5  (x, y)</span>
-<span class="co">#&gt; extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
-<span class="co">#&gt; coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
-<span class="co">#&gt; data source : /Users/bbest/Gdrive Ecoquants/projects/bbnj/data/raw/UBC-exploited-fish-projections/hsmcpcap851.tif </span>
-<span class="co">#&gt; names       : hsmcpcap851 </span>
-<span class="co">#&gt; values      : -1, 2  (min, max)</span>
+<span class="co">#&gt; class      : RasterLayer </span>
+<span class="co">#&gt; dimensions : 360, 720, 259200  (nrow, ncol, ncell)</span>
+<span class="co">#&gt; resolution : 0.5, 0.5  (x, y)</span>
+<span class="co">#&gt; extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
+<span class="co">#&gt; crs        : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
+<span class="co">#&gt; source     : /Users/bbest/Gdrive Ecoquants/projects/bbnj/data/raw/UBC-exploited-fish-projections/hsmcpcap851.tif </span>
+<span class="co">#&gt; names      : hsmcpcap851 </span>
+<span class="co">#&gt; values     : -1, 2  (min, max)</span>
 r_dif_clamped1
-<span class="co">#&gt; class       : RasterLayer </span>
-<span class="co">#&gt; dimensions  : 360, 720, 259200  (nrow, ncol, ncell)</span>
-<span class="co">#&gt; resolution  : 0.5, 0.5  (x, y)</span>
-<span class="co">#&gt; extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
-<span class="co">#&gt; coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
-<span class="co">#&gt; data source : in memory</span>
-<span class="co">#&gt; names       : layer </span>
-<span class="co">#&gt; values      : -1, 2  (min, max)</span>
+<span class="co">#&gt; class      : RasterLayer </span>
+<span class="co">#&gt; dimensions : 360, 720, 259200  (nrow, ncol, ncell)</span>
+<span class="co">#&gt; resolution : 0.5, 0.5  (x, y)</span>
+<span class="co">#&gt; extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
+<span class="co">#&gt; crs        : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
+<span class="co">#&gt; source     : memory</span>
+<span class="co">#&gt; names      : layer </span>
+<span class="co">#&gt; values     : -1, 2  (min, max)</span>
 
 <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(r_dif, <span class="dt">col =</span> cols, <span class="dt">main=</span><span class="st">"dif"</span>)</code></pre></div>
 <p><img src="prep_climate_ubc_files/figure-html/unnamed-chunk-4-1.png" width="691.2"></p>
@@ -275,14 +275,14 @@ r_dif_clamped1
 <h4 class="hasAnchor">
 <a href="#log-difference" class="anchor"></a>Log Difference</h4>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(r_dif)
-<span class="co">#&gt; class       : RasterLayer </span>
-<span class="co">#&gt; dimensions  : 360, 720, 259200  (nrow, ncol, ncell)</span>
-<span class="co">#&gt; resolution  : 0.5, 0.5  (x, y)</span>
-<span class="co">#&gt; extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
-<span class="co">#&gt; coord. ref. : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
-<span class="co">#&gt; data source : in memory</span>
-<span class="co">#&gt; names       : layer </span>
-<span class="co">#&gt; values      : -Inf, 4.529518  (min, max)</span>
+<span class="co">#&gt; class      : RasterLayer </span>
+<span class="co">#&gt; dimensions : 360, 720, 259200  (nrow, ncol, ncell)</span>
+<span class="co">#&gt; resolution : 0.5, 0.5  (x, y)</span>
+<span class="co">#&gt; extent     : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)</span>
+<span class="co">#&gt; crs        : +proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0 </span>
+<span class="co">#&gt; source     : memory</span>
+<span class="co">#&gt; names      : layer </span>
+<span class="co">#&gt; values     : -Inf, 4.529518  (min, max)</span>
 
 <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/Log">log</a></span>(r_dif), <span class="dt">col =</span> cols, <span class="dt">main=</span><span class="st">"log(now)"</span>)</code></pre></div>
 <p><img src="prep_climate_ubc_files/figure-html/unnamed-chunk-5-1.png" width="691.2"></p>

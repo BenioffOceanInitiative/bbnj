@@ -34,7 +34,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="index.html">bbnj</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.4</span>
       </span>
     </div>
 
@@ -120,11 +120,12 @@ devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumen
 <div id="run-shiny-app" class="section level2">
 <h2 class="hasAnchor">
 <a href="#run-shiny-app" class="anchor"></a>Run Shiny app</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># install shiny if you need it</span>
-<span class="co"># install.packages("shiny")</span>
-
-<span class="co"># run shiny app</span>
-shiny<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/shiny/topics/runUrl">runGitHub</a></span>(<span class="st">"ecoquants/bbnj"</span>, <span class="dt">subdir=</span><span class="st">"inst/app"</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="reference/run_app.html">run_app</a></span>()</code></pre></div>
+</div>
+<div id="scenario-building-notes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#scenario-building-notes" class="anchor"></a>Scenario Building Notes</h2>
+<p>The scenarios are located under the package’s <code>inst/app/www/scenarios</code>, which you can access via the local copy of the repository (for editing) or the installed package (for viewing only; ).</p>
 </div>
 <div id="developer-notes" class="section level2">
 <h2 class="hasAnchor">
@@ -132,20 +133,20 @@ shiny<span class="op">::</span><span class="kw"><a href="https://www.rdocumentat
 <div id="r-package-creation" class="section level3">
 <h3 class="hasAnchor">
 <a href="#r-package-creation" class="anchor"></a>R package creation</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/create_package">create_package</a></span>(<span class="dt">path =</span> <span class="st">"../bbnj"</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">usethis<span class="op">::</span><span class="kw"><a href="https://usethis.r-lib.org/reference/create_package.html">create_package</a></span>(<span class="dt">path =</span> <span class="st">"../bbnj"</span>)
 devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/devtools/topics/check">check</a></span>()</code></pre></div>
 </div>
 <div id="include-packages" class="section level3">
 <h3 class="hasAnchor">
 <a href="#include-packages" class="anchor"></a>Include packages</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"raster"</span>)
-usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"sf"</span>)
-usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_package">use_package</a></span>(<span class="st">"leaflet"</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">usethis<span class="op">::</span><span class="kw"><a href="https://usethis.r-lib.org/reference/use_package.html">use_package</a></span>(<span class="st">"raster"</span>)
+usethis<span class="op">::</span><span class="kw"><a href="https://usethis.r-lib.org/reference/use_package.html">use_package</a></span>(<span class="st">"sf"</span>)
+usethis<span class="op">::</span><span class="kw"><a href="https://usethis.r-lib.org/reference/use_package.html">use_package</a></span>(<span class="st">"leaflet"</span>)</code></pre></div>
 </div>
 <div id="vignettes" class="section level3">
 <h3 class="hasAnchor">
 <a href="#vignettes" class="anchor"></a>Vignettes</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">usethis<span class="op">::</span><span class="kw"><a href="https://www.rdocumentation.org/packages/usethis/topics/use_vignette">use_vignette</a></span>(<span class="st">"prep_climate_ubc"</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">usethis<span class="op">::</span><span class="kw"><a href="https://usethis.r-lib.org/reference/use_vignette.html">use_vignette</a></span>(<span class="st">"prep_climate_ubc"</span>)</code></pre></div>
 </div>
 <div id="documentation" class="section level3">
 <h3 class="hasAnchor">

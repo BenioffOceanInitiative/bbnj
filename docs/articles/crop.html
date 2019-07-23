@@ -30,7 +30,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">bbnj</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">0.5.4</span>
       </span>
     </div>
 
@@ -91,7 +91,7 @@
     <div class="page-header toc-ignore">
       <h1>Extract Layers</h1>
             
-            <h4 class="date">2019-04-22</h4>
+            <h4 class="date">2019-07-23</h4>
       
       <small class="dont-index">Source: <a href="https://github.com/ecoquants/bbnj/blob/master/vignettes/crop.Rmd"><code>vignettes/crop.Rmd</code></a></small>
       <div class="hidden name"><code>crop.Rmd</code></div>
@@ -128,24 +128,38 @@ devtools<span class="op">::</span><span class="kw"><a href="https://www.rdocumen
 ## [5] "mean_scaled_profits_with_subsidies"
 ## [6] "scaled_profits_low_labor_cost"</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/names">names</a></span>(s_bio_gmbi)</code></pre></div>
-<pre><code>##  [1] "nspp_all"                   "nspp_bivalves"             
-##  [3] "nspp_chitons"               "nspp_coastal.fishes"       
-##  [5] "nspp_corals"                "nspp_crustaceans"          
-##  [7] "nspp_echinoderms"           "nspp_euphausiids"          
-##  [9] "nspp_gastropods"            "nspp_hydrozoans"           
-## [11] "nspp_mangroves"             "nspp_na"                   
-## [13] "nspp_non.squid.cephalopods" "nspp_pinnipeds"            
-## [15] "nspp_reptiles"              "nspp_sea.spiders"          
-## [17] "nspp_seagrasses"            "nspp_sharks"               
-## [19] "nspp_sponges"               "nspp_tunas.n.billfishes"   
-## [21] "nspp_tunicates"             "nspp_worms"                
-## [23] "rls_all"                    "rls_bivalves"              
-## [25] "rls_coastal.fishes"         "rls_corals"                
-## [27] "rls_crustaceans"            "rls_echinoderms"           
-## [29] "rls_gastropods"             "rls_na"                    
-## [31] "rls_non.squid.cephalopods"  "rls_pinnipeds"             
-## [33] "rls_reptiles"               "rls_sharks"                
-## [35] "rls_tunas.n.billfishes"</code></pre>
+<pre><code>##  [1] "nspp_all_2100"                   "nspp_all"                       
+##  [3] "nspp_bivalves_2100"              "nspp_bivalves"                  
+##  [5] "nspp_chitons_2100"               "nspp_chitons"                   
+##  [7] "nspp_coastal.fishes_2100"        "nspp_coastal.fishes"            
+##  [9] "nspp_corals_2100"                "nspp_corals"                    
+## [11] "nspp_crustaceans_2100"           "nspp_crustaceans"               
+## [13] "nspp_echinoderms_2100"           "nspp_echinoderms"               
+## [15] "nspp_euphausiids_2100"           "nspp_euphausiids"               
+## [17] "nspp_gastropods_2100"            "nspp_gastropods"                
+## [19] "nspp_hydrozoans_2100"            "nspp_hydrozoans"                
+## [21] "nspp_na_2100"                    "nspp_na"                        
+## [23] "nspp_non.squid.cephalopods_2100" "nspp_non.squid.cephalopods"     
+## [25] "nspp_pinnipeds_2100"             "nspp_pinnipeds"                 
+## [27] "nspp_reptiles_2100"              "nspp_reptiles"                  
+## [29] "nspp_sea.spiders_2100"           "nspp_sea.spiders"               
+## [31] "nspp_seagrasses_2100"            "nspp_seagrasses"                
+## [33] "nspp_sharks_2100"                "nspp_sharks"                    
+## [35] "nspp_sponges_2100"               "nspp_sponges"                   
+## [37] "nspp_tunas.n.billfishes_2100"    "nspp_tunas.n.billfishes"        
+## [39] "nspp_tunicates_2100"             "nspp_tunicates"                 
+## [41] "nspp_worms_2100"                 "nspp_worms"                     
+## [43] "rls_all_2100"                    "rls_all"                        
+## [45] "rls_bivalves_2100"               "rls_bivalves"                   
+## [47] "rls_coastal.fishes_2100"         "rls_coastal.fishes"             
+## [49] "rls_corals_2100"                 "rls_corals"                     
+## [51] "rls_echinoderms_2100"            "rls_echinoderms"                
+## [53] "rls_na_2100"                     "rls_na"                         
+## [55] "rls_non.squid.cephalopods_2100"  "rls_non.squid.cephalopods"      
+## [57] "rls_pinnipeds_2100"              "rls_pinnipeds"                  
+## [59] "rls_reptiles_2100"               "rls_reptiles"                   
+## [61] "rls_sharks_2100"                 "rls_sharks"                     
+## [63] "rls_tunas.n.billfishes_2100"     "rls_tunas.n.billfishes"</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># get rasters from stacks</span>
 profit_fishing &lt;-<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/raster">raster</a></span>(s_fish_gfw, <span class="st">"mean_scaled_profits_with_subsidies"</span>) <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw"><a href="../reference/gap_fill_raster.html">gap_fill_raster</a></span>()
@@ -175,11 +189,11 @@ s_aoi_rds &lt;-<span class="st"> "s_aoi.rds"</span>
 
 <span class="co"># show area of interest</span>
 aoi</code></pre></div>
-<pre><code>## class       : Extent 
-## xmin        : -6.523557 
-## xmax        : 23.58517 
-## ymin        : -46.54307 
-## ymax        : -26.47059</code></pre>
+<pre><code>## class      : Extent 
+## xmin       : -6.523557 
+## xmax       : 23.58517 
+## ymin       : -46.54307 
+## ymax       : -26.47059</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(nspp_tunas)
 <span class="kw"><a href="https://www.rdocumentation.org/packages/raster/topics/plot">plot</a></span>(aoi, <span class="dt">col =</span> <span class="st">"red"</span>, <span class="dt">lwd =</span> <span class="dv">2</span>, <span class="dt">add =</span> T)</code></pre></div>
 <p><img src="crop_files/figure-html/unnamed-chunk-3-1.png" width="691.2"></p>

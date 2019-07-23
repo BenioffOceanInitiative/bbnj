@@ -51,6 +51,7 @@ eez_s05_shp              <- glue("{dir_data}/eez_s05.shp")
 pu_id_tif                <- glue("{dir_data}/pu_id.tif")
 mine_claims_shp          <- glue("{dir_data}/mine-claims.shp")
 scapes_tif               <- sprintf("%s/class_11.tif", raw_phys_scapes_arcinfo %>% dirname() %>% dirname())
+scapes_hetero_tif        <- glue("{dir_data}/scapes_hetero.tif")
 
 # variables ----
 redo_eez  = F
@@ -59,6 +60,7 @@ redo_ihor = F
 redo_lyrs = F
 redo_project_polygons = F
 redo_project_pu_id_tifs = F
+redo_phys_scapes_hetero = F
 
 # helper functions ----
 
@@ -578,6 +580,42 @@ if (!dir.exists("inst/data/phys_scapes") | redo_lyrs){
   # walk(
   #   projections_tbl$prjres[-1],
   #   s_to_prjres, s_phys_scapes, "phys_scapes", "bilinear", debug=F)
+}
+
+# r_phys_scapes_hetero ----
+if (redo_phys_scapes_hetero){
+
+  r_scapes <- raster(scapes_tif)
+  # plot(r_scapes)
+
+  # 20-cell radius should be 41 cells in width & height
+  r  <- raster(ncols=101, nrows=101, xmn=0)
+  fw <- focalWeight(r, 36, type='circle')
+  # dim(fw); image(fw, asp=1, axes=F)
+
+  r_focal <- focal(
+    r_scapes, w = fw,
+    fun = function(x, ...){length(unique(na.omit(x)))}, na.rm=T)
+  #plot(r_focal)
+
+  for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
+
+    scapes_hetero_tif   <- glue("{dir_data}/scapes_hetero{prjres}.tif")
+    r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
+
+    r_phys_scapes_hetero <- projectRaster(
+      from = r_focal,
+      to = r_pu_id_pr,
+      method = "bilinear") %>%
+      mask(r_pu_id_pr) # plot(r_phys_scapes_hetero)
+
+    # write gcs raster for general use
+    writeRaster(r_phys_scapes_hetero, scapes_hetero_tif, overwrite=T)
+
+    if (prjres == ""){
+      use_data(r_phys_scapes_hetero, overwrite = TRUE)
+    }
+  }
 }
 
 # s_phys_seamounts ----

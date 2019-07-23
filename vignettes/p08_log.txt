@@ -1,31 +1,21 @@
-Optimize a model with 19 rows, 113419 columns and 799323 nonzeros
-Variable types: 18 continuous, 113401 integer (113401 binary)
-Coefficient statistics:
-  Matrix range     [6e-08, 1e+00]
-  Objective range  [6e-10, 1e+00]
-  Bounds range     [1e+00, 1e+05]
-  RHS range        [1e-01, 1e-01]
-Found heuristic solution: objective -0.0000000
-Presolve removed 18 rows and 18957 columns
-Presolve time: 0.97s
-Presolved: 1 rows, 94462 columns, 94462 nonzeros
-Variable types: 0 continuous, 94462 integer (90239 binary)
-Presolve removed 0 rows and 1 columns
-Presolved: 1 rows, 94461 columns, 94461 nonzeros
-
-
-Root relaxation: objective 8.309809e+04, 1 iterations, 0.26 seconds
-
-    Nodes    |    Current Node    |     Objective Bounds      |     Work
- Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
-
-     0     0 83098.0855    0    1   -0.00000 83098.0855      -     -    1s
-H    0     0                    83098.039928 83098.0855  0.00%     -    1s
-
-Explored 1 nodes (1 simplex iterations) in 1.42 seconds
-Thread count was 1 (of 12 available processors)
-
-Solution count 2: 83098 -0 
-
-Optimal solution found (tolerance 1.00e-01)
-Best objective 8.309803992785e+04, best bound 8.309808550853e+04, gap 0.0001%
+# A tibble: 18 x 3
+   feature           rel_all rel_each
+   <chr>               <dbl>    <dbl>
+ 1 bio_nspp         0.0170      0.181
+ 2 bio_rls          0.0256      0.183
+ 3 fish_profit.subs 0.265       0.298
+ 4 fish_mcp.now     0.257       0.259
+ 5 fish_mcp.future  0.257       0.259
+ 6 phys_seamounts   0.154       0.783
+ 7 phys_vents       0.0411      1.   
+ 8 phys_scape1      0.000239    0.491
+ 9 phys_scape2      0.186       0.416
+10 phys_scape3      0.00202     0.616
+11 phys_scape4      0.144       0.629
+12 phys_scape5      0.0661      0.630
+13 phys_scape6      0.0269      1.000
+14 phys_scape7      0.00208     1.000
+15 phys_scape8      0.00503     1.000
+16 phys_scape9      0.176       1.000
+17 phys_scape10     0           1    
+18 phys_scape11     0.101       0.984

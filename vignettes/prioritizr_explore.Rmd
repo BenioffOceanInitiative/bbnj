@@ -187,7 +187,7 @@ plot(s_bio_rls_grps, col = cols)
 Count of seamounts (Kim & Wessel, 2011) in half-degree cells:
 
 ```{r}
-plot(r_phys_seamounts, col = cols, main="r_phys_seamounts")
+plot(s_phys_seamounts, col = cols, main="s_phys_seamounts")
 ```
 
 ### Physiographic: Benthic Seascapes
@@ -278,7 +278,7 @@ Maximize diversity of species and habitats, given a budget of 10% of the high se
 p01_features <- stack(
   r_nspp_all_as,
   r_rls_all_as,
-  rescale_raster(r_phys_seamounts),
+  rescale_raster(s_phys_seamounts),
   rescale_raster(r_phys_vents),
   rescale_stack(s_phys_scapes))
 names(p01_features) <- c(
@@ -288,7 +288,7 @@ names(p01_features) <- c(
   "phys_vents",
   glue("phys_scape{1:11}"))
 
-# hist(r_nspp_all_as); hist(r_rls_all_as); hist(rescale_raster(r_phys_seamounts))
+# hist(r_nspp_all_as); hist(r_rls_all_as); hist(rescale_raster(s_phys_seamounts))
 
 p01_sum <- raster::stackApply(p01_features, rep(1,nlayers(p01_features)), sum) %>% 
   mask(r_pu_id)
@@ -440,7 +440,7 @@ Goal: Protect habitats with strong focus on minimizing impacts to fishing profit
 p06_features <- stack(
   r_fish_gfw.profit.subsidies_inv,
   raster(s_fish_ubc_inv, "mcp_2004"),
-  rescale_raster(r_phys_seamounts),
+  rescale_raster(s_phys_seamounts),
   rescale_raster(r_phys_vents),
   rescale_stack(s_phys_scapes))
 names(p06_features) <- c(
@@ -449,7 +449,7 @@ names(p06_features) <- c(
   "phys_seamounts",
   "phys_vents",
   glue("phys_scape{1:11}"))
-# hist(r_nspp_all_as); hist(r_rls_all_as); hist(rescale_raster(r_phys_seamounts))
+# hist(r_nspp_all_as); hist(r_rls_all_as); hist(rescale_raster(s_phys_seamounts))
 
 p06_sum <- raster::stackApply(p06_features, rep(1,nlayers(p06_features)), sum) %>% 
   mask(r_pu_id)
@@ -521,7 +521,7 @@ p08_features <- stack(
   r_fish_gfw.profit.subsidies_inv,
   raster(s_fish_ubc_inv, "mcp_2004"),
   raster(s_fish_ubc_inv, "mcp_2050"),
-  rescale_raster(r_phys_seamounts),
+  rescale_raster(s_phys_seamounts),
   rescale_raster(r_phys_vents),
   rescale_stack(s_phys_scapes))
 names(p08_features) <- c(
@@ -543,7 +543,7 @@ p08_features <- stack(
       gap_fill_raster() %>%
       rescale_raster(inverse=T),
     rescale_stack(s_fish_ubc, inverse=T),
-    rescale_raster(r_phys_seamounts),
+    rescale_raster(s_phys_seamounts),
     rescale_raster(r_phys_vents),
     r_mine_claim,
     rescale_stack(s_phys_scapes))
