@@ -4,7 +4,7 @@
 \alias{report_solution}
 \title{Report on conservation solution}
 \usage{
-report_solution(tif)
+report_solution(tif, fig_ht_in = 2, redo = F)
 }
 \arguments{
 \item{tif}{path to raster tif of solution}

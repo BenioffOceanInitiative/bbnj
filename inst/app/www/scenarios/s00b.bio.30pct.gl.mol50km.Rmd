@@ -101,5 +101,5 @@ if (!file.exists(tif) | redo){
 Obtain `r rel_target*100`% for each biodiversity and habitat target in the high seas globally, using projection `r P$name` (`r P$res` resolution).
 
 ```{r report}
-report_solution(tif)
+report_solution(tif, redo=redo)
 ```

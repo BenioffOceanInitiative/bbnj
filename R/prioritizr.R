@@ -163,7 +163,7 @@ tbl_target_representation <- function(csv = glue("{pfx}_rep.csv")){
 #'
 #' @return for use in reports to spit out area stats, map and table of resulting scenario
 #' @export
-report_solution <- function(tif, fig_ht_in=2){
+report_solution <- function(tif, fig_ht_in=2, redo=F){
   # tif <- "~/github/bbnj/inst/app/www/scenarios/s00a.bio.30pct.gl.gcs0.5d_sol.tif"
 
   sol_png <- glue("{fs::path_ext_remove(tif)}_map.png")
@@ -177,7 +177,7 @@ report_solution <- function(tif, fig_ht_in=2){
   #(markdown::renderMarkdown(text = "Hello World!"))
 
   # plot ----
-  if (!file.exists(sol_png)){
+  if (!file.exists(sol_png) | redo){
     countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
       st_transform(P$epsg)
     graticules <- st_graticule(countries)
