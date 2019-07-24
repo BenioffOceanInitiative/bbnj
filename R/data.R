@@ -122,7 +122,7 @@
 #' @format A \code{\link[raster]{stack}} with layers of results from analyses.
 "s_fish_gfw"
 
-#' Raster stack from UBC (Cheung, Lam et al; in draft) of maximum catch
+#' Raster stack from Sea Around Us Project at UBC (Cheung, Lam et al; in draft) of maximum catch
 #' potential
 #'
 #' Global half-degree raster of high seas. Maximum catch potential (MCP;
@@ -131,7 +131,24 @@
 #' 2060 under 'business as usual' climate change scenario GFDL 8.5).
 #'
 #' @format A \code{\link[raster]{stack}} with layers of results from analyses.
-"s_fish_ubc"
+"s_fish_saup"
+
+#' Raster stack version 2 from Sea Around Us Project at UBC (Cheung, Lam et al;
+#' in draft) of maximum catch potential
+#'
+#' Global half-degree raster of high seas. Maximum catch potential (MCP;
+#' landings in metric tons) of more than 1,000 fish and invertebrates species
+#' for \code{mcp_2004} (average 1995 to 2014) and  \code{mcp_2050} (average 2041
+#' to 2060 under 'business as usual' climate change scenario GFDL 8.5).
+#'
+#' Version 2: This pattern along Southeast Pacific in the original version is due to the exceptional
+#' high catch potential of Chilean jack mackerel in the upwelling region.
+#' Indeed, most of our maps have to adjust by removing this species. Otherwise,
+#' the high MCP in this region will mask the MCP of all other areas. I have re-extracted the data for you by
+#' removing the MCP of this species. -- Vicky Lam
+#'
+#' @format A \code{\link[raster]{stack}} with layers of results from analyses.
+"s_fish_saup_v2"
 
 #' Stack for count of seamounts (Kim & Wessel, 2011) based on depth bin
 #'

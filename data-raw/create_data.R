@@ -545,6 +545,33 @@ if (!dir.exists("inst/data/fish_saup") | redo_lyrs){
     s_to_prjres, s_fish_saup, "fish_saup", "bilinear", debug=F)
 }
 
+# s_fish_saup_v2 ----
+if (!dir.exists("inst/data/fish_saup_v2") | redo_lyrs){
+
+  raw_fish_saup_v2_now_tif    <- "~/Gdrive Ecoquants/projects/bbnj/data/raw/UBC-exploited-fish-projections/Update_Data_1Jul19/CurMCP_v2.tif"
+  raw_fish_saup_v2_future_tif <- "~/Gdrive Ecoquants/projects/bbnj/data/raw/UBC-exploited-fish-projections/Update_Data_1Jul19/HSMCP2050.tif"
+
+  s_fish_saup_v2  <- stack(c(raw_fish_saup_v2_now_tif, raw_fish_saup_v2_future_tif))
+  lyrs <- names(s_fish_saup_v2) <- c("mcp_2004", "mcp_2050")
+
+  # mask stack
+  s_fish_saup_v2 <- mask(s_fish_saup_v2, r_pu_id)
+
+  # write tifs
+  map(lyrs, lyr_to_tif, s_fish_saup_v2, "fish_saup_v2")
+
+  # load into memory so not referencing local file and use_data() works
+  s_fish_saup_v2 <- raster::readAll(s_fish_saup_v2)
+
+  # use_data()
+  use_data(s_fish_saup_v2, overwrite = TRUE)
+
+  # create stacks in other projections
+  walk(
+    projections_tbl$prjres[-1],
+    s_to_prjres, s_fish_saup_v2, "fish_saup_v2", "bilinear", debug=F)
+}
+
 # s_phys_scapes ----
 if (!dir.exists("inst/data/phys_scapes") | redo_lyrs){
 

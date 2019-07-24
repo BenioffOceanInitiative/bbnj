@@ -1,3 +1,5 @@
+# bbnj 0.6.1 added `s_fish_saup_v2` w/out Chilean jack mackerel
+
 # bbnj 0.6.0 added `r_phys_scapes_hetero`
 
 # bbnj 0.5.4 fixed `get_tif_projection()` & prepending `_area_km2`

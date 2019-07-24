@@ -5,9 +5,9 @@ account: ecoquants
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 976495
-bundleId: 2253478
+bundleId: 2259125
 url: https://ecoquants.shinyapps.io/bbnj/
-when: 1563768182.2606
+when: 1563916745.788
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: global_solve-bits.R|data/.DS_Store

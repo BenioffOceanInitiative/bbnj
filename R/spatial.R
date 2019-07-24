@@ -296,11 +296,11 @@ get_d_prjres <- function(dataset, prjres="", debug=F){
 
   dir_data <- system.file("data", package="bbnj")
 
-  type  <- stringr::str_sub(dataset, end=1)
-  name  <- stringr::str_sub(dataset, start=3)
+  type  <- str_sub(dataset, end=1)
+  name  <- str_sub(dataset, start=3)
 
   P <- projections_tbl %>%
-    dplyr::filter(prjres == !!prjres)
+    filter(prjres == !!prjres)
 
   #browser()
   if (type == "p"){
