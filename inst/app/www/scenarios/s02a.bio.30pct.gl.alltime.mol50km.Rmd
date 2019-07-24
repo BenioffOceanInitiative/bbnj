@@ -58,8 +58,8 @@ tif <- glue("{pfx}_sol.tif")
     - _30%_ of each input feature amount
     - **Biodiversity:
         - `bio_vgpm`: Vertically Generalized Production Model
-        - `nspp_*`: number of species by taxonomic group from AquaMaps [_future_]
-        - `rls_*`: Red List sum of extinction risk by taxonomic group from AquaMaps [_future_]
+        - `nspp_*`: number of species by taxonomic group from AquaMaps [_now_ + _future_]
+        - `rls_*`: Red List sum of extinction risk by taxonomic group from AquaMaps [_now_ + _future_]
     - Physical:
         - `phys_vents`: hydrothermal vent count
         - `phys_seamounts`: seamounts count (3 depth classes)
@@ -87,16 +87,17 @@ if (!file.exists(tif) | redo){
   r_pu <- setValues(r_pu_id, 1) %>% 
     mask(r_pu_id) # plot(r_pu)
 
-# biodiversity: 2100 ----
+# biodiversity: now + 2100 ----
   s_bio_gmbi <- get_d_prjres("s_bio_gmbi", prjres)
-  lyrs_bio_future <- str_subset(names(s_bio_gmbi), "2100$") %>% 
-  setdiff(c("nspp_all_2100", "nspp_na_2100", "rls_all_2100", "rls_na_2100"))
-  s_bio_future <- subset(s_bio_gmbi, lyrs_bio_future)
+  lyrs_bio_alltime <- names(s_bio_gmbi) %>% 
+    setdiff(c("nspp_all", "nspp_na", "rls_all", "rls_na")) %>% 
+    setdiff(c("nspp_all_2100", "nspp_na_2100", "rls_all_2100", "rls_na_2100"))
+  s_bio_alltime <- subset(s_bio_gmbi, lyrs_bio_alltime)
 
 # features ----
   s_features <- stack(
     get_d_prjres("r_vgpm", prjres),
-    s_bio_future,
+    s_bio_alltime,
     #raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>%
     #    gap_fill_raster() %>%
     #    rescale_raster(inverse=T),
@@ -107,7 +108,7 @@ if (!file.exists(tif) | redo){
   
   names(s_features) <- c(
     "bio_vgpm",
-    names(s_bio_future),
+    names(s_bio_alltime),
     #"fish_profit.subs"
     #"fish_mcp.2004",
     sprintf("phys_seamounts_%sm", c("0to200","gt200to800","gt800")),
