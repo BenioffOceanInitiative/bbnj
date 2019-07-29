@@ -17,8 +17,8 @@ T,input_general,r_phys_vents,"""phys_vents""",
 T,input_general,r_mine_claims,"""mine_claims""",
 T,input_general,s_phys_scapes," as.character(glue(""phys_scape.{1:11}""))",
 T,input_general,r_vgpm,"""bio_vgpm""",
-T,input_taxa_now,"subset(s_bio_gmbi, lyrs_bio_now)","lyrs_bio <- names(s_bio_gmbi); lyrs_bio_now <- setdiff(lyrs_bio , str_subset(lyrs_bio, ""2100$"")); lyrs_bio_now",
-T,input_taxa_2100,"subset(s_bio_gmbi, lyrs_bio_2100)","lyrs_bio_2100 <- str_subset(lyrs_bio, ""2100$""); lyrs_bio_2100",
+F,input_taxa_now,"subset(s_bio_gmbi, lyrs_bio_now)","lyrs_bio <- names(s_bio_gmbi); lyrs_bio_now <- setdiff(lyrs_bio , str_subset(lyrs_bio, ""2100$"")); lyrs_bio_now",
+F,input_taxa_2100,"subset(s_bio_gmbi, lyrs_bio_2100)","lyrs_bio_2100 <- str_subset(lyrs_bio, ""2100$""); lyrs_bio_2100",
 F,input_taxa_now,"subset(get_o_prjres(""s_bio_gmbi"", ""_mol50km""), lyrs_bio_now)","lyrs_bio_mol50km <- names(s_bio_gmbi); lyrs_bio_now_mol50km <- setdiff(lyrs_bio , str_subset(lyrs_bio, ""2100$"")); lyrs_bio_now_mol50km",_mol50km
 F,input_taxa_2100,"subset(get_o_prjres(""s_bio_gmbi"", ""_mol50km""), lyrs_bio_2100)","lyrs_bio_2100_mol50km <- str_subset(lyrs_bio, ""2100$""); lyrs_bio_2100_mol50km",_mol50km
 F,input_taxa_now,"subset(get_o_prjres(""s_bio_gmbi"", ""_mer36km""), lyrs_bio_now)","lyrs_bio_mer36km <- names(s_bio_gmbi); lyrs_bio_now_mer36km <- setdiff(lyrs_bio , str_subset(lyrs_bio, ""2100$"")); lyrs_bio_now_mer36km",_mer36km

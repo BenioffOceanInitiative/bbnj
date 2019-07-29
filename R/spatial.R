@@ -351,6 +351,8 @@ get_gmbi_grpsmdl_prjres <- function(grpsmdl="groups00", prjres="", debug=F){
   library(stringr)
   # dataset = "p_eez_s05"
   # grpsmdl="groups00"; prjres=""; debug=F; dataset = "s_bio_gmbi"
+  # get_gmbi_grpsmdl_prjres("groups05", "mol50km")
+  # get_gmbi_grpsmdl_prjres("groups06_2100", "mol50km")
 
   dir_data <- system.file("data", package="bbnj")
 

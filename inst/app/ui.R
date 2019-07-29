@@ -17,9 +17,8 @@ dashboardPage(
       "sel_type", label = "type",
       choices = list(
         "input" = list(
-          "features, general"      = "input_general",
-          "features by taxa, now"  = "input_taxa_now",
-          "features by taxa, 2100" = "input_taxa_2100"),
+          "features, general"   = "input_general",
+          "features, taxonomic" = "input_taxa"),
         "output" = list(
           # TODO: categorize outputs
           "scenarios" = "output_scenario")),

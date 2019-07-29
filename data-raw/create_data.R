@@ -446,7 +446,7 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
 
   dir_pfx  <- here("../gmbi/inst/data/rasters")
   grpsmdls <- list.files(dir_pfx, "groups[0-9]+.*")
-  grpsmdls <- setdiff(grpsmdls, "groups04")
+  #grpsmdls <- setdiff(grpsmdls, "groups04")
     #grps    = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\1"),
     #mdl     = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\2"))
   #grpsmdls
@@ -454,6 +454,13 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
   for (grpsmdl in grpsmdls){ # grpsmdl = grpsmdls[1]
 
     dir_grpsmdl <- glue("bio_gmbi_{grpsmdl}")
+    dir_out     <- here(glue("inst/data/{dir_grpsmdl}"))
+
+    message(glue("{dir_out}"))
+    if (dir.exists(dir_out)){
+      message(glue("  SKIP since exists"))
+      next()
+    }
 
     # tifs
     s <- list.files(

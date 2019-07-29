@@ -80,6 +80,9 @@ if (redo_features_rds | mod_features_rds){
   nlbls <- length(s_lbls)
   stopifnot(nlyrs == nlbls)
 
+  # add grpsmdl
+
+
   prjres <- "_mer36km"
   P <- projections_tbl %>% filter(prjres == !!prjres)
   r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
