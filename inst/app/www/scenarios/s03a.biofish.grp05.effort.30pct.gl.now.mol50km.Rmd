@@ -8,6 +8,9 @@ editor_options:
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(echo=T, message=F)
+```
+
+```{r libraries & path}
 library(prioritizr) # devtools::load_all("~/github/prioritizr")
 #library(bbnj)       # 
 devtools::load_all() # setwd(here()); devtools::install_local(force=T) 
@@ -42,7 +45,34 @@ pfx <- rmd %>% path_ext_remove()
 tif <- glue("{pfx}_sol.tif")
 ```
 
-```{r solution}
+# `r basename(pfx)`
+
+- Projection: Mol 50km
+
+- Planning unit cost:
+    - fishing effort (KWH)
+
+- Objective function:
+    - `add_min_set_objective()`: Minimize the cost of the solution whilst ensuring that all targets are met 
+
+- Feature targets:
+    - _30%_ of each input feature amount
+    - **Biodiversity:
+        - `bio_vgpm`: Vertically Generalized Production Model
+        - `nspp_*`: number of species by taxonomic group from AquaMaps [_now_]
+        - `rli_*`: Red List Index of averge extinction risk by taxonomic group from AquaMaps [_now_]
+    - Physical:
+        - `phys_vents`: hydrothermal vent count
+        - `phys_seamounts`: seamounts count (3 depth classes)
+        - `phys_scapes_hetero`: benthic heterogeneity
+  
+- Regionalization:
+    - none, ie global
+
+Note: Does not include maximum catch potential data
+
+
+```{r solutions}
 # variables ----
 rel_target <- 0.3
 prjres     <- "_mol50km" # prjres in: View(projections_tbl)
@@ -52,23 +82,32 @@ redo       <- T
 P <- projections_tbl %>% filter(prjres == !!prjres)
 if (!file.exists(tif) | redo){
   
-  # planning unit: ----
-  r_pu_id <- get_d_prjres("r_pu_id", prjres) # plot(r_pu_id)
-  r_pu <- setValues(r_pu_id, 1) %>% 
-    mask(r_pu_id) # plot(r_pu)
+# planning unit: ----
+  r_pu_id <- get_d_prjres("r_pu_id", prjres) #plot(r_pu_id)
   
-  # biodiversity: now, not 2100 ----
-  # devtools::load_all()
-  s_bio_gmbi <- get_d_prjres("s_bio_gmbi", prjres)
-  #s_bio_gmbi <- get_gmbi_grpsmdl_prjres("groups05", "_mol50km")
+  # r_pu <- setValues(r_pu_id, 1) %>%
+  #   mask(r_pu_id) # plot(r_pu)
+
+# cost layer: fishing profitability ----
+ r_fish_effort<- get_d_prjres("s_fish_gfw",prjres)%>%
+    subset("fishing_KWH")
+
+# apply cost to planning units
+  r_pu <- r_fish_effort %>%
+  gap_fill_raster()
+
+# biodiversity: now, not 2100 ----
+  #s_bio_gmbi <- get_d_prjres("s_bio_gmbi", prjres)
+  s_bio_gmbi <- get_gmbi_grpsmdl_prjres("groups05", "_mol50km")
   #plot(s_bio_gmbi)
   # FUTURE: get_gmbi_grpsmdl_prjres("groups06_2100", "_mol50km")
   lyrs_bio_now <- names(s_bio_gmbi) %>% 
     setdiff(str_subset(names(s_bio_gmbi), "2100$")) %>% 
     setdiff(c("nspp_all", "nspp_na", "rls_all", "rls_na"))
   s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
-  
-  # features ----
+
+
+# features ----
   s_features <- stack(
     get_d_prjres("r_vgpm", prjres),
     s_bio_now,
@@ -88,40 +127,21 @@ if (!file.exists(tif) | redo){
     sprintf("phys_seamounts_%sm", c("0to200","gt200to800","gt800")),
     "phys_vents",
     "scapes_hetero")
-  
-  # problem ----
+
+# problem ----
   p <- problem(r_pu, s_features) %>%
     add_min_set_objective() %>% 
     add_relative_targets(rel_target)
   
-  # solve ----
+# solve ----
   tif <- solve_log(p, pfx, redo=redo)
 }
 ```
 
-# `r basename(pfx)`
-
-- Projection: `r P$name` (`r P$res` resolution)
-
-- Planning unit cost: set to 1
-
-- Objective function:
-    - `add_min_set_objective()`: Minimize the cost of the solution whilst ensuring that all targets are met 
-
-- Feature targets:
-    - `r rel_target*100`% of each input feature amount
-    - Biodiversity:
-        - `bio_vgpm`: Vertically Generalized Production Model
-        - `nspp_*`: number of species by taxonomic group from AquaMaps [_now_]
-        - `rls_*`: Red List sum of extinction risk by taxonomic group from AquaMaps [_now_]
-    - Physical:
-        - `phys_vents`: hydrothermal vent count
-        - `phys_seamounts`: seamounts count (3 depth classes)
-        - `phys_scapes_hetero`: benthic heterogeneity
-  
-- Regionalization:
-    - none, ie global
 
 ```{r report}
 report_solution(tif, redo=redo)
 ```
+
+
+

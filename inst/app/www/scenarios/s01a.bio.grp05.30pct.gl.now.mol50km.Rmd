@@ -59,8 +59,8 @@ if (!file.exists(tif) | redo){
   
   # biodiversity: now, not 2100 ----
   # devtools::load_all()
-  s_bio_gmbi <- get_d_prjres("s_bio_gmbi", prjres)
-  #s_bio_gmbi <- get_gmbi_grpsmdl_prjres("groups05", "_mol50km")
+  #s_bio_gmbi <- get_d_prjres("s_bio_gmbi", prjres)
+  s_bio_gmbi <- get_gmbi_grpsmdl_prjres("groups05", "_mol50km")
   #plot(s_bio_gmbi)
   # FUTURE: get_gmbi_grpsmdl_prjres("groups06_2100", "_mol50km")
   lyrs_bio_now <- names(s_bio_gmbi) %>% 
@@ -113,7 +113,7 @@ if (!file.exists(tif) | redo){
     - Biodiversity:
         - `bio_vgpm`: Vertically Generalized Production Model
         - `nspp_*`: number of species by taxonomic group from AquaMaps [_now_]
-        - `rls_*`: Red List sum of extinction risk by taxonomic group from AquaMaps [_now_]
+        - `rli_*`: Red List Index of averge extinction risk by taxonomic group from AquaMaps [_now_]
     - Physical:
         - `phys_vents`: hydrothermal vent count
         - `phys_seamounts`: seamounts count (3 depth classes)
