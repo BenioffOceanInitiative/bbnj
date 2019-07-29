@@ -1,0 +1,112 @@
+---
+output: 
+  html_document:
+      code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo=T, message=F)
+```
+
+```{r libraries & path}
+library(prioritizr) # devtools::load_all("~/github/prioritizr")
+#library(bbnj)       # 
+devtools::load_all() # setwd(here()); devtools::install_local(force=T) 
+# devtools::install_github("ecoquants/bbnj")
+library(raster)
+library(sf)
+library(dplyr)
+library(readr)
+library(stringr)
+library(glue)
+library(here)
+library(fs)
+library(knitr)
+library(formattable)
+area   = raster::area
+select = dplyr::select
+```
+
+GFW Profits
+
+```{r plot GFW profits}
+
+  r_pu_id <- get_d_prjres("r_pu_id", "_mol50km")
+
+ r_fish_profits<- get_d_prjres("s_fish_gfw","_mol50km")%>%
+    subset("mean_scaled_profits_with_subsidies")
+
+plot(r_fish_profits)
+
+```
+
+GFW Profits Gap Filled
+
+
+```{r}
+
+r_fish_profits_gap <- r_fish_profits %>%
+  gap_fill_raster()
+
+plot(r_fish_profits_gap)
+
+```
+
+GFW Profits Rescaled
+
+```{r}
+r_fish_profits_rescale <- r_fish_profits_gap %>%
+  rescale_raster()
+
+plot(r_fish_profits_rescale)
+```
+
+GFW Profits Rescaled + Log
+
+```{r}
+r_fish_profits_log <- r_fish_profits_gap %>%
+  rescale_raster(log=T)
+
+plot(r_fish_profits_log)
+```
+
+GFW Effort
+
+```{r}
+ r_fish_effort<- get_d_prjres("s_fish_gfw","_mol50km")%>%
+    subset("fishing_KWH")
+
+plot(r_fish_effort)
+```
+
+GFW Effort Gap Filled
+
+
+```{r}
+
+r_fish_effort_gap <- r_fish_effort %>%
+  gap_fill_raster()
+
+plot(r_fish_effort_gap)
+
+```
+
+GFW Effort Rescaled
+
+```{r}
+r_fish_effort_rescale <- r_fish_effort_gap %>%
+  rescale_raster()
+
+plot(r_fish_effort_rescale)
+```
+
+GFW Effort Rescaled + Log
+
+```{r}
+r_fish_effort_log <- r_fish_effort_gap %>%
+  rescale_raster(log=T)
+
+plot(r_fish_effort_log)
+```
