@@ -2,6 +2,7 @@
 
 export(gap_fill_raster)
 export(get_d_prjres)
+export(get_gmbi_grpsmdl_prjres)
 export(get_grid)
 export(get_tif_area_stats)
 export(get_tif_projection)

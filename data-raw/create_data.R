@@ -56,6 +56,7 @@ scapes_tif               <- sprintf("%s/class_11.tif", raw_phys_scapes_arcinfo %
 redo_eez  = F
 redo_abnj = F
 redo_ihor = F
+redo_gmbi = F
 redo_lyrs = F
 redo_project_polygons = F
 redo_project_pu_id_tifs = F
@@ -441,33 +442,76 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
 }
 
 # s_bio_gmbi ----
-if (!dir.exists("inst/data/bio_gmbi") | redo_lyrs){
-  # get bio raster stack from gmbi
-  data(gmbi_stack)
-  data("r_pu_id")
+if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
 
-  # mask stack
-  s_bio_gmbi <- gmbi_stack %>%
-    mask(r_pu_id)
+  dir_pfx  <- here("../gmbi/inst/data/rasters")
+  grpsmdls <- list.files(dir_pfx, "groups[0-9]+.*")
+  grpsmdls <- setdiff(grpsmdls, "groups04")
+    #grps    = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\1"),
+    #mdl     = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\2"))
+  #grpsmdls
 
-  # remove layers
-  mins <- cellStats(s_bio_gmbi, "min")
-  #length(names(s_bio_gmbi))
-  s_bio_gmbi <- raster::subset(s_bio_gmbi, names(s_bio_gmbi)[mins!=Inf])
+  for (grpsmdl in grpsmdls){ # grpsmdl = grpsmdls[1]
 
-  # write tifs
-  map(names(s_bio_gmbi), lyr_to_tif, s_bio_gmbi, "bio_gmbi")
+    dir_grpsmdl <- glue("bio_gmbi_{grpsmdl}")
 
-  # load into memory so not referencing local file and use_data() works
-  s_bio_gmbi <- raster::readAll(s_bio_gmbi)
+    # tifs
+    s <- list.files(
+      file.path(dir_pfx, grpsmdl),
+      ".*\\.tif$", full.names = T) %>%
+      # stack
+      stack() %>%
+      # mask
+      mask(r_pu_id)
+    #s
 
-  # use_data()
-  use_data(s_bio_gmbi, overwrite = TRUE)
+    # remove layers
+    mins <- cellStats(s, "min")
+    #length(names(s_bio_gmbi))
+    s <- raster::subset(s, names(s)[mins!=Inf])
 
-  # create stacks in other projections
-  walk(
-    projections_tbl$prjres[-1],
-    s_to_prjres, s_bio_gmbi, "bio_gmbi", "bilinear", debug=F)
+    # write tifs
+    map(names(s), lyr_to_tif, s, dir_grpsmdl)
+
+    # load into memory so not referencing local file and use_data() works
+    #s_bio_gmbi <- raster::readAll(s)
+
+    # use_data()
+    #use_data(s_bio_gmbi, overwrite = TRUE)
+
+    # create stacks in other projections
+    walk(
+      projections_tbl$prjres[-1],
+      s_to_prjres, s, dir_grpsmdl, "bilinear", debug=F)
+
+  }
+
+  # # get bio raster stack from gmbi
+  # data(gmbi_stack)
+  # data("r_pu_id")
+  #
+  # # mask stack
+  # s_bio_gmbi <- gmbi_stack %>%
+  #   mask(r_pu_id)
+  #
+  # # remove layers
+  # mins <- cellStats(s_bio_gmbi, "min")
+  # #length(names(s_bio_gmbi))
+  # s_bio_gmbi <- raster::subset(s_bio_gmbi, names(s_bio_gmbi)[mins!=Inf])
+  #
+  # # write tifs
+  # map(names(s_bio_gmbi), lyr_to_tif, s_bio_gmbi, "bio_gmbi")
+  #
+  # # load into memory so not referencing local file and use_data() works
+  # s_bio_gmbi <- raster::readAll(s_bio_gmbi)
+  #
+  # # use_data()
+  # use_data(s_bio_gmbi, overwrite = TRUE)
+  #
+  # # create stacks in other projections
+  # walk(
+  #   projections_tbl$prjres[-1],
+  #   s_to_prjres, s_bio_gmbi, "bio_gmbi", "bilinear", debug=F)
 }
 
 # s_bio_gmbi: seagrass? ----

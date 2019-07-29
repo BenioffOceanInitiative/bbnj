@@ -308,6 +308,7 @@ get_d_prjres <- function(dataset, prjres="", debug=F){
     prj <- ifelse(P$prj == "gcs", "", glue("_{P$prj}"))
     path <- glue("{dir_data}/{name}{prj}.shp")
     if (!file.exists(path)) stop(glue("Missing path: {path}"))
+    stopifnot(nrow(P) == 1)
     if (debug) message(glue("path: {path}"))
     p <- read_sf(path)
     st_crs(p) <- P$proj
@@ -335,6 +336,35 @@ get_d_prjres <- function(dataset, prjres="", debug=F){
   #list.files(file.path(system.file(package="bbnj"),"data"))
   #devtools::load_all()
 
+}
+
+#' Get biogeographic stack, given taxonomic grouping, modeling period and projection-resolution
+#'
+#' @param dataset see datasets
+#' @param prjres projection-resolution, per projections_tbl$prjres
+#' @param debug defaults to False
+#'
+#' @return polygon (s), raster (r), or stack (s) per prefix of dataset in given projection-resolution (prjres)
+#' @export
+get_gmbi_grpsmdl_prjres <- function(grpsmdl="groups00", prjres="", debug=F){
+  library(glue)
+  library(stringr)
+  # dataset = "p_eez_s05"
+  # grpsmdl="groups00"; prjres=""; debug=F; dataset = "s_bio_gmbi"
+
+  dir_data <- system.file("data", package="bbnj")
+
+  P <- projections_tbl %>%
+    filter(prjres == !!prjres)
+
+  # stack
+  path <- glue("{dir_data}/bio_gmbi_{grpsmdl}{prjres}")
+  if (!dir.exists(path)) stop(glue("Missing path: {path}"))
+  stopifnot(nrow(P) == 1)
+  if (debug) message(glue("path: {path}"))
+  s <- stack(list.files(path, ".*\\.tif$", full.names=T))
+  crs(s) <- P$proj
+  return(s)
 }
 
 #' Project raster to projection-raster
