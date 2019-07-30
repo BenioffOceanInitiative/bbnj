@@ -444,6 +444,7 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
 # s_bio_gmbi ----
 if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
 
+  #redo_gmbi = T
   dir_pfx  <- here("../gmbi/inst/data/rasters")
   grpsmdls <- list.files(dir_pfx, "groups[0-9]+.*")
   #grpsmdls <- setdiff(grpsmdls, "groups04")
@@ -457,7 +458,7 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
     dir_out     <- here(glue("inst/data/{dir_grpsmdl}"))
 
     message(glue("{dir_out}"))
-    if (dir.exists(dir_out)){
+    if (dir.exists(dir_out) & !redo_gmbi){
       message(glue("  SKIP since exists"))
       next()
     }

@@ -58,8 +58,6 @@ mod_features_rds <- features_csv %>%
   features_rds %>%
   fs::file_info() %>%
   pull(modification_time)
-# DEBUG
-mod_features_rds <- F
 #redo_features_rds <- T
 if (redo_features_rds | mod_features_rds){
   #for (prjres in unique(features$prjres)){ # prjres = "_mer36km"
@@ -83,7 +81,17 @@ if (redo_features_rds | mod_features_rds){
   stopifnot(nlyrs == nlbls)
 
   # add grpsmdl
+  dir_pfx <- here("inst/data")
+  dirs_grpsmdl_gcs <- list.files(dir_pfx, "bio_gmbi_groups[0-9]{2}(_2100)?_mer36km")
+  dirs_tifs <- file.path(dir_pfx, dirs_grpsmdl_gcs)
+  tifs <- list.files(dirs_tifs, ".*\\.tif$", full.names=T)
+  s_bio <- stack(tifs)
+  nlayers(s_bio)
 
+  s_features <- stack(
+    s_features,
+    s_bio)
+  s_lbls <- c(s_lbls, names(s_bio))
 
   prjres <- "_mer36km"
   P <- projections_tbl %>% filter(prjres == !!prjres)
