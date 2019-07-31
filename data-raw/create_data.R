@@ -446,21 +446,21 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
 
   #redo_gmbi = T
   dir_pfx  <- here("../gmbi/inst/data/rasters")
-  #grpsmdls <- list.files(dir_pfx, "groups[0-9]+.*")
+  grpsmdls <- list.files(dir_pfx, "groups[0-9]+.*")
   #grpsmdls <- setdiff(grpsmdls, "groups04")
     #grps    = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\1"),
     #mdl     = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\2"))
   #grpsmdls
   #cat(paste(grpsmdls, collapse = '", "'))
   # DONE:
-  grpsmdls <- c("groups00", "groups01", "groups02", "groups05", "groups05_2100", "groups06", "groups06_2100")
+  #grpsmdls <- c("groups00", "groups01", "groups02", "groups05", "groups05_2100", "groups06", "groups06_2100")
   # TODO:
-  #grpsmdls <- c("groups00_2100", "groups01_2100", "groups02_2100", "groups03", "groups03_2100", "groups04", "groups04_2100")
+  grpsmdls <- c("groups00_2100", "groups01_2100", "groups02_2100", "groups03", "groups03_2100", "groups04", "groups04_2100")
 
-  cat(paste(
-    #c("groups00", "groups01", "groups02", "groups05", "groups05_2100", "groups06", "groups06_2100"),
-    c("groups00_2100", "groups01_2100", "groups02_2100", "groups03", "groups03_2100", "groups04", "groups04_2100"),
-    collapse="\n"))
+  # cat(paste(
+  #   #c("groups00", "groups01", "groups02", "groups05", "groups05_2100", "groups06", "groups06_2100"),
+  #   c("groups00_2100", "groups01_2100", "groups02_2100", "groups03", "groups03_2100", "groups04", "groups04_2100"),
+  #   collapse="\n"))
 
   for (grpsmdl in grpsmdls){ # grpsmdl = grpsmdls[1]
 
