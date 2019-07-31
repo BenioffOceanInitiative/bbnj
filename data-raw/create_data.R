@@ -100,9 +100,9 @@ projections_lst <- list(
       proj = "+proj=moll +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +datum=WGS84 +units=m +no_defs",
       epsg = 54009,
       res_num  = list(
-        "50km"  =  50000,
-        "10km"  =  10000,
-        "100km" = 100000)))
+        "50km"  =  50000)))
+        #"10km"  =  10000,
+        #"100km" = 100000)))
 
 # table of projections, flattening nested resolutions
 projections_tbl <- map_df(
@@ -446,11 +446,21 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
 
   #redo_gmbi = T
   dir_pfx  <- here("../gmbi/inst/data/rasters")
-  grpsmdls <- list.files(dir_pfx, "groups[0-9]+.*")
+  #grpsmdls <- list.files(dir_pfx, "groups[0-9]+.*")
   #grpsmdls <- setdiff(grpsmdls, "groups04")
     #grps    = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\1"),
     #mdl     = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\2"))
   #grpsmdls
+  #cat(paste(grpsmdls, collapse = '", "'))
+  # DONE:
+  grpsmdls <- c("groups00", "groups01", "groups02", "groups05", "groups05_2100", "groups06", "groups06_2100")
+  # TODO:
+  #grpsmdls <- c("groups00_2100", "groups01_2100", "groups02_2100", "groups03", "groups03_2100", "groups04", "groups04_2100")
+
+  cat(paste(
+    #c("groups00", "groups01", "groups02", "groups05", "groups05_2100", "groups06", "groups06_2100"),
+    c("groups00_2100", "groups01_2100", "groups02_2100", "groups03", "groups03_2100", "groups04", "groups04_2100"),
+    collapse="\n"))
 
   for (grpsmdl in grpsmdls){ # grpsmdl = grpsmdls[1]
 
@@ -521,6 +531,15 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
   #   projections_tbl$prjres[-1],
   #   s_to_prjres, s_bio_gmbi, "bio_gmbi", "bilinear", debug=F)
 }
+
+# s <- get_gmbi_grpsmdl_prjres("groups06_2100", "_mol50km")
+# names(s)
+# r <- raster(s, "groups06_2100_rli_bony.fishes")
+# plot(r)
+# hist(r)
+# plot(1 - r)
+# hist(1 - r)
+
 
 # s_bio_gmbi: seagrass? ----
 
