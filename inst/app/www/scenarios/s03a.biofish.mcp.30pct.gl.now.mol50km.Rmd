@@ -50,7 +50,7 @@ tif <- glue("{pfx}_sol.tif")
 - Projection: Mol 50km
 
 - Planning unit cost:
-    - maximum catch potential (2004) (rescaled + log)
+    - maximum catch potential (2004) (rescaled 0-1)
 
 - Objective function:
     - `add_min_set_objective()`: Minimize the cost of the solution whilst ensuring that all targets are met 
@@ -74,7 +74,7 @@ tif <- glue("{pfx}_sol.tif")
 # variables ----
 rel_target <- 0.3
 prjres     <- "_mol50km" # prjres in: View(projections_tbl)
-redo       <- T
+redo       <- F
 
 # problem & solution ----
 P <- projections_tbl %>% filter(prjres == !!prjres)
@@ -91,9 +91,9 @@ if (!file.exists(tif) | redo){
     subset("mcp_2004")
 
 # apply cost to planning units
-  r_pu <- r_fish_saup_2004 %>%
-  gap_fill_raster() %>% 
-  rescale_raster(log=T)
+  r_pu <- r_fish_saup_2004 %>% 
+   # gap_fill_raster()
+   rescale_raster(log=F)
 
 # biodiversity: now ----
   s_bio_gmbi <- get_d_prjres("s_bio_gmbi", prjres)

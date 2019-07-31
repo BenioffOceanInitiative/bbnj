@@ -50,7 +50,7 @@ tif <- glue("{pfx}_sol.tif")
 - Projection: Mol 50km
 
 - Planning unit cost:
-    - fishing effort (KWH) with cells <100,000KWH set to 0
+    - fishing effort (KWH) with cells <12,486 KWH (lowest 25%) set to NA
 
 - Objective function:
     - `add_min_set_objective()`: Minimize the cost of the solution whilst ensuring that all targets are met 
@@ -94,7 +94,7 @@ if (!file.exists(tif) | redo){
 
 # apply cost to planning units
   r_pu <- r_fish_effort %>%
-  reclassify(,rcl=cbind(-Inf, 100000, NA), right=FALSE) %>% 
+  reclassify(,rcl=cbind(-Inf, 12486, NA), right=FALSE) %>% 
   gap_fill_raster()
 
 # biodiversity: now, not 2100 ----
