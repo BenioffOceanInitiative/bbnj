@@ -1,0 +1,88 @@
+---
+output: 
+  html_document:
+      code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo=T, message=F)
+```
+
+```{r solution}
+library(prioritizr) # devtools::load_all("~/github/prioritizr")
+#library(bbnj)       # 
+devtools::load_all() # devtools::install_local(force=T)
+library(raster)
+library(sf)
+library(dplyr)
+library(stringr)
+library(glue)
+library(here)
+library(fs)
+library(knitr)
+library(formattable)
+area   = raster::area
+select = dplyr::select
+
+rmd <- knitr::current_input(dir = T)
+#rmd <- file.path(getwd(), "s00a.bio.30pct.gl.mol100km.Rmd")
+pfx <- rmd %>% path_ext_remove()
+
+# variables ----
+rel_target <- 0.3
+prjres     <-  "" # View(projections_tbl)
+
+redo = F
+P <- projections_tbl %>% filter(prjres==!!prjres)
+
+# planning unit: ----
+r_pu_id <- get_d_prjres("r_pu_id", prjres) # plot(r_pu_id)
+r_pu <- setValues(r_pu_id, 1) %>% 
+  mask(r_pu_id) # plot(r_pu)
+
+# biodiversity: now, not 2100 ----
+# devtools::load_all()
+s_bio_gmbi <- get_d_prjres("s_bio_gmbi", prjres)
+lyrs_bio_now <- names(s_bio_gmbi) %>% 
+  setdiff(str_subset(names(s_bio_gmbi), "2100$")) %>% 
+  setdiff(c("nspp_all", "nspp_na", "rls_all", "rls_na"))
+s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
+
+# features ----
+s_features <- stack(
+  get_d_prjres("r_vgpm", prjres),
+  s_bio_now)
+  #raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>%
+  #    gap_fill_raster() %>%
+  #    rescale_raster(inverse=T),
+  #raster(s_fish_ubc, "mcp_2004"),
+  #s_phys_seamounts,
+  #r_phys_vents,
+  #s_phys_scapes)
+names(s_features) <- c(
+  "bio_vgpm",
+  names(s_bio_now))
+  #"fish_profit.subs"
+  #"fish_mcp.2004",
+  #sprintf("phys_seamounts_%sm", c("0to200","gt200to800","gt800")),
+  #"phys_vents",
+  #glue("phys_scape.{1:11}"))
+
+# problem ----
+p <- problem(r_pu, s_features) %>%
+  add_min_set_objective() %>% 
+  add_relative_targets(rel_target)
+
+# solve ----
+tif <- solve_log(p, pfx, redo=redo)
+```
+
+# `r basename(pfx)`
+
+Obtain `r rel_target*100`% for each biodiversity and habitat target in the high seas globally, using projection `r P$name` (`r P$res` resolution).
+
+```{r report}
+report_solution(tif)
+```

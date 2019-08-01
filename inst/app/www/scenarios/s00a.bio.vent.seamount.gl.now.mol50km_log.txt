@@ -1,0 +1,19 @@
+Optimize a model with 4 rows, 84515 columns and 13295 nonzeros
+Variable types: 0 continuous, 84515 integer (84515 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 2e+02]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [1e+00, 1e+00]
+  RHS range        [1e+02, 2e+04]
+Found heuristic solution: objective 13181.000000
+Presolve removed 4 rows and 84515 columns
+Presolve time: 0.02s
+Presolve: All rows and columns removed
+
+Explored 0 nodes (0 simplex iterations) in 0.03 seconds
+Thread count was 1 (of 4 available processors)
+
+Solution count 1: 13181 
+
+Optimal solution found (tolerance 1.00e-01)
+Best objective 1.318100000000e+04, best bound 1.318100000000e+04, gap 0.0000%
