@@ -1,85 +1,279 @@
 ---
 title: "Taxonomic Group Treemap"
-author: "Morgan Visalli"
-date: "7/12/2019"
+author:
+date: "7/31/2019"
 output:
   html_document:
     code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = T, message=F)
 ```
-
-## Exploring Taxonomic Groups
-
+####Taxonomic groups from [gmbi package](https://github.com/marinebon/gmbi/blob/master/vignettes/calc.Rmd) used in [bbnj analysis](https://github.com/ecoquants/bbnj/)
 ```{r libraries}
 suppressPackageStartupMessages({
   library(dplyr)
   library(treemap)
   library(ggplot2)
+  library(kableExtra)
 })
 ```
 
-####Reassign taxonomic groups using code from [gmbi package](https://github.com/marinebon/gmbi/blob/master/vignettes/calc.Rmd) to reflect [recent changes in groups](https://github.com/ecoquants/bbnj/issues/3)
+``` {r functions}
 
+## filter spp dataset by groups number
+filter_group <- function (df, groupnumber) {
+    df %>%
+    filter(!is.na(UQ(sym(groupnumber))))
+}
 
-```{r}
-#Reassign taxonomic groups
-spp <- read.csv('extdata/spp.csv')
+## summarise by taxonomic group name
 
-spp_cols <- spp %>% head(1) %>% collect() %>% names()
-
-spp <- spp %>% 
-    mutate(
-      group = case_when(
-        Class == "Actinopterygii" & !Family %in% c("Scombridae", "Istiophoridae", "Xiphiidae") ~ "Bony fishes",
-        Class == "Cephalopoda" ~ "Cephalopods",
-        Family %in% c("Odobenidae", "Otariidae", "Phocidae") ~ "Pinnipeds",
-        Class == "Anthozoa" ~ "Corals",
-        Order == "Alismatales" ~ "Seagrasses",
-        Genus == "Avicennia" & Species == "germinans" ~ "Mangroves",
-        Family %in% c("Scombridae", "Istiophoridae", "Xiphiidae") ~ "Tunas & billfishes",
-        Order == "Cetacea" ~ "Cetaceans",
-        Order == "Euphausiacea" ~ "Euphausiids",
-        Class %in% c("Malacostraca","Ostracoda","Branchiopoda","Cephalocarida","Maxillopoda") ~ "Crustaceans",
-        Class == "Pycnogonida" ~ "Sea spiders",
-        Class == "Gastropoda" ~ "Gastropods",
-        Class == "Bivalvia" ~ "Bivalves",
-        Class == "Polyplacophora" ~ "Chitons",
-        Class %in% c("Ascidiacea","Thaliacea") ~ "Tunicates",
-        Class == "Elasmobranchii" ~ "Sharks & rays",
-        Class == "Reptilia"~ "Reptiles",
-        Phylum == "Echinodermata"~ "Echinoderms",
-        Phylum == "Porifera" ~ "Sponges",
-        Phylum %in% c("Annelida", "Sipuncula") ~ "Worms",
-        Class == "Hydrozoa" ~ "Hydrozoans"))
-
-#Count number of unique species in each group
-
-group_count <- spp %>%
-  group_by(group) %>%
-  summarise(nspp = n_distinct(genus_species))
-
-knitr::kable(
-  group_count
-)
-
+summarise_group <- function(df, groupnumber) {
+  groupnumber<- as.symbol(groupnumber)
+  groupnumber<- enquo(groupnumber)
+  df %>% 
+  group_by((!!groupnumber)) %>%
+  summarize(n = n())
+}
 
 ```
 
+``` {r}
+# Read in spp_bbnj.csv with groupings:
+  # groups00: All original AquaMaps species 
+  # groups01: 1st taxonomic grouping [n = 23]
+  # groups02: 1st grouping, species (prob≥ 0.5) in high seas
+  # groups03: 1st grouping, species (prob ≥ 0.5) and 25% of its range in high seas
+  # groups04: 2nd taxonomic grouping [n = 9]
+  # groups05: 2nd grouping, species (prob≥ 0.5) in high seas
+  # groups06: 2nd grouping, species (prob ≥ 0.5) and 25% of its range in high seas
 
-####Create treemap where size of rectangle corresponds to number of species in each group
+spp <- readr::read_csv("extdata/spp_bbnj.csv") 
+spp[spp=="Non-squid cephalopods"]<-"Cephalopods"
 
+```
+
+```{r group 01}
+
+groupnumber<-"groups01"
+
+spp_grp<-filter_group(spp,groupnumber)
+nspp_grp<-nrow(spp_grp)
+taxa_grp <-summarise_group(spp_grp,groupnumber)
+ngrp_grp <-nrow(taxa_grp)
+```
+### Groups v01
+____
+- All AquaMaps (no HS filter)
+
+- `r ngrp_grp` Taxonomic Groups
+
+- `r nspp_grp` Species
 
 ```{r out.width = '1200px'}
+
 #Create treemap where size of rectangle corresponds to number of species in each group
 
-taxa_treemap<- treemap(group_count,
-                       index="group",
-                       vSize="nspp",
+taxa_treemap<- treemap(taxa_grp,
+                       index=groupnumber,
+                       vSize="n",
                        type="index",
-                       force.print.labels = TRUE
+                       force.print.labels = TRUE,
+                       title="Number of species per group"
 )
+
+#Create table of nspp for each taxonomic group
+knitr::kable(taxa_grp,
+             col.names = c("Group",
+                           "Number of Species")) %>% 
+  kable_styling(bootstrap_options = "striped")
 ```
+
+
+```{r group 02}
+
+groupnumber<-"groups02"
+
+spp_grp<-filter_group(spp,groupnumber)
+nspp_grp<-nrow(spp_grp)
+taxa_grp <-summarise_group(spp_grp,groupnumber)
+ngrp_grp <-nrow(taxa_grp)
+```
+### Groups v02
+____
+- AquaMaps species (prob≥ 0.5) in high seas
+
+- `r ngrp_grp` Taxonomic Groups
+
+- `r nspp_grp` Species
+
+```{r out.width = '1200px'}
+
+#Create treemap where size of rectangle corresponds to number of species in each group
+
+taxa_treemap<- treemap(taxa_grp,
+                       index=groupnumber,
+                       vSize="n",
+                       type="index",
+                       force.print.labels = TRUE,
+                       title="Number of species per group"
+)
+
+#Create table of nspp for each taxonomic group
+knitr::kable(taxa_grp,
+             col.names = c("Group",
+                           "Number of Species")) %>% 
+  kable_styling(bootstrap_options = "striped")
+```
+
+
+```{r group 03}
+
+groupnumber<-"groups03"
+
+spp_grp<-filter_group(spp,groupnumber)
+nspp_grp<-nrow(spp_grp)
+taxa_grp <-summarise_group(spp_grp,groupnumber)
+ngrp_grp <-nrow(taxa_grp)
+```
+### Groups v03
+____
+- AquaMaps species (prob≥ 0.5) in high seas and 25% of its range in high seas
+
+- `r ngrp_grp` Taxonomic Groups
+
+- `r nspp_grp` Species
+
+```{r out.width = '1200px'}
+
+#Create treemap where size of rectangle corresponds to number of species in each group
+
+taxa_treemap<- treemap(taxa_grp,
+                       index=groupnumber,
+                       vSize="n",
+                       type="index",
+                       force.print.labels = TRUE,
+                       title="Number of species per group"
+)
+
+#Create table of nspp for each taxonomic group
+knitr::kable(taxa_grp,
+             col.names = c("Group",
+                           "Number of Species")) %>% 
+  kable_styling(bootstrap_options = "striped")
+```
+
+
+```{r group 04}
+
+groupnumber<-"groups04"
+
+spp_grp<-filter_group(spp,groupnumber)
+nspp_grp<-nrow(spp_grp)
+taxa_grp <-summarise_group(spp_grp,groupnumber)
+ngrp_grp <-nrow(taxa_grp)
+```
+### Groups v04
+____
+- All AquaMaps (no HS filter)
+
+- `r ngrp_grp` Taxonomic Groups
+
+- `r nspp_grp` Species
+
+```{r out.width = '1200px'}
+
+#Create treemap where size of rectangle corresponds to number of species in each group
+
+taxa_treemap<- treemap(taxa_grp,
+                       index=groupnumber,
+                       vSize="n",
+                       type="index",
+                       force.print.labels = TRUE,
+                       title="Number of species per group"
+)
+
+#Create table of nspp for each taxonomic group
+knitr::kable(taxa_grp,
+             col.names = c("Group",
+                           "Number of Species")) %>% 
+  kable_styling(bootstrap_options = "striped")
+```
+
+
+```{r group 05}
+
+groupnumber<-"groups05"
+
+spp_grp<-filter_group(spp,groupnumber)
+nspp_grp<-nrow(spp_grp)
+taxa_grp <-summarise_group(spp_grp,groupnumber)
+ngrp_grp <-nrow(taxa_grp)
+```
+### Groups v05
+____
+- AquaMaps species (prob≥ 0.5) in high seas
+
+- `r ngrp_grp` Taxonomic Groups
+
+- `r nspp_grp` Species
+
+```{r out.width = '1200px'}
+
+#Create treemap where size of rectangle corresponds to number of species in each group
+
+taxa_treemap<- treemap(taxa_grp,
+                       index=groupnumber,
+                       vSize="n",
+                       type="index",
+                       force.print.labels = TRUE,
+                       title="Number of species per group"
+)
+
+#Create table of nspp for each taxonomic group
+knitr::kable(taxa_grp,
+             col.names = c("Group",
+                           "Number of Species")) %>% 
+  kable_styling(bootstrap_options = "striped")
+```
+
+
+```{r group 06}
+
+groupnumber<-"groups06"
+
+spp_grp<-filter_group(spp,groupnumber)
+nspp_grp<-nrow(spp_grp)
+taxa_grp <-summarise_group(spp_grp,groupnumber)
+ngrp_grp <-nrow(taxa_grp)
+```
+### Groups v06
+____
+- AquaMaps species (prob≥ 0.5) in high seas and 25% of its range in high seas
+
+- `r ngrp_grp` Taxonomic Groups
+
+- `r nspp_grp` Species
+
+```{r out.width = '1200px'}
+
+#Create treemap where size of rectangle corresponds to number of species in each group
+
+taxa_treemap<- treemap(taxa_grp,
+                       index=groupnumber,
+                       vSize="n",
+                       type="index",
+                       force.print.labels = TRUE,
+                       title="Number of species per group"
+)
+
+#Create table of nspp for each taxonomic group
+knitr::kable(taxa_grp,
+             col.names = c("Group",
+                           "Number of Species")) %>% 
+  kable_styling(bootstrap_options = "striped")
+```
+
 
