@@ -30,7 +30,8 @@ raw_ppow_shp             <- glue("{dir_gdata}/raw/UNEP-WCMC/DataPack-14_001_WCMC
 raw_fish_gfw_csv         <- glue("{dir_gdata}/raw/Sala et al 2018/half_degree_binned_results.csv")
 raw_fish_saup_now_tif    <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/Current_MCP1.tif")
 raw_fish_saup_future_tif <- glue("{dir_gdata}/raw/UBC-exploited-fish-projections/MCP2050_RCP85.tif")
-raw_mine_claims_shp      <- glue("{dir_gdata}/raw/ISA_shapefiles/ISA_claim_areas_update_20181202.shp")
+#raw_mine_claims_shp      <- glue("{dir_gdata}/raw/ISA_claim_areas_update_20181202.shp")
+raw_mine_claims_shp      <- glue("{dir_gdata}/raw/ISA_shapefiles/ISA_claim_areas_20190719.shp")
 raw_phys_seamounts_kml   <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 2011/KWSMTSv01.kml")
 raw_phys_seamounts_txt   <- glue("{dir_gdata}/raw/Seamounts - Kim and Wessel 2011/KWSMTSv01.txt")
 raw_phys_scapes_arcinfo  <- glue("{dir_gdata}/raw/Harris and Whiteway 2009/Global_Seascapes/class_11")
@@ -850,12 +851,13 @@ if (!file.exists(phys_vents_tif) | redo_lyrs){
   }
 }
 
-# r_mine_claims ----
+# p_mine_claims & r_mine_claims ----
 if (!file.exists(mine_claims_tif) | redo_lyrs){
 
   p_mine_claims <- read_sf(raw_mine_claims_shp) %>%
     # remove: APEI (Area of Particular Environmental Interest)
-    filter(area_type != "apei") %>%
+    #filter(area_type != "apei") %>%
+    filter(layer != "06_APEI") %>%
     lwgeom::st_make_valid()
   #table(p_mine_claims$area_type)
   # apei    claim reserved
