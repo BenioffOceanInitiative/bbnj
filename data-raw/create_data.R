@@ -448,7 +448,8 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
   #redo_gmbi = T
   dir_pfx  <- here("../gmbi/inst/data/rasters")
   #grpsmdls <- list.files(dir_pfx, "groups[0-9]+.*")
-  grpsmdls <- list.files(dir_pfx, "groups0[1-3].*")
+  #grpsmdls <- list.files(dir_pfx, "groups0[1-3].*")
+  grpsmdls <- list.files(dir_pfx, "groups00.*")
   #grpsmdls <- setdiff(grpsmdls, "groups04")
     #grps    = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\1"),
     #mdl     = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\2"))

@@ -1,3 +1,7 @@
+# bbnj 0.7.1
+
+* + RLS for groups00* #19
+
 # bbnj 0.7.0
 
 * updated mining claims (`r_min_claims`,`p_min_claims`) to 20190719 (from 20181202) #14
