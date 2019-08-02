@@ -82,12 +82,16 @@ if (!file.exists(tif) | redo){
 
 # rls now + 2100
   rls_all_now <- get_gmbi_grpsmdl_prjres("groups00", prjres) %>% 
-    subset(,subset="groups00_rls_all")
+    subset("groups00_rls_all")
   
   rls_all_future <- get_gmbi_grpsmdl_prjres("groups00_2100", prjres) %>% 
-    subset(,subset="groups00_2100_rls_all")
+    subset("groups00_2100_rls_all")
   
   # features ----
+  s_seamounts <- get_d_prjres("s_phys_seamounts",prjres)
+  lu_seamounts <- c(lteq200m="0to200",gt200lteq800m="gt200to800",gt800m="gt800")
+  lbls_seamounts <- sprintf("phys_seamounts_%sm", lu_seamounts[names(s_seamounts)])
+  
   s_features <- stack(
     get_d_prjres("r_vgpm", prjres),
     s_bio_gmbi_now,
@@ -98,9 +102,11 @@ if (!file.exists(tif) | redo){
     #    gap_fill_raster() %>%
     #    rescale_raster(inverse=T),
     #raster(s_fish_ubc, "mcp_2004"),
-    get_d_prjres("s_phys_seamounts",prjres),
+    s_seamounts,
     get_d_prjres("r_phys_vents",prjres),
     get_d_prjres("r_phys_scapes_hetero",prjres))
+  
+  
   
   names(s_features) <- c(
     "bio_vgpm",
@@ -110,7 +116,7 @@ if (!file.exists(tif) | redo){
     "rls_all_future",
     #"fish_profit.subs"
     #"fish_mcp.2004",
-    sprintf("phys_seamounts_%sm", c("0to200","gt200to800","gt800")),
+    lbls_seamounts,
     "phys_vents",
     "scapes_hetero")
   
