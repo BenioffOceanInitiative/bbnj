@@ -1,0 +1,65 @@
+---
+title: "Scenario Differences"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_depth: 3
+    toc_float: true
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F)
+```
+
+## scenarios
+
+```{r}
+library(tidyverse)
+library(glue)
+library(here)
+library(raster)
+
+#library(bbnj)
+devtools::load_all()
+
+dir_scenarios <- here("inst/app/www/scenarios")
+dir_diffs     <- here("inst/app/www/scenarios/diffs")
+scenarios <- list(
+  s1 = "s01a.bio.rls.grp01.30pct.gl.now.mol50km",
+  s2 = "s02a.bio.rls.grp01.30pct.gl.alltime.mol50km",
+  s3 = "s03a.biofish.rls.effort.reclass.qt75.grp01.30pct.gl.now.mol50km",
+  s5 = "s05a.biofish.effort.reclass.rls.grp01.30pct.gl.alltime.mol50km")
+
+tibble(
+  s        = names(scenarios),
+  scenario = unlist(scenarios)) %>% 
+  knitr::kable()
+```
+
+## s2 - s1
+
+```{r}
+png <- scenarios_diff_png(scenarios[c("s1", "s2")], dir_scenarios, dir_diffs)
+```
+
+![](`r png`)
+
+## s3 - s1
+
+```{r}
+png <- scenarios_diff_png(scenarios[c("s1", "s3")], dir_scenarios, dir_diffs)
+```
+
+![](`r png`)
+
+## s5 - s1
+
+```{r}
+png <- scenarios_diff_png(scenarios[c("s1", "s5")], dir_scenarios, dir_diffs)
+```
+
+![](`r png`)

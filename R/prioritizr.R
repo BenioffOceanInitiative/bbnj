@@ -190,7 +190,9 @@ report_solution <- function(tif, fig_ht_in=2, redo=F){
       plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
       #par(op)
     }
-    png(sol_png, width=480*4, height = 480*4, res=300, type="cairo", units='px'); map_sol(); dev.off()
+    png(sol_png, width=480*4, height = 480*4, res=300, type="cairo", units='px')
+    map_sol()
+    dev.off()
     sol_png %>%
       magick::image_read() %>% magick::image_trim() %>%
       magick::image_write(sol_png)
@@ -260,3 +262,121 @@ problem_diagnostics <- function(pu, features, budget, pfx= deparse(substitute(fe
   readr::write_csv(d, csv)
   d
 }
+
+#' Calculate difference of two raster solutions
+#'
+#' @param r1 1st raster solution [0,1]
+#' @param r2 2nd raster solution [0,1]
+#'
+#' @return r2 - r1
+#' @export
+#'
+#' @examples
+r_diff <- function(r1, r2){
+  rng1 <- c(cellStats(r1, "min"), cellStats(r1, "max"))
+  rng2 <- c(cellStats(r2, "min"), cellStats(r2, "max"))
+  stopifnot(identical(rng1, c(0,1)))
+  stopifnot(identical(rng2, c(0,1)))
+
+  r_d  <- r2*10 - r1
+  # plot(r_d, main="r_d")
+  # table(values(r_d), useNA = "ifany")
+
+  d_subs <- tribble(
+    ~old,   ~new,
+    0, -9999,
+    9,     0,
+    -1,    -1,
+    10,     1)
+
+  r_ds <- subs(r_d, d_subs, "old", "new")
+  # table(values(r_ds), useNA = "ifany")
+  # plot(r_ds, main="r_ds")
+  r_dsm <- mask(r_ds, r_ds, maskvalue=-9999)
+  # table(values(r_dsm), useNA = "ifany")
+  # plot(r_dsm, main="r_dsm")
+
+  r_dsm
+}
+
+#' map raster to png
+#'
+#' @param r
+#' @param png
+#'
+#' @return
+#' @export
+#'
+#' @examples
+map_r2png <- function(r, png){
+  library(RColorBrewer)
+  library(sf)
+  library(raster)
+  library(magick)
+  # library(tidyverse)
+  # library(glue)
+  # library(here)
+
+  # projection
+  P <- get_r_projection(r)
+
+  # color palette
+  rng <- c(cellStats(r, "min"), cellStats(r, "max"))
+  if (identical(rng, c(-1,1))){
+    cols <- brewer.pal(5, "Set1")[1:3] # red, blue, green
+    pal <- colorRampPalette(cols)(3)
+  }
+  if (identical(rng, c(0, 1))){
+    cols <- terrain.colors(2) # gray, green
+    pal <- colorRampPalette(cols)(2)
+  }
+
+  # overlays
+  countries  <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+    st_transform(P$epsg)
+  graticules <- st_graticule(countries)
+
+  png(png, width=480*4, height = 480*4, res=300, type="cairo", units='px')
+  plot(r, legend=F, axes=F, box=F, col=pal)
+  plot( st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+  plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+  dev.off()
+
+  png %>%
+    magick::image_read() %>%
+    magick::image_trim() %>%
+    magick::image_write(png)
+}
+
+#' calculate scenario difference
+#'
+#' @param scenarios a named list with scenarios
+#' @param dir_scenarios directory to find scenarios
+#' @param dir_diffs directory to output png difference
+#'
+#' @return
+#' @export
+#'
+#' @examples
+scenarios_diff_png <- function(scenarios, dir_scenarios, dir_diffs){
+  stopifnot(length(scenarios) == 2)
+
+  d <- tibble(
+    s          = names(scenarios),
+    scen       = unlist(scenarios),
+    tif        = file.path(dir_scenarios, glue("{scen}_sol.tif")),
+    tif_exists = file.exists(tif))
+  stopifnot(all(d$tif_exists))
+
+  png <- glue("{dir_diffs}/{scenarios[2]} - {scenarios[1]}.png")
+
+  r1 <- raster(d$tif[1])
+  r2 <- raster(d$tif[2])
+
+  rd <- r_diff(r1, r2)
+
+  map_r2png(rd, png)
+
+  png
+}
+
