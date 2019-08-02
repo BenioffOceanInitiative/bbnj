@@ -24,6 +24,7 @@ devtools::load_all()
 # paths ----
 dir_data                 <- here("inst/data")
 dir_gdata                <- "~/Gdrive Ecoquants/projects/bbnj/data" # on Ben Best's laptop
+raw_ebsa_shp             <- glue("{dir_gdata}/raw/EBSAs/iobis_ebsa/data/Global_EBSAs_Automated_Final_1104_2016_WGS84/Global_EBSAs_Automated_Final_1104_2016_WGS84.shp")
 raw_eez_shp              <- glue("{dir_gdata}/raw/marineregions.org_boundaries/World_EEZ_v10_20180221/eez_v10.shp")
 raw_eez_iho_shp          <- glue("{dir_gdata}/raw/marineregions.org_boundaries/Intersect_EEZ_IHO_v3_2018/EEZ_IHO_v3.shp")
 raw_ppow_shp             <- glue("{dir_gdata}/raw/UNEP-WCMC/DataPack-14_001_WCMC036_MEOW_PPOW_2007_2012_v1/01_Data/WCMC-036-MEOW-PPOW-2007-2012-NoCoast.shp")
@@ -51,6 +52,7 @@ eez_shp                  <- glue("{dir_data}/eez.shp")
 eez_s05_shp              <- glue("{dir_data}/eez_s05.shp")
 pu_id_tif                <- glue("{dir_data}/pu_id.tif")
 mine_claims_shp          <- glue("{dir_data}/mine-claims.shp")
+ebsa_shp                 <- glue("{dir_data}/ebsa.shp")
 scapes_tif               <- sprintf("%s/class_11.tif", raw_phys_scapes_arcinfo %>% dirname() %>% dirname())
 
 # variables ----
@@ -859,7 +861,9 @@ if (!file.exists(mine_claims_tif) | redo_lyrs){
     # remove: APEI (Area of Particular Environmental Interest)
     #filter(area_type != "apei") %>%
     filter(layer != "06_APEI") %>%
-    lwgeom::st_make_valid()
+    lwgeom::st_make_valid() %>%
+    mutate(
+      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
   #table(p_mine_claims$area_type)
   # apei    claim reserved
   #    9     1330      174
@@ -896,4 +900,22 @@ if (!file.exists(mine_claims_tif) | redo_lyrs){
     }
   }
 
+}
+
+
+# p_ebsas ----
+if (!file.exists(mine_claims_tif) | redo_lyrs){
+  #ebsa_shp                 <- glue("{dir_data}/ebsa.shp")
+  #raw_ebsa_shp             <- glue("{dir_gdata}/raw/EBSAs/iobis_ebsa/data/Global_EBSAs_Automated_Final_1104_2016_WGS84/Global_EBSAs_Automated_Final_1104_2016_WGS84.shp")
+
+  p_ebsa <- read_sf(raw_ebsa_shp) %>%
+    mutate(
+      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
+  #sum(p_ebsa$area_km2) # 75,854,936
+
+  write_sf(p_ebsa, ebsa_shp)
+  use_data(p_ebsa, overwrite = TRUE)
+
+  # p_ebsa <- read_sf(ebsa_shp) %>%
+  #   lwgeom::st_make_valid()
 }

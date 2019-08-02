@@ -1,0 +1,245 @@
+---
+title: "Scenario Differences"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_depth: 3
+    toc_float: true
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+```
+
+## scenarios
+
+```{r}
+library(tidyverse)
+library(glue)
+library(here)
+library(sf)
+library(lwgeom)
+library(raster)
+library(leaflet)
+library(mapview)
+library(rmapshaper)
+library(knitr)
+select = dplyr::select
+
+#library(bbnj)
+devtools::load_all()
+
+mapviewOptions(basemaps = c("Esri.OceanBasemap","Stamen.TonerLite"))
+
+dir_overlays  <- here("inst/scripts/data_overlays")
+```
+
+## Overlay prep
+### EBSAs
+
+```{r}
+ebsa_u_shp    <- file.path(dir_overlays, "ebsa_union.shp")
+ebsa_u_hs_shp <- file.path(dir_overlays, "ebsa_union_abnj.shp")
+
+if (!file.exists(ebsa_u_shp)){
+  p_ebsa_u <- p_ebsa %>%
+    st_make_valid() %>% 
+    st_union() %>%
+    st_sf() %>% 
+    mutate(
+      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
+  
+  write_sf(p_ebsa_u, ebsa_u_shp)
+}
+p_ebsa_u <- read_sf(ebsa_u_shp) # %>% st_make_valid()
+
+if (!file.exists(ebsa_u_hs_shp)){
+p_ebsa_u_hs <- p_ebsa_u %>%
+  st_intersection(p_abnj) #%>% 
+#p_ebsa_u_hs_0 <- p_ebsa_u
+p_ebsa_u_hs <- p_ebsa_u %>%  
+  mutate(
+      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
+
+  write_sf(p_ebsa_u_hs, ebsa_u_hs_shp)
+}
+p_ebsa_u_hs <- read_sf(ebsa_u_hs_shp)
+
+mapview(p_ebsa)
+
+leaflet() %>% 
+  addProviderTiles(providers$Esri.OceanBasemap) %>% 
+  addPolygons(data=p_abnj_s05, color="gray80") %>% 
+  addPolygons(data=p_ebsa_u_hs)
+```
+
+- Area original:             `r sum(p_ebsa$area_km2) %>% format(big.mark=',')`
+- Area non-overlapping (no): `r p_ebsa_u$area_km2 %>% format(big.mark=',')`
+- Area (no) high seas:       `r p_ebsa_u_hs$area_km2 %>% format(big.mark=',')`
+
+### Mining Claims
+
+```{r}
+mine_claims_u_shp    <- file.path(dir_overlays, "mine_claims_union.shp")
+mine_claims_u_hs_shp <- file.path(dir_overlays, "mine_claims_union_abnj.shp")
+
+if (!file.exists(mine_claims_u_shp)){
+  p_mine_claims_u <- p_mine_claims %>%
+    st_make_valid() %>% 
+    st_union() %>% 
+    st_sf() %>% 
+    mutate(
+      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
+  write_sf(p_mine_claims_u, mine_claims_u_shp)
+}
+p_mine_claims_u <- read_sf(mine_claims_u_shp) %>% st_make_valid()
+
+if (!file.exists(mine_claims_u_hs_shp)){
+  p_mine_claims_u_hs <- p_mine_claims_u %>%
+    st_intersection(p_abnj) %>% 
+    mutate(
+      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
+  
+  write_sf(p_mine_claims_u_hs, mine_claims_u_hs_shp)
+}
+p_mine_claims_u_hs <- read_sf(mine_claims_u_hs_shp) %>% 
+  st_make_valid()
+
+mapview(p_mine_claims)
+
+leaflet() %>% 
+  addProviderTiles(providers$Esri.OceanBasemap) %>% 
+  addPolygons(data=p_abnj_s05, color="gray80") %>% 
+  addPolygons(data=p_mine_claims_u_hs)
+```
+
+- Area original:             `r sum(p_mine_claims$area_km2) %>% format(big.mark=',')`
+- Area non-overlapping (no): `r p_mine_claims_u$area_km2 %>% format(big.mark=',')`
+- Area (no) high seas:       `r p_mine_claims_u_hs$area_km2 %>% format(big.mark=',')`
+
+## Scenarios
+
+```{r}
+dir_scenarios <- here("inst/app/www/scenarios")
+scenarios <- list(
+  s1 = "s01a.bio.rls.grp01.30pct.gl.now.mol50km",
+  s2 = "s02a.bio.rls.grp01.30pct.gl.alltime.mol50km",
+  s3 = "s03a.biofish.rls.effort.reclass.qt75.grp01.30pct.gl.now.mol50km",
+  s5 = "s05a.biofish.effort.reclass.rls.grp01.30pct.gl.alltime.mol50km")
+
+get_scenario_overlays <- function(scen){
+  
+  # TODO: add required vars as arguments
+  # dir_scenarios
+  # dir_overlays
+  # p_ebsa_u_hs
+  # p_mine_claims_u_hs
+  
+  # scen = scenarios["s3"]
+  
+  sol_shp      <- file.path(dir_scenarios, glue("{scen}_sol_gcs.shp"))
+  sol_ebsa_csv <- file.path(dir_overlays, glue("{scen}_ebsa.csv"))
+  sol_mine_csv <- file.path(dir_overlays, glue("{scen}_mine.csv"))
+  
+  p_sol <- read_sf(sol_shp) %>% 
+    ms_dissolve() %>% 
+    st_make_valid()
+  
+  if (!file.exists(sol_ebsa_csv)){
+    p_sol %>% 
+      st_intersection(p_ebsa_u_hs) %>% 
+      mutate(
+        area_km2 = st_area(geometry) %>%  units::set_units(km^2)) %>% 
+      st_drop_geometry() %>% 
+      select(area_km2) %>% 
+      write_csv(sol_ebsa_csv)
+  }
+  if (!file.exists(sol_mine_csv)){
+    p_sol %>% 
+      st_intersection(p_mine_claims_u_hs) %>% 
+      mutate(
+        area_km2 = st_area(geometry) %>%  units::set_units(km^2)) %>% 
+      st_drop_geometry() %>% 
+      select(area_km2) %>% 
+      write_csv(sol_mine_csv)
+  }
+  
+  d <- read_csv(sol_ebsa_csv) %>% 
+    bind_cols(
+      tibble(layer = "ebsa")) %>% 
+    bind_rows(
+      read_csv(sol_mine_csv) %>% 
+        bind_cols(
+          tibble(layer = "mine_claims"))) %>% 
+    mutate(
+      scenario = unlist(scen))
+  
+  m <- leaflet() %>% 
+    addProviderTiles(providers$Esri.OceanBasemap, group = "ocean") %>% 
+    addPolygons(data=p_abnj_s05        , color="gray80", group = "abnj") %>% 
+    addPolygons(data=p_sol             , color="green" , group = "solution") %>% 
+    addPolygons(data=p_mine_claims_u_hs, color="red"   , group = "mining") %>%
+    addPolygons(data=p_ebsa_u_hs       , color="purple", group = "ebsa") %>% 
+    addLayersControl(
+      baseGroups = c("ocean"),
+      overlayGroups = c("abnj", "solution", "mining", "ebsa"),
+      options = layersControlOptions(collapsed = T))
+  
+  return(list(data=d, map=m))
+}
+
+tibble(
+  s        = names(scenarios),
+  scenario = unlist(scenarios)) %>% 
+  knitr::kable()
+```
+
+### s1
+
+```{r}
+so <- get_scenario_overlays(scenarios["s1"])
+
+so$data %>% 
+  kable(format.args = list(big.mark = ","))
+so$map
+```
+
+### s2
+
+```{r}
+so <- get_scenario_overlays(scenarios["s2"])
+
+so$data %>% 
+  kable(format.args = list(big.mark = ","))
+so$map
+```
+
+### s3
+
+```{r}
+so <- get_scenario_overlays(scenarios["s3"])
+
+so$data %>% 
+  kable(format.args = list(big.mark = ","))
+so$map
+```
+
+### s5
+
+```{r}
+so <- get_scenario_overlays(scenarios["s5"])
+
+so$data %>% 
+  kable(format.args = list(big.mark = ","))
+so$map
+```
+
+## TODO: Explore 
+
+- [leafsync](https://github.com/r-spatial/leafsync): small multiples for leaflet webmaps
+  ![](https://github.com/r-spatial/leafsync/raw/master/man/figures/README-sync.png)
+
