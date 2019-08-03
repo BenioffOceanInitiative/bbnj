@@ -28,6 +28,7 @@ library(leaflet)
 library(mapview)
 library(rmapshaper)
 library(knitr)
+library(DT)
 select = dplyr::select
 
 #library(bbnj)
@@ -77,6 +78,7 @@ leaflet() %>%
   addPolygons(data=p_ebsa_u_hs)
 ```
 
+- Number of EBSAs:           `r nrow(p_ebsa) %>% format(big.mark=',')`
 - Area original:             `r sum(p_ebsa$area_km2) %>% format(big.mark=',')`
 - Area non-overlapping (no): `r p_ebsa_u$area_km2 %>% format(big.mark=',')`
 - Area (no) high seas:       `r p_ebsa_u_hs$area_km2 %>% format(big.mark=',')`
@@ -117,6 +119,7 @@ leaflet() %>%
   addPolygons(data=p_mine_claims_u_hs)
 ```
 
+- Number of mining claims:   `r nrow(p_mine_claims) %>% format(big.mark=',')`
 - Area original:             `r sum(p_mine_claims$area_km2) %>% format(big.mark=',')`
 - Area non-overlapping (no): `r p_mine_claims_u$area_km2 %>% format(big.mark=',')`
 - Area (no) high seas:       `r p_mine_claims_u_hs$area_km2 %>% format(big.mark=',')`
@@ -139,11 +142,13 @@ get_scenario_overlays <- function(scen){
   # p_ebsa_u_hs
   # p_mine_claims_u_hs
   
-  # scen = scenarios["s3"]
+  # scen = scenarios["s5"]
   
   sol_shp      <- file.path(dir_scenarios, glue("{scen}_sol_gcs.shp"))
   sol_ebsa_csv <- file.path(dir_overlays, glue("{scen}_ebsa.csv"))
+  sol_ebsa_shp <- file.path(dir_overlays, glue("{scen}_ebsa.shp"))
   sol_mine_csv <- file.path(dir_overlays, glue("{scen}_mine.csv"))
+  sol_mine_shp <- file.path(dir_overlays, glue("{scen}_mine.shp"))
   
   p_sol <- read_sf(sol_shp) %>% 
     ms_dissolve() %>% 
@@ -167,7 +172,7 @@ get_scenario_overlays <- function(scen){
       select(area_km2) %>% 
       write_csv(sol_mine_csv)
   }
-  
+
   d <- read_csv(sol_ebsa_csv) %>% 
     bind_cols(
       tibble(layer = "ebsa")) %>% 
@@ -177,6 +182,47 @@ get_scenario_overlays <- function(scen){
           tibble(layer = "mine_claims"))) %>% 
     mutate(
       scenario = unlist(scen))
+  
+  if (!file.exists(sol_ebsa_shp)){
+    p_ebsa_sol <- p_ebsa %>% 
+      rename(area_ebsa_km2 = area_km2) %>% 
+      st_intersection(p_sol) %>% 
+      mutate(
+        area_scenario_km2 = st_area(geometry) %>%  
+          units::set_units(km^2),
+        pct_scenario = area_scenario_km2 / area_ebsa_km2)
+    
+    write_sf(p_ebsa_sol, sol_ebsa_shp)
+  }
+  p_ebsa_sol <- read_sf(sol_ebsa_shp)
+  
+  dt_ebsa <- p_ebsa_sol %>% 
+    st_drop_geometry() %>% 
+    select(NAME, EBSA_ID, area_ebsa_km2=ar_bs_2, area_scenario_km2=ar_sc_2, pct_scenario=pct_scn) %>% 
+    datatable() %>% 
+    formatRound(c("area_ebsa_km2", "area_scenario_km2"), 1) %>% 
+    formatPercentage("pct_scenario", 1)
+  
+  if (!file.exists(sol_mine_shp)){
+    p_mine_sol <- p_mine_claims %>% 
+      rename(area_mine_km2 = area_km2) %>% 
+      st_intersection(p_sol) %>% 
+      mutate(
+        area_scenario_km2 = st_area(geometry) %>%  
+          units::set_units(km^2),
+        pct_scenario = area_scenario_km2 / area_mine_km2)
+    
+    write_sf(p_mine_sol, sol_mine_shp)
+  }
+  p_mine_sol <- read_sf(sol_mine_shp)
+  
+  dt_mine <- p_mine_sol %>% 
+    st_drop_geometry() %>% 
+    select(CONTRAC, TYPE, layer, area_mine_km2=ar_mn_2, area_scenario_km2=ar_sc_2, pct_scenario=pct_scn) %>% 
+    datatable() %>% 
+    formatRound(c("area_mine_km2", "area_scenario_km2"), 1) %>% 
+    formatPercentage("pct_scenario", 1)
+
   
   m <- leaflet() %>% 
     addProviderTiles(providers$Esri.OceanBasemap, group = "ocean") %>% 
@@ -189,7 +235,7 @@ get_scenario_overlays <- function(scen){
       overlayGroups = c("abnj", "solution", "mining", "ebsa"),
       options = layersControlOptions(collapsed = T))
   
-  return(list(data=d, map=m))
+  return(list(data=d, map=m, datatable_ebsa=dt_ebsa, datatable_mine=dt_mine))
 }
 
 tibble(
@@ -203,9 +249,13 @@ tibble(
 ```{r}
 so <- get_scenario_overlays(scenarios["s1"])
 
+so$map
+
 so$data %>% 
   kable(format.args = list(big.mark = ","))
-so$map
+
+so$datatable_ebsa
+so$datatable_mine
 ```
 
 ### s2
@@ -213,9 +263,13 @@ so$map
 ```{r}
 so <- get_scenario_overlays(scenarios["s2"])
 
+so$map
+
 so$data %>% 
   kable(format.args = list(big.mark = ","))
-so$map
+
+so$datatable_ebsa
+so$datatable_mine
 ```
 
 ### s3
@@ -223,9 +277,13 @@ so$map
 ```{r}
 so <- get_scenario_overlays(scenarios["s3"])
 
+so$map
+
 so$data %>% 
   kable(format.args = list(big.mark = ","))
-so$map
+
+so$datatable_ebsa
+so$datatable_mine
 ```
 
 ### s5
@@ -233,9 +291,13 @@ so$map
 ```{r}
 so <- get_scenario_overlays(scenarios["s5"])
 
+so$map
+
 so$data %>% 
   kable(format.args = list(big.mark = ","))
-so$map
+
+so$datatable_ebsa
+so$datatable_mine
 ```
 
 ## TODO: Explore 
