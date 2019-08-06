@@ -1,5 +1,5 @@
 ---
-title: "Scenario Differences"
+title: "Scenario Overlays"
 output:
   html_document:
     number_sections: no
@@ -29,11 +29,11 @@ library(mapview)
 library(rmapshaper)
 library(knitr)
 library(DT)
+
+library(bbnj)
+#devtools::load_all()
+
 select = dplyr::select
-
-#library(bbnj)
-devtools::load_all()
-
 mapviewOptions(basemaps = c("Esri.OceanBasemap","Stamen.TonerLite"))
 
 dir_data  <- here("inst/data")
@@ -50,7 +50,7 @@ scenarios <- tribble(
 datatable(scenarios)
 ```
 
-## scenarios x layers
+## layers
 
 ```{r}
 layers <- tribble(
@@ -58,9 +58,14 @@ layers <- tribble(
   "ebsa",     T,  "purple", "EBSA_ID",    "NAME", glue("{dir_data}/ebsa.shp"),
   "ihor",     F,  "yellow",   "seaid",     "sea", glue("{dir_data}/ihor.shp"),
   "mine",     F,     "red",      "id",  "holder", glue("{dir_data}/mine_claims.shp"),
-  "wdpa",     T,   "brown","WDPA_PID",    "NAME", glue("{dir_gdata}/{wdpa_sfx}"))
+  "wdpa",     T,   "brown", "WDPA_PID",    "NAME", glue("{dir_gdata}/{wdpa_sfx}"))
 
 datatable(layers)
+```
+
+## scenarios x layers
+
+```{r}
 get_scenarios_over_layers <- function(
   scenarios, layers, 
   dir_scenarios = here("inst/app/www/scenarios"),
@@ -239,21 +244,18 @@ get_scenarios_over_layers <- function(
 }
 
 tbl_scenario_layer <- function(s_l, s, layer){
-  # s = "s5"; layer = "mine"
+  # s = "s5"; layer = "wdpa"
   
   lyr <- filter(s_l$layers, layer == !!layer)
-  #scen <- filter(s_l$s, s == !!s)
-  
-  flds <- c(lyr$fld_id, lyr$fld_name, "l_hs_km2", "l_s_km2", "l_s_pct")
   
   s_l$scenario_layers %>% 
     filter(s == !!s, layer == !!layer) %>% 
     pull(sf) %>% .[[1]] %>% 
     st_drop_geometry() %>% 
     select(
-      id     = lyr$fld_id,
+      id     = str_sub(lyr$fld_id, 1, 7),
       name   = lyr$fld_name,
-      hs_km2 = l_hs_km2,
+      hs_km2 = l_hs_k2,
       scenario_km2 = l_s_km2,
       scenario_pct = l_s_pct) %>% 
     datatable() %>% 
@@ -261,7 +263,7 @@ tbl_scenario_layer <- function(s_l, s, layer){
     formatPercentage("scenario_pct", 1)
 }
 
-s_l <- get_scenarios_over_layers(scenarios, layers, redo=T)
+s_l <- get_scenarios_over_layers(scenarios, layers, redo=F)
 
 s_l$map
 
@@ -299,169 +301,39 @@ tbl_scenario_layer(s_l, "s5", "mine")
 tbl_scenario_layer(s_l, "s5", "wdpa")
 ```
 
-### IHO
-
-```{r}
-ebsa_u_shp    <- file.path(dir_overlays, "ebsa_union.shp")
-ebsa_u_hs_shp <- file.path(dir_overlays, "ebsa_union_abnj.shp")
-ebsa_map_png  <- file.path(dir_overlays, "ebsa_map.png")
-ebsa_map_png_url <- "data_overlays/ebsa_map.png"
-
-#mapview(p_ebsa)
-if (!file.exists(ebsa_u_shp)){
-  p_ebsa_u <- p_ebsa %>%
-    st_make_valid() %>% 
-    st_union() %>%
-    st_sf() %>% 
-    mutate(
-      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
-  
-  write_sf(p_ebsa_u, ebsa_u_shp)
-}
-p_ebsa_u <- read_sf(ebsa_u_shp) # %>% st_make_valid()
-
-if (!file.exists(ebsa_u_hs_shp)){
-p_ebsa_u_hs <- p_ebsa_u %>%
-  st_intersection(p_abnj) #%>% 
-#p_ebsa_u_hs_0 <- p_ebsa_u
-p_ebsa_u_hs <- p_ebsa_u %>%  
-  mutate(
-      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
-
-  write_sf(p_ebsa_u_hs, ebsa_u_hs_shp)
-}
-p_ebsa_u_hs <- read_sf(ebsa_u_hs_shp)
-
-#m <- mapview(p_ebsa)
-if (!file.exists(ebsa_map_png)){
-  m <- leaflet() %>% 
-    addProviderTiles(providers$Esri.OceanBasemap) %>% 
-    addPolygons(data=p_abnj_s05, color="gray80") %>% 
-    addPolygons(data=p_ebsa_u_hs)
-  mapshot(m, ebsa_map_png_url)
-}
-```
-
-![](`r ebsa_map_png_url`)
-
-- Number of EBSAs:           `r nrow(p_ebsa) %>% format(big.mark=',')`
-- Area original:             `r sum(p_ebsa$area_km2) %>% format(big.mark=',')`
-- Area non-overlapping (no): `r p_ebsa_u$area_km2 %>% format(big.mark=',')`
-- Area (no) high seas:       `r p_ebsa_u_hs$area_km2 %>% format(big.mark=',')`
-
-### EBSA
-
-```{r}
-ebsa_u_shp    <- file.path(dir_overlays, "ebsa_union.shp")
-ebsa_u_hs_shp <- file.path(dir_overlays, "ebsa_union_abnj.shp")
-ebsa_map_png  <- file.path(dir_overlays, "ebsa_map.png")
-ebsa_map_png_url <- "data_overlays/ebsa_map.png"
-
-if (!file.exists(ebsa_u_shp)){
-  p_ebsa_u <- p_ebsa %>%
-    st_make_valid() %>% 
-    st_union() %>%
-    st_sf() %>% 
-    mutate(
-      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
-  
-  write_sf(p_ebsa_u, ebsa_u_shp)
-}
-p_ebsa_u <- read_sf(ebsa_u_shp) # %>% st_make_valid()
-
-if (!file.exists(ebsa_u_hs_shp)){
-p_ebsa_u_hs <- p_ebsa_u %>%
-  st_intersection(p_abnj) #%>% 
-#p_ebsa_u_hs_0 <- p_ebsa_u
-p_ebsa_u_hs <- p_ebsa_u %>%  
-  mutate(
-      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
-
-  write_sf(p_ebsa_u_hs, ebsa_u_hs_shp)
-}
-p_ebsa_u_hs <- read_sf(ebsa_u_hs_shp)
-
-#m <- mapview(p_ebsa)
-if (!file.exists(ebsa_map_png)){
-  m <- leaflet() %>% 
-    addProviderTiles(providers$Esri.OceanBasemap) %>% 
-    addPolygons(data=p_abnj_s05, color="gray80") %>% 
-    addPolygons(data=p_ebsa_u_hs)
-  mapshot(m, ebsa_map_png_url)
-}
-```
-
-![](`r ebsa_map_png_url`)
-
-- Number of EBSAs:           `r nrow(p_ebsa) %>% format(big.mark=',')`
-- Area original:             `r sum(p_ebsa$area_km2) %>% format(big.mark=',')`
-- Area non-overlapping (no): `r p_ebsa_u$area_km2 %>% format(big.mark=',')`
-- Area (no) high seas:       `r p_ebsa_u_hs$area_km2 %>% format(big.mark=',')`
-
-### WDPA
+## wdpa details
 
 Downloaded from [protectedplanet.net/marine](https://www.protectedplanet.net/marine).
 
+### table of high seas
+
 ```{r}
-dir_gdata     <- "~/Gdrive Ecoquants/projects/bbnj/data" # on Ben Best's laptop
-wdpa_raw_shp  <- file.path(dir_gdata,"raw/WDPA/WDPA_Aug2019-shapefile/WDPA_Aug2019-shapefile-polygons.shp")
-wdpa_raw_shp  <- file.path(dir_gdata,"raw/WDPA/WDPA_Aug2019_marine-shapefile/WDPA_Aug2019_marine-shapefile-polygons.shp")
-wdpa_csv      <- file.path(dir_overlays, "wdpa_marine.csv")
-#wdpa_shp      <- file.path(dir_overlays, "wdpa_marine.shp")
-#wdpa_u_shp    <- file.path(dir_overlays, "wdpa_union.shp")
-wdpa_hs_shp   <- file.path(dir_overlays, "wdpa_marine_abnj.shp")
+p_wdpa_hs <- s_l$layers %>% 
+  filter(layer=="wdpa") %>% 
+  pull(hs_shp) %>% 
+  read_sf()
 
-# NOTE: ignoring WDPA_Aug2019-shapefile-points.shp
-if (!file.exists(wdpa_csv)){
-  p_wdpa <- read_sf(wdpa_raw_shp) #%>% 
-    #filter(MARINE==1)
-  #write_sf(p_wdpa, wdpa_shp)
-  p_wdpa %>% 
-    st_drop_geometry() %>%
-    write_csv(wdpa_csv)
-}
-d_wdpa <- read_csv(wdpa_csv)
+names(p_wdpa_hs)
+table(p_wdpa_hs$MARINE)
+table(p_wdpa_hs$PA_DEF, useNA = "ifany")
+table(p_wdpa_hs$DESIG_TYPE, useNA = "ifany")
+table(p_wdpa_hs$IUCN_CAT, useNA = "ifany")
+#table(p_wdpa_hs$INT_CRIT)
+table(p_wdpa_hs$NO_TAKE, useNA = "ifany")
+table(p_wdpa_hs$STATUS, useNA = "ifany")
+table(p_wdpa_hs$GOV_TYPE, useNA = "ifany")
+table(p_wdpa_hs$OWN_TYPE, useNA = "ifany")
+table(p_wdpa_hs$VERIF, useNA = "ifany")
 
-names(d_wdpa)
-table(d_wdpa$MARINE)
-table(d_wdpa$PA_DEF, useNA = "ifany")
-table(d_wdpa$DESIG_TYPE, useNA = "ifany")
-table(d_wdpa$IUCN_CAT, useNA = "ifany")
-#table(d_wdpa$INT_CRIT)
-table(d_wdpa$NO_TAKE, useNA = "ifany")
-table(d_wdpa$STATUS, useNA = "ifany")
-table(d_wdpa$GOV_TYPE, useNA = "ifany")
-table(d_wdpa$OWN_TYPE, useNA = "ifany")
-table(d_wdpa$VERIF, useNA = "ifany")
+dim(p_wdpa_hs)
+p_wdpa_hs %>% 
+  st_drop_geometry() %>% 
+  datatable()
+```
 
-dim(d_wdpa)
-d_wdpa %>% head(1000) %>% datatable()
+### map of all
 
-# if (!file.exists(wdpa_u_shp)){
-#   p_wdpa_u <- p_wdpa %>%
-#     #st_make_valid() %>% 
-#     st_union() %>%
-#     st_sf() %>% 
-#     mutate(
-#       area_km2 = st_area(geometry) %>%  units::set_units(km^2))
-#   
-#   write_sf(p_wdpa_u, wdpa_u_shp)
-# }
-# p_wdpa_u <- read_sf(wdpa_u_shp) # %>% st_make_valid()
-
-if (!file.exists(wdpa_hs_shp)){
-  p_wdpa_hs <- p_wdpa %>%
-    st_intersection(p_abnj) %>% 
-    mutate(
-      area_km2 = st_area(geometry) %>%
-        units::set_units(km^2)) %>% 
-      filter(
-        st_geometry_type(geometry) != "GEOMETRYCOLLECTION")
-  
-  write_sf(p_wdpa_hs_f, wdpa_hs_shp)
-}
-p_wdpa_hs <- read_sf(wdpa_hs_shp)
-
+```{r}
 leaflet(
       #elementId = "map_env",
       options = leafletOptions(
@@ -482,315 +354,7 @@ leaflet(
   addPolygons(data=p_wdpa_hs, label = ~NAME)
 ```
 
-- Number of marine wdpas: `r nrow(d_wdpa) %>% format(big.mark=',')`
-- Number of marine wdpas in high seas: `r nrow(p_wdpa_hs) %>% format(big.mark=',')`
-- Area of wdpas high seas:       `r sum(p_wdpa_hs$area_km2) %>% format(big.mark=',')`
-
-### Mine
-
-```{r}
-mine_claims_u_shp    <- file.path(dir_overlays, "mine_claims_union.shp")
-mine_claims_u_hs_shp <- file.path(dir_overlays, "mine_claims_union_abnj.shp")
-mine_map_png    <- file.path(dir_overlays, "mine_claims_map.png")
-mine_map_png_url <- "data_overlays/mine_claims_map.png"
-
-if (!file.exists(mine_claims_u_shp)){
-  p_mine_claims_u <- p_mine_claims %>%
-    st_make_valid() %>% 
-    st_union() %>% 
-    st_sf() %>% 
-    mutate(
-      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
-  write_sf(p_mine_claims_u, mine_claims_u_shp)
-}
-p_mine_claims_u <- read_sf(mine_claims_u_shp) %>% st_make_valid()
-
-if (!file.exists(mine_claims_u_hs_shp)){
-  p_mine_claims_u_hs <- p_mine_claims_u %>%
-    st_intersection(p_abnj) %>% 
-    mutate(
-      area_km2 = st_area(geometry) %>%  units::set_units(km^2))
-  
-  write_sf(p_mine_claims_u_hs, mine_claims_u_hs_shp)
-}
-p_mine_claims_u_hs <- read_sf(mine_claims_u_hs_shp) %>% 
-  st_make_valid()
-
-#mapview(p_mine_claims)
-
-if (!file.exists(mine_map_png)){
-  m <- leaflet() %>% 
-    addProviderTiles(providers$Esri.OceanBasemap) %>% 
-    addPolygons(data=p_abnj_s05, color="gray80") %>% 
-    addPolygons(data=p_mine_claims_u_hs)
-  
-  mapshot(m, mine_map_png)
-}
-```
-
-![](`r mine_map_png_url`)
-
-
-- Number of mining claims:   `r nrow(p_mine_claims) %>% format(big.mark=',')`
-- Area original:             `r sum(p_mine_claims$area_km2) %>% format(big.mark=',')`
-- Area non-overlapping (no): `r p_mine_claims_u$area_km2 %>% format(big.mark=',')`
-- Area (no) high seas:       `r p_mine_claims_u_hs$area_km2 %>% format(big.mark=',')`
-
-## Scenarios
-
-```{r}
-dir_scenarios <- here("inst/app/www/scenarios")
-scenarios <- list(
-  s1 = "s01a.bio.rls.grp01.30pct.gl.now.mol50km",
-  s2 = "s02a.bio.rls.grp01.30pct.gl.alltime.mol50km",
-  s3 = "s03a.biofish.rls.effort.reclass.qt75.grp01.30pct.gl.now.mol50km",
-  s5 = "s05a.biofish.effort.reclass.rls.grp01.30pct.gl.alltime.mol50km")
-
-get_solution_poly <- function(scen){
-  sol_shp <- file.path(dir_scenarios, glue("{scen}_sol_gcs.shp"))  
-  read_sf(sol_shp) %>% 
-    st_make_valid()
-}
-
-  
-get_scenario_overlays <- function(scen){
-  
-  # TODO: add required vars as arguments
-  # dir_scenarios
-  # dir_overlays
-  # p_ebsa_u_hs
-  # p_mine_claims_u_hs
-  
-  # scen = scenarios["s5"]
-  # scen = scenarios["s1"]
-  
-  sol_shp      <- file.path(dir_scenarios, glue("{scen}_sol_gcs.shp"))
-  sol_ebsa_csv <- file.path(dir_overlays, glue("{scen}_ebsa.csv"))
-  sol_ebsa_shp <- file.path(dir_overlays, glue("{scen}_ebsa.shp"))
-  sol_mine_csv <- file.path(dir_overlays, glue("{scen}_mine.csv"))
-  sol_mine_shp <- file.path(dir_overlays, glue("{scen}_mine.shp"))
-  sol_wdpa_csv <- file.path(dir_overlays, glue("{scen}_wdpa.csv"))
-  sol_wdpa_shp <- file.path(dir_overlays, glue("{scen}_wdpa.shp"))
-  
-  p_sol <- read_sf(sol_shp) %>% 
-    ms_dissolve() %>% 
-    st_make_valid()
-  
-  # aggregate area w/ union
-  if (!file.exists(sol_ebsa_csv)){
-    p_sol %>% 
-      st_intersection(p_ebsa_u_hs) %>% 
-      mutate(
-        area_km2 = st_area(geometry) %>%  units::set_units(km^2)) %>% 
-      st_drop_geometry() %>% 
-      select(area_km2) %>% 
-      write_csv(sol_ebsa_csv)
-  }
-  if (!file.exists(sol_mine_csv)){
-    p_sol %>% 
-      st_intersection(p_mine_claims_u_hs) %>% 
-      mutate(
-        area_km2 = st_area(geometry) %>%  units::set_units(km^2)) %>% 
-      st_drop_geometry() %>% 
-      select(area_km2) %>% 
-      write_csv(sol_mine_csv)
-  }
-  if (!file.exists(sol_wdpa_csv)){
-    p_sol_wdpa <- p_wdpa_hs %>% 
-      rename(area_wdpa_km2 = area_km2) %>% 
-      st_intersection(p_sol) %>% 
-      mutate(
-        area_scenario_km2 = st_area(geometry) %>% 
-          units::set_units(km^2),
-        pct_scenario = area_scenario_km2 / area_wdpa_km2)
-    write_sf(p_sol_wdpa, sol_wdpa_shp)
-
-    p_sol_wdpa %>% 
-      st_drop_geometry() %>% 
-      select(area_km2=area_wdpa_km2) %>% 
-      write_csv(sol_wdpa_csv)
-  }
-  
-  d <- read_csv(sol_ebsa_csv) %>% 
-    bind_cols(
-      tibble(layer = "ebsa")) %>% 
-    bind_rows(
-      read_csv(sol_mine_csv) %>% 
-        bind_cols(
-          tibble(layer = "mine_claims"))) %>% 
-    bind_rows(
-      tibble(
-        layer    = "wdpa",
-        area_km2 = read_csv(sol_mine_csv) %>% sum())) %>% 
-    mutate(
-      scenario = unlist(scen))
-  
-  if (!file.exists(sol_ebsa_shp)){
-    p_ebsa_sol <- p_ebsa %>% 
-      rename(area_ebsa_km2 = area_km2) %>% 
-      st_intersection(p_sol) %>% 
-      mutate(
-        area_scenario_km2 = st_area(geometry) %>%  
-          units::set_units(km^2),
-        pct_scenario = area_scenario_km2 / area_ebsa_km2)
-    
-    write_sf(p_ebsa_sol, sol_ebsa_shp)
-  }
-  p_ebsa_sol <- read_sf(sol_ebsa_shp)
-  p_wdpa_sol <- read_sf(sol_wdpa_shp)
-  
-  dt_ebsa <- p_ebsa_sol %>% 
-    st_drop_geometry() %>% 
-    select(NAME, EBSA_ID, area_ebsa_km2=ar_bs_2, area_scenario_km2=ar_sc_2, pct_scenario=pct_scn) %>% 
-    datatable() %>% 
-    formatRound(c("area_ebsa_km2", "area_scenario_km2"), 1) %>% 
-    formatPercentage("pct_scenario", 1)
-  
-  dt_wdpa <- p_wdpa_sol %>% 
-    st_drop_geometry() %>% 
-    select(NAME, WDPA_PID=WDPA_PI, area_wdpa_km2=ar_wd_2, area_scenario_km2=ar_sc_2, pct_scenario=pct_scn) %>% 
-    datatable() %>% 
-    formatRound(c("area_wdpa_km2", "area_scenario_km2"), 1) %>% 
-    formatPercentage("pct_scenario", 1)
-  
-  if (!file.exists(sol_mine_shp)){
-    p_mine_sol <- p_mine_claims %>% 
-      rename(area_mine_km2 = area_km2) %>% 
-      st_intersection(p_sol) %>% 
-      mutate(
-        area_scenario_km2 = st_area(geometry) %>%  
-          units::set_units(km^2),
-        pct_scenario = area_scenario_km2 / area_mine_km2)
-    
-    write_sf(p_mine_sol, sol_mine_shp)
-  }
-  p_mine_sol <- read_sf(sol_mine_shp)
-  
-  dt_mine <- p_mine_sol %>% 
-    st_drop_geometry() %>% 
-    select(CONTRAC, TYPE, layer, area_mine_km2=ar_mn_2, area_scenario_km2=ar_sc_2, pct_scenario=pct_scn) %>% 
-    datatable() %>% 
-    formatRound(c("area_mine_km2", "area_scenario_km2"), 1) %>% 
-    formatPercentage("pct_scenario", 1)
-
-  m <- leaflet() %>% 
-    addProviderTiles(providers$Esri.OceanBasemap, group = "ocean") %>% 
-    addPolygons(data=p_abnj_s05        , color="gray80", group = "abnj") %>% 
-    addPolygons(data=p_sol             , color="green" , group = "solution") %>% 
-    addPolygons(data=p_mine_claims_u_hs, color="red"   , group = "mining") %>%
-    addPolygons(data=p_ebsa_u_hs       , color="purple", group = "ebsa") %>% 
-    addPolygons(data=p_wdpa_hs         , color="orange", group = "wdpa") %>% 
-    addLayersControl(
-      baseGroups = c("ocean"),
-      overlayGroups = c("abnj", "solution", "mining", "ebsa", "wdpa"),
-      options = layersControlOptions(collapsed = T))
-  
-  return(list(data=d, map=m, 
-              datatable_ebsa=dt_ebsa, 
-              datatable_wdpa=dt_wdpa, 
-              datatable_mine=dt_mine))
-}
-
-tibble(
-  s        = names(scenarios),
-  scenario = unlist(scenarios)) %>% 
-  knitr::kable()
-```
-
-### s1
-
-```{r}
-so <- get_scenario_overlays(scenarios["s1"])
-
-#so$map
-
-so$data %>% 
-  kable(format.args = list(big.mark = ","))
-
-so$datatable_ebsa
-so$datatable_wdpa
-so$datatable_mine
-```
-
-### s2
-
-```{r}
-so <- get_scenario_overlays(scenarios["s2"])
-
-#so$map
-
-so$data %>% 
-  kable(format.args = list(big.mark = ","))
-
-so$datatable_ebsa
-so$datatable_wdpa
-so$datatable_mine
-```
-
-### s3
-
-```{r}
-so <- get_scenario_overlays(scenarios["s3"])
-
-#so$map
-
-so$data %>% 
-  kable(format.args = list(big.mark = ","))
-
-so$datatable_ebsa
-so$datatable_wdpa
-so$datatable_mine
-```
-
-### s5
-
-```{r}
-so <- get_scenario_overlays(scenarios["s5"])
-
-#so$map
-
-so$data %>% 
-  kable(format.args = list(big.mark = ","))
-
-so$datatable_ebsa
-so$datatable_wdpa
-so$datatable_mine
-```
-
-## Map
-
-```{r}
-polys <- tibble(
-  s        = names(scenarios),
-  scenario = unlist(scenarios)) %>% 
-  mutate(
-    geom = map_raw(scenario, get_solution_poly))
-
-p_s1 <- polys %>% filter(s=="s1") %>% pull(geom) %>% .[[1]]
-p_s2 <- polys %>% filter(s=="s2") %>% pull(geom) %>% .[[1]]
-p_s3 <- polys %>% filter(s=="s3") %>% pull(geom) %>% .[[1]]
-p_s5 <- polys %>% filter(s=="s5") %>% pull(geom) %>% .[[1]]
-
-leaflet() %>% 
-  addProviderTiles(providers$Esri.OceanBasemap, group = "ocean") %>% 
-  addPolygons(data=p_abnj_s05        , color="gray80", group = "abnj") %>% 
-  addPolygons(data=p_s1              , color="green" , group = "s1") %>% 
-  addPolygons(data=p_s2              , color="green" , group = "s2") %>% 
-  addPolygons(data=p_s3              , color="green" , group = "s3") %>% 
-  addPolygons(data=p_s5              , color="green" , group = "s5") %>% 
-  addPolygons(data=p_sol             , color="green" , group = "solution") %>% 
-  addPolygons(data=p_mine_claims_u_hs, color="red"   , group = "mining") %>%
-  addPolygons(data=p_ebsa_u_hs       , color="purple", group = "ebsa") %>% 
-  addPolygons(data=p_wdpa_hs         , color="orange", group = "wdpa") %>% 
-  addLayersControl(
-    baseGroups = c("ocean"),
-    overlayGroups = c("abnj", "s1", "s2", "s3", "s5", "mining", "ebsa", "wdpa"),
-    options = layersControlOptions(collapsed = T)) %>% 
-  hideGroup(c("s1", "s2", "s3"))
-```
-
-
-## TODO: Explore 
+## todo: explore leafsync
 
 - [leafsync](https://github.com/r-spatial/leafsync): small multiples for leaflet webmaps
   ![](https://github.com/r-spatial/leafsync/raw/master/man/figures/README-sync.png)
