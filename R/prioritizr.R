@@ -358,7 +358,9 @@ map_r2png <- function(r, png){
 #' @export
 #'
 #' @examples
-scenarios_diff_png <- function(scenarios, dir_scenarios, dir_diffs){
+scenarios_diff <- function(scenarios, dir_scenarios, dir_diffs){
+  # scenarios = scenarios[c("s1", "s2a")]
+
   stopifnot(length(scenarios) == 2)
 
   d <- tibble(
@@ -375,8 +377,29 @@ scenarios_diff_png <- function(scenarios, dir_scenarios, dir_diffs){
 
   rd <- r_diff(r1, r2)
 
+  a_km2 <- prod(res(rd)) / (1000 * 1000)
+
+  table(values(rd))
+
+  tbl <- tibble(
+    value = na.omit(values(rd))) %>%
+    group_by(value) %>%
+    summarize(
+      ncells = n()) %>%
+    mutate(
+      label = recode(
+        value,
+        `-1` = "loss",
+        `0`  = "same",
+        `1`  = "gain"),
+      area_km2 = ncells * a_km2,
+      pct = area_km2 / sum(area_km2)) %>%
+    dplyr::select(value, label, ncells, area_km2, pct)
+
   map_r2png(rd, png)
 
-  png
+  list(
+    tbl = tbl,
+    png = png)
 }
 
