@@ -1,10 +1,19 @@
+# bbnj 0.7.2
+
+* in process fixing `_area_km2` in tbl of solutions
+* + tbl gain/loss/same for `scenarios_diff()`
+* fixed `sol_gcs.shp` w/ `ms_dissolve()`
+* suggestion for relabel seamounts layers [#21](https://github.com/ecoquants/bbnj/issues/21)
+* + `scenario_overlays.Rmd` w/ indiv EBSAs & ISAs in inst/scripts
+* + candidate scenarios for manuscript
+
 # bbnj 0.7.1
 
 * + RLS for groups00* #19
 
 # bbnj 0.7.0
 
-* updated mining claims (`r_min_claims`,`p_min_claims`) to 20190719 (from 20181202) #14
+* updated mining claims (`r_min_claims`,`p_min_claims`) to 20190719 (from 20181202) [#14](https://github.com/ecoquants/bbnj/issues/14)
 * more scenarios
 * +jellyfish, -squids, ∆cephalopods groups01-03 #3
 * new treemap #15

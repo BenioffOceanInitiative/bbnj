@@ -50,7 +50,7 @@ solve_log <- function(p, pfx=deparse(substitute(p)), redo=F, debug=F){
 
     d_a <- tibble(
       feature = "_area_km2",
-      absolute_held = S$highseas_km2,
+      absolute_held = S$solution_km2,
       relative_held = S$pct_solution)
     d <- bind_rows(d_a, d)
 
