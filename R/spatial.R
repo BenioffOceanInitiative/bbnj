@@ -229,6 +229,8 @@ rescale_stack <- function(s, from_all = T, rescale = T, log = F, inverse = F,  m
 tif_to_shp_gcs <- function(tif){
   # devtools::load_all
   # tif = "/Users/bbest/github/bbnj/inst/app/www/scenarios/s00a.bio.30pct.gl.mer_sol.tif"
+  library(rmapshaper)
+
   shp <- glue("{fs::path_ext_remove(tif)}_gcs.shp")
 
   r <- raster(tif)
@@ -237,10 +239,13 @@ tif_to_shp_gcs <- function(tif){
   ply <- rasterToPolygons(r) %>%
     st_as_sf() %>%
     filter(!is.na(value), value > 0) %>%
-    group_by(value) %>%
-    summarize() %>%
+    #group_by(value) %>%
+    #summarize() %>%
+    ms_dissolve() %>%
+    #st_make_valid() %>%
     st_transform(4326) %>%
-    lwgeom::st_make_valid()
+    st_make_valid() #%>%
+  # ply0 <- ply
   ply <- suppressMessages(suppressWarnings(
     st_buffer(ply, 0)))
   ply <- ply %>%
@@ -253,7 +258,9 @@ tif_to_shp_gcs <- function(tif){
   write_sf(ply, shp)
   shp
 }
-
+# for (tif in list.files(here("inst/app/www/scenarios"), "tif$", full.names = T)){
+#   tif_to_shp_gcs(tif)
+# }
 
 get_global_bb <- function(crs=4326){
   # globe in geographic coordinates
