@@ -22,6 +22,7 @@ library(here)
 library(fs)
 library(knitr)
 library(formattable)
+library(lwgeom)
 area   = raster::area
 select = dplyr::select
 
@@ -110,8 +111,8 @@ if (!file.exists(tif) | redo){
   
   names(s_features) <- c(
     "bio_vgpm",
-    names(s_bio_gmbi_now),
-    names(s_bio_gmbi_future),
+    gsub("^.*?_","",names(s_bio_gmbi_now)),
+    gsub("^.*?_","",names(s_bio_gmbi_future)),
     "rls_all_now",
     "rls_all_future",
     #"fish_profit.subs"

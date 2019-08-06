@@ -51,7 +51,6 @@ summarise_group <- function(df, groupnumber) {
   # groups06: 2nd grouping, species (prob ≥ 0.5) and 25% of its range in high seas
 
 spp <- readr::read_csv("extdata/spp_bbnj.csv") 
-spp[spp=="Non-squid cephalopods"]<-"Cephalopods"
 
 ```
 
