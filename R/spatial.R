@@ -36,6 +36,8 @@ qmap_r <- function(
   boundary_shp="~/Gdrive Ecoquants/projects/bbnj/data/derived/boundary/high_seas_s05.shp"){
   # b2_shp="~/Google Drive/projects/bbnj/data/derived/high-seas_boundary/high_seas_final_v2.shp"
 
+  library(lwgeom)
+
   # debug
   # boundary_shp="~/Google Drive/projects/bbnj/data/derived/high-seas_boundary/high_seas_final.shp"
   # r = r_sol; r_title = "Solution"
@@ -230,6 +232,7 @@ tif_to_shp_gcs <- function(tif){
   # devtools::load_all
   # tif = "/Users/bbest/github/bbnj/inst/app/www/scenarios/s00a.bio.30pct.gl.mer_sol.tif"
   library(rmapshaper)
+  library(lwgeom)
 
   shp <- glue("{fs::path_ext_remove(tif)}_gcs.shp")
 
@@ -244,7 +247,7 @@ tif_to_shp_gcs <- function(tif){
     ms_dissolve() %>%
     #st_make_valid() %>%
     st_transform(4326) %>%
-    st_make_valid() #%>%
+    lwgeom::st_make_valid() #%>%
   # ply0 <- ply
   ply <- suppressMessages(suppressWarnings(
     st_buffer(ply, 0)))

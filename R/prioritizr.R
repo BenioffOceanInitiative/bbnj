@@ -15,6 +15,7 @@ solve_log <- function(p, pfx=deparse(substitute(p)), redo=F, debug=F){
   select = dplyr::select
   library(glue)
   library(readr)
+  library(lwgeom)
 
   log <- glue("{pfx}_log.txt")
   tif <- glue("{pfx}_sol.tif")

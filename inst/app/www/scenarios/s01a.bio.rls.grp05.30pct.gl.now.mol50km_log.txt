@@ -7,7 +7,7 @@ Coefficient statistics:
   RHS range        [1e+01, 8e+06]
 Found heuristic solution: objective 37484.000000
 Presolve removed 0 rows and 512 columns
-Presolve time: 1.19s
+Presolve time: 1.09s
 Presolved: 16 rows, 84003 columns, 829468 nonzeros
 Variable types: 0 continuous, 84003 integer (83999 binary)
 Presolved: 16 rows, 84003 columns, 829468 nonzeros
@@ -16,9 +16,9 @@ Presolved: 16 rows, 84003 columns, 829468 nonzeros
 Starting sifting (using dual simplex for sub-problems)...
 
     Iter     Pivots    Primal Obj      Dual Obj        Time
-       0          0     infinity      0.0000000e+00      2s
-       1         15   1.0519417e+12   7.1770223e+03      2s
-       2         49   1.0503102e+12   7.8547856e+03      2s
+       0          0     infinity      0.0000000e+00      1s
+       1         15   1.0519417e+12   7.1770223e+03      1s
+       2         49   1.0503102e+12   7.8547856e+03      1s
        3         81   1.0485659e+12   8.0993793e+03      2s
        4        113   1.0480399e+12   8.2917806e+03      2s
        5        145   1.0474809e+12   8.5347861e+03      2s
@@ -70,7 +70,7 @@ Starting sifting (using dual simplex for sub-problems)...
 Sifting complete
 
 
-Root relaxation: objective 1.862752e+04, 1693 iterations, 1.23 seconds
+Root relaxation: objective 1.862752e+04, 1693 iterations, 1.16 seconds
 
     Nodes    |    Current Node    |     Objective Bounds      |     Work
  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
@@ -78,8 +78,8 @@ Root relaxation: objective 1.862752e+04, 1693 iterations, 1.23 seconds
      0     0 18627.5176    0    6 37484.0000 18627.5176  50.3%     -    2s
 H    0     0                    18628.000000 18627.5176  0.00%     -    2s
 
-Explored 1 nodes (1693 simplex iterations) in 2.63 seconds
-Thread count was 1 (of 4 available processors)
+Explored 1 nodes (1693 simplex iterations) in 2.44 seconds
+Thread count was 1 (of 12 available processors)
 
 Solution count 2: 18628 37484 
 

@@ -7,7 +7,7 @@ Coefficient statistics:
   RHS range        [1e+01, 8e+06]
 Found heuristic solution: objective 36805.000000
 Presolve removed 0 rows and 517 columns
-Presolve time: 2.26s
+Presolve time: 2.03s
 Presolved: 34 rows, 83998 columns, 1116150 nonzeros
 Variable types: 0 continuous, 83998 integer (83993 binary)
 Presolved: 34 rows, 83998 columns, 1116150 nonzeros
@@ -49,37 +49,37 @@ Starting sifting (using dual simplex for sub-problems)...
       30       1907   9.5271191e+11   1.1655764e+04      3s
       31       1967   9.4520737e+11   1.1796447e+04      3s
       32       2030   9.3758332e+11   1.1955119e+04      3s
-      33       2092   9.3041968e+11   1.2044769e+04      4s
-      34       2169   9.2368590e+11   1.2144086e+04      4s
-      35       2227   9.1604688e+11   1.2229764e+04      4s
-      36       2286   9.0868052e+11   1.2298319e+04      4s
-      37       2347   9.0218232e+11   1.2358935e+04      4s
-      38       2413   8.9565420e+11   1.2428293e+04      4s
-      39       2473   8.8891367e+11   1.2488396e+04      4s
-      40       2533   8.8192667e+11   1.2549282e+04      4s
-      41       2588   8.7563485e+11   1.2609247e+04      4s
-      42       2646   8.6800580e+11   1.2670287e+04      4s
-      43       2701   8.6066213e+11   1.2723951e+04      4s
-      44       2757   8.5273774e+11   1.2773691e+04      4s
-      45       2820   8.4617512e+11   1.2827948e+04      4s
-      46       2878   8.3763408e+11   1.2879095e+04      4s
-      47       2934   8.2951399e+11   1.2926378e+04      4s
-      48       2992   8.2027291e+11   1.2971220e+04      4s
-      49       3049   8.1111907e+11   1.3015099e+04      4s
+      33       2092   9.3041968e+11   1.2044769e+04      3s
+      34       2169   9.2368590e+11   1.2144086e+04      3s
+      35       2227   9.1604688e+11   1.2229764e+04      3s
+      36       2286   9.0868052e+11   1.2298319e+04      3s
+      37       2347   9.0218232e+11   1.2358935e+04      3s
+      38       2413   8.9565420e+11   1.2428293e+04      3s
+      39       2473   8.8891367e+11   1.2488396e+04      3s
+      40       2533   8.8192667e+11   1.2549282e+04      3s
+      41       2588   8.7563485e+11   1.2609247e+04      3s
+      42       2646   8.6800580e+11   1.2670287e+04      3s
+      43       2701   8.6066213e+11   1.2723951e+04      3s
+      44       2757   8.5273774e+11   1.2773691e+04      3s
+      45       2820   8.4617512e+11   1.2827948e+04      3s
+      46       2878   8.3763408e+11   1.2879095e+04      3s
+      47       2934   8.2951399e+11   1.2926378e+04      3s
+      48       2992   8.2027291e+11   1.2971220e+04      3s
+      49       3049   8.1111907e+11   1.3015099e+04      3s
 
 Sifting complete
 
 
-Root relaxation: objective 2.001517e+04, 3177 iterations, 1.59 seconds
+Root relaxation: objective 2.001517e+04, 3177 iterations, 1.33 seconds
 
     Nodes    |    Current Node    |     Objective Bounds      |     Work
  Expl Unexpl |  Obj  Depth IntInf | Incumbent    BestBd   Gap | It/Node Time
 
-     0     0 20015.1719    0    8 36805.0000 20015.1719  45.6%     -    4s
-H    0     0                    20016.000000 20015.1719  0.00%     -    4s
+     0     0 20015.1719    0    8 36805.0000 20015.1719  45.6%     -    3s
+H    0     0                    20016.000000 20015.1719  0.00%     -    3s
 
-Explored 1 nodes (3177 simplex iterations) in 4.11 seconds
-Thread count was 1 (of 4 available processors)
+Explored 1 nodes (3177 simplex iterations) in 3.58 seconds
+Thread count was 1 (of 12 available processors)
 
 Solution count 2: 20016 36805 
 

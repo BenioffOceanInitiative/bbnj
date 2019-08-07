@@ -1,3 +1,7 @@
+# bbnj 0.7.3
+
+* finished fixing `_area_km2` in tbl of solutions by rerunning all scenarios
+
 # bbnj 0.7.2
 
 * in process fixing `_area_km2` in tbl of solutions

@@ -7,11 +7,11 @@ Coefficient statistics:
   RHS range        [1e+02, 2e+04]
 Found heuristic solution: objective 13181.000000
 Presolve removed 4 rows and 84515 columns
-Presolve time: 0.02s
+Presolve time: 0.01s
 Presolve: All rows and columns removed
 
 Explored 0 nodes (0 simplex iterations) in 0.03 seconds
-Thread count was 1 (of 4 available processors)
+Thread count was 1 (of 12 available processors)
 
 Solution count 1: 13181 
 
