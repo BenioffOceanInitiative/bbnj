@@ -43,3 +43,19 @@ for (rmd in rmds[c(-32)]){ # rmd = rmds[1]
 
   rmarkdown::render(Rmd)
 }
+
+# b/c of merge conflicts
+scenarios_redo <- c(
+ "s01a.bio.now.mol50km.Rmd",
+ "s02b.bio.future.mol50km.Rmd",
+ "s03a.biofish.now.mol50km.Rmd",
+ "s04a.biofish.alltime.mol50km.Rmd")
+dir_scenarios <- here::here("inst/app/www/scenarios")
+purrr::walk(scenarios_redo, function(rmd){
+  path_rmd <- file.path(dir_scenarios, rmd)
+  message(path_rmd)
+  rmarkdown::render(path_rmd)})
+
+# processing file: s01a.bio.now.mol50km.Rmd
+# Error: 's05a.biofish.mcp3.rls.grp01.30pct.gl.alltime.mol50km_rep.csv' does not exist in current working directory ('/Users/bbest/github/bbnj/inst/app/www/scenarios').
+

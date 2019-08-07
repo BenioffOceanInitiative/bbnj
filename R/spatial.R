@@ -108,9 +108,9 @@ qmap_r <- function(
 #' @export
 #'
 #' @examples
-gap_fill_raster <- function(r, fxn="min", r_mask=r_pu_id){
+gap_fill_raster <- function(r, fxn="min", r_mask=r_pu_id, debug=F){
   r[is.na(r)] <- cellStats(r, fxn)
-  mask(r, r_pu_id)
+  mask(r, r_mask)
 }
 
 #' Rescale raster

@@ -167,7 +167,8 @@ tbl_target_representation <- function(csv = glue("{pfx}_rep.csv")){
 report_solution <- function(tif, fig_ht_in=2, redo=F){
   # tif <- "~/github/bbnj/inst/app/www/scenarios/s00a.bio.30pct.gl.gcs0.5d_sol.tif"
 
-  sol_png <- glue("{fs::path_ext_remove(tif)}_map.png")
+  pfx     <- str_replace(tif, "_sol.tif", "")
+  sol_png <- glue("{pfx}_sol_map.png")
   #sol_pdf <- glue("{fs::path_ext_remove(tif)}_map.pdf")
   r_sol   <- get_tif_solution(tif)
   P       <- get_tif_projection(tif)
