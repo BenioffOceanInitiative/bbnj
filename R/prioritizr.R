@@ -9,7 +9,7 @@
 #'
 #' @examples
 #solve_log <- function(p, log, tif){
-solve_log <- function(p, pfx=deparse(substitute(p)), redo=F, debug=F){
+solve_log <- function(p, pfx=deparse(substitute(p)), redo=F, debug=F, ...){
   library(prioritizr)
   library(raster)
   select = dplyr::select
@@ -35,7 +35,7 @@ solve_log <- function(p, pfx=deparse(substitute(p)), redo=F, debug=F){
   }
 
   sink(log)
-  r_sol <- prioritizr::solve(p)
+  r_sol <- prioritizr::solve(p, ...)
   sink()
 
   if ("RasterLayer" %in% class(r_sol)){

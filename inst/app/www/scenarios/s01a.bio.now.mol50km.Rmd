@@ -67,7 +67,7 @@ if (!file.exists(tif) | redo){
   
     #add red list sum for all species as separate layer
   rls_all <- get_gmbi_grpsmdl_prjres("groups00", prjres) %>% 
-    subset(,subset="groups00_rls_all")
+    subset("groups00_rls_all")
   
   # features ----
   s_seamounts <- get_d_prjres("s_phys_seamounts",prjres)
