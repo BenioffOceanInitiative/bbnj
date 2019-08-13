@@ -126,8 +126,18 @@ gap_fill_raster <- function(r, fxn="min", r_mask=r_pu_id, debug=F){
 #'
 #' @examples
 rescale_raster <- function(r, rescale = T, log = F, inverse = F,  multiply_area=F){
+
   if (multiply_area){
-    r <- r * area(r)
+    if (get_r_projection(s)$prj == "gcs"){
+      r_a <- area(s)
+    } else {
+      # assume in meters
+      cell_km2 <- prod(res(s)) / (1000 * 1000)
+      r_a <- raster::setValues(s[[1]], cell_km2)
+    }
+    names(r_a) = "area_km2"
+
+    r <- r * r_a
   }
 
   v <- raster::values(r)
@@ -170,9 +180,10 @@ rescale_raster <- function(r, rescale = T, log = F, inverse = F,  multiply_area=
 #' @examples
 rescale_stack <- function(s, from_all = T, rescale = T, log = F, inverse = F,  multiply_area=F){
 
+  # s = s_seamounts; from_all = T
+
   s_maxs <- cellStats(s, "max")
   s_mins <- cellStats(s, "min")
-  r_a <- area(s)
 
   for (i in 1:nlayers(s)){
 
@@ -185,6 +196,15 @@ rescale_stack <- function(s, from_all = T, rescale = T, log = F, inverse = F,  m
     }
 
     if (multiply_area){
+      if (get_r_projection(s)$prj == "gcs"){
+        r_a <- area(s)
+      } else {
+        # assume in meters
+        cell_km2 <- prod(res(s)) / (1000 * 1000)
+        r_a <- raster::setValues(s[[1]], cell_km2)
+      }
+      names(r_a) = "area_km2"
+
       r <- r * r_a
     }
 
