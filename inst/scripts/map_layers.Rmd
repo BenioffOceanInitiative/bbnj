@@ -1,0 +1,112 @@
+---
+title: "map layers"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+```{r layers}
+library(prioritizr) # devtools::load_all("~/github/prioritizr")
+#library(bbnj)       # 
+devtools::load_all() # setwd(here()); devtools::install_local(force=T) 
+# devtools::install_github("ecoquants/bbnj")
+library(raster)
+library(sf)
+library(dplyr)
+library(readr)
+library(stringr)
+library(glue)
+library(here)
+library(fs)
+library(knitr)
+library(formattable)
+library(lwgeom)
+area   = raster::area
+select = dplyr::select
+
+# variables ----
+prjres     <- "_mol50km" # prjres in: View(projections_tbl)
+
+P <- projections_tbl %>% filter(prjres == !!prjres)
+
+# planning unit: ----
+r_pu_id <- get_d_prjres("r_pu_id", prjres) # plot(r_pu_id)
+r_pu <- setValues(r_pu_id, 1) %>% 
+  mask(r_pu_id) # plot(r_pu)
+
+# input layers ----
+
+# biodiversity: now, not 2100 ----
+s_bio_gmbi <- get_gmbi_grpsmdl_prjres("groups02", prjres)
+  lyrs_bio_now <- names(s_bio_gmbi) %>% 
+  setdiff(str_subset(names(s_bio_gmbi), "rli")) %>% 
+  setdiff(str_subset(names(s_bio_gmbi), "rls"))
+s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
+
+  #add red list sum for all species as separate layer
+rls_all <- get_gmbi_grpsmdl_prjres("groups00", prjres) %>% 
+  subset("groups00_rls_all")
+
+# features ----
+s_seamounts <- get_d_prjres("s_phys_seamounts",prjres)
+lu_seamounts <- c(lteq200m="0to200",gt200lteq800m="gt200to800",gt800m="gt800")
+lbls_seamounts <- sprintf("phys_seamounts_%sm", lu_seamounts[names(s_seamounts)])
+
+s_features <- stack(
+  get_d_prjres("r_vgpm", prjres),
+  s_bio_now,
+  rls_all,
+  #raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>%
+  #    gap_fill_raster(r_mask=r_pu_id) %>%
+  #    rescale_raster(inverse=T),
+  #raster(s_fish_ubc, "mcp_2004"),
+  s_seamounts,
+  get_d_prjres("r_phys_vents",prjres),
+  get_d_prjres("r_phys_scapes_hetero",prjres))
+
+names(s_features) <- c(
+  "bio_vgpm",
+  gsub("^.*?_","",names(s_bio_now)),
+  "rls_all",
+  #"fish_profit.subs"
+  #"fish_mcp.2004",
+  lbls_seamounts,
+  "phys_vents",
+  "scapes_hetero")
+```
+
+```{r}
+for (i in 1:nlayers(s_features)){ # i = 1
+  r <- raster(s_features, i)
+  lyr <- names(s_features)[i]
+  #plot(r)
+  dir_png <- here("inst/scripts/map_layers")
+  r_tif   <- glue("{dir_png}/{lyr}.tif")
+  map_png <- glue("{dir_png}/{lyr}_map.png")
+  
+  writeRaster(r, r_tif)
+  
+  P <- get_tif_projection(r_tif)
+  
+  # area ----
+  
+  # plot ----
+  countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+    st_transform(P$epsg)
+  graticules <- st_graticule(countries)
+  
+  png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px')
+  
+  plot(r, legend=F, axes=F, box=F)
+  plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+  plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+  
+  dev.off()
+  map_png %>%
+    magick::image_read() %>% magick::image_trim() %>%
+    magick::image_write(map_png)
+}
+```
+
