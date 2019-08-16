@@ -836,14 +836,19 @@ if (!file.exists(phys_vents_tif) | redo_lyrs){
     st_as_sf(
       coords = c("Longitude", "Latitude"), crs = 4326, remove=F)
 
-  for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
+  for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[2]
 
     phys_vents_tif <- glue("{dir_data}/phys_vents{prjres}.tif")
     r_pu_id_pr     <- get_d_prjres("r_pu_id", prjres)
 
-    r_phys_vents <- rasterize(
-      st_coordinates(pts_vents), r_pu_id_pr, fun='count', background=0) %>%
-      mask(r_pu_id_pr) # plot(r_phys_seamounts)
+    P <- projections_tbl %>%
+      filter(prjres == !!prjres)
+
+    r_phys_vents <- pts_vents %>%
+      st_transform(P$epsg) %>%
+      st_coordinates() %>%
+      rasterize(r_pu_id_pr, fun='count', background=0) %>%
+      mask(r_pu_id_pr) # plot(r_phys_vents)
     names(r_phys_vents) <- "count"
 
     writeRaster(r_phys_vents, phys_vents_tif, overwrite = TRUE)
@@ -889,6 +894,16 @@ if (!file.exists(mine_claims_tif) | redo_lyrs){
 
     mine_claims_tif  <- glue("{dir_data}/mine-claims{prjres}.tif")
     r_pu_id_pr       <- get_d_prjres("r_pu_id", prjres)
+
+    P <- projections_tbl %>%
+      filter(prjres == !!prjres)
+
+    # TODO: fix projection here
+    # r_mine_claims <- p_mine_claims %>%
+    #   st_transform(P$epsg) %>%
+    #   st_coordinates() %>%
+    #   rasterize(r_pu_id_pr, fun='count', background=0) %>%
+    #   mask(r_pu_id_pr) # plot(r_phys_vents)
 
     r_mine_claims <- rasterize(p_mine_claims, r_pu_id_pr, field=1, background=0) %>%
       mask(r_pu_id_pr) # plot(r_mine_claims)

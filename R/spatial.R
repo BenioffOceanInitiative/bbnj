@@ -320,6 +320,7 @@ get_global_bb <- function(crs=4326){
 #' @return polygon (s), raster (r), or stack (s) per prefix of dataset in given projection-resolution (prjres)
 #' @export
 get_d_prjres <- function(dataset, prjres="", debug=F){
+  library(dplyr)
   library(glue)
   library(stringr)
   # dataset = "p_eez_s05"
@@ -330,7 +331,7 @@ get_d_prjres <- function(dataset, prjres="", debug=F){
   name  <- str_sub(dataset, start=3)
 
   P <- projections_tbl %>%
-    filter(prjres == !!prjres)
+    dplyr::filter(prjres == !!prjres)
 
   #browser()
   if (type == "p"){
