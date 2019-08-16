@@ -7,7 +7,7 @@ editor_options:
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo=T, message=F)
+knitr::opts_chunk$set(echo=T, message=F, warning=F)
 library(prioritizr) # devtools::load_all("~/github/prioritizr")
 #library(bbnj)       # 
 devtools::load_all() # setwd(here()); devtools::install_local(force=T) 

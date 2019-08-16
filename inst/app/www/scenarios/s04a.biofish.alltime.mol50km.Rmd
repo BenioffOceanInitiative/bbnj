@@ -8,7 +8,7 @@ editor_options:
 
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo=T, message=F, warn = F)
+knitr::opts_chunk$set(echo=T, message=F, warning = F)
 ```
 
 ```{r}
