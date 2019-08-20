@@ -37,17 +37,32 @@ r_pu <- setValues(r_pu_id, 1) %>%
   mask(r_pu_id) # plot(r_pu)
 
 # input layers ----
+  eez<-get_d_prjres("p_eez_s05","_mol50km") %>% 
+  rasterize(r_pu_id, field=1)
 
-# biodiversity: now, not 2100 ----
-s_bio_gmbi <- get_gmbi_grpsmdl_prjres("groups02", prjres)
-  lyrs_bio_now <- names(s_bio_gmbi) %>% 
-  setdiff(str_subset(names(s_bio_gmbi), "rli")) %>% 
-  setdiff(str_subset(names(s_bio_gmbi), "rls"))
-s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
 
-  #add red list sum for all species as separate layer
+# biodiversity: now, for each taxonomic group ----
+# s_bio_gmbi <- get_gmbi_grpsmdl_prjres("groups02", prjres)
+#   lyrs_bio_now <- names(s_bio_gmbi) %>% 
+#   setdiff(str_subset(names(s_bio_gmbi), "rli")) %>% 
+#   setdiff(str_subset(names(s_bio_gmbi), "rls"))
+# s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
+
+s_bio_now_all <- get_gmbi_grpsmdl_prjres("groups00", prjres) %>% 
+  subset("groups00_nspp_all")
+
+s_bio_future_all <- get_gmbi_grpsmdl_prjres("groups00_2100", prjres) %>% 
+  subset("groups00_2100_nspp_all")
+
 rls_all <- get_gmbi_grpsmdl_prjres("groups00", prjres) %>% 
   subset("groups00_rls_all")
+
+r_fish_effort_log <- get_d_prjres("s_fish_gfw", prjres)%>%
+  subset("fishing_KWH") %>% 
+  rescale_raster(log=T)
+
+r_fish_effort <- get_d_prjres("s_fish_gfw", prjres)%>%
+  subset("fishing_KWH")
 
 # features ----
 s_seamounts <- get_d_prjres("s_phys_seamounts",prjres)
@@ -56,7 +71,8 @@ lbls_seamounts <- sprintf("phys_seamounts_%sm", lu_seamounts[names(s_seamounts)]
 
 s_features <- stack(
   get_d_prjres("r_vgpm", prjres),
-  s_bio_now,
+  s_bio_now_all,
+  s_bio_future_all,
   rls_all,
   #raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>%
   #    gap_fill_raster(r_mask=r_pu_id) %>%
@@ -68,17 +84,19 @@ s_features <- stack(
 
 names(s_features) <- c(
   "bio_vgpm",
-  gsub("^.*?_","",names(s_bio_now)),
+  "s_bio_now_all",
+  "s_bio_future_all",
   "rls_all",
   #"fish_profit.subs"
   #"fish_mcp.2004",
   lbls_seamounts,
   "phys_vents",
   "scapes_hetero")
+
 ```
 
 ```{r}
-for (i in 1:nlayers(s_features)){ # i = 1
+for (i in 1:nlayers(s_features)){  #i = 1
   r <- raster(s_features, i)
   lyr <- names(s_features)[i]
   #plot(r)
@@ -86,20 +104,22 @@ for (i in 1:nlayers(s_features)){ # i = 1
   r_tif   <- glue("{dir_png}/{lyr}.tif")
   map_png <- glue("{dir_png}/{lyr}_map.png")
   
-  writeRaster(r, r_tif)
+  writeRaster(r, r_tif, overwrite=T)
   
   P <- get_tif_projection(r_tif)
   
-  # area ----
+  pal <- colorRampPalette(brewer.pal(11, "Spectral"))
+  cols <- rev(pal(255))
   
   # plot ----
   countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
     st_transform(P$epsg)
   graticules <- st_graticule(countries)
   
-  png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px')
+  png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px', bg = "transparent")
   
-  plot(r, legend=F, axes=F, box=F)
+  plot(r, col=cols, legend=F, axes=F, box=F)
+  plot(eez, add=T, col=gray(0.9), legend=F)
   plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
   plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
   
@@ -108,5 +128,40 @@ for (i in 1:nlayers(s_features)){ # i = 1
     magick::image_read() %>% magick::image_trim() %>%
     magick::image_write(map_png)
 }
+```
+
+```{r fishing effort}
+
+  r <- r_fish_effort
+  lyr <- names(r_fish_effort)
+  #plot(r)
+  dir_png <- here("inst/scripts/map_layers")
+  r_tif   <- glue("{dir_png}/{lyr}.tif")
+  map_png <- glue("{dir_png}/{lyr}_map.png")
+  
+  writeRaster(r, r_tif, overwrite=T)
+  
+  P <- get_tif_projection(r_tif)
+  
+  pal <- colorRampPalette(brewer.pal(7, "YlOrRd"))
+  cols <- (pal(7))
+  
+  # plot ----
+  countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+    st_transform(P$epsg)
+  graticules <- st_graticule(countries)
+  
+  png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px', bg = "transparent")
+  
+  plot(r, breaks=c(0,10000,30000,100000,300000,1000000,5000000,108528675),col=cols, legend=F, axes=F, box=F)
+  plot(eez, add=T, col=gray(0.9), legend=F)
+  plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+  plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+  
+  dev.off()
+  map_png %>%
+    magick::image_read() %>% magick::image_trim() %>%
+    magick::image_write(map_png)
+
 ```
 
