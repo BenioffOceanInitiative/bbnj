@@ -1,6 +1,8 @@
 ---
 title: "map layers"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -23,6 +25,7 @@ library(fs)
 library(knitr)
 library(formattable)
 library(lwgeom)
+library(RColorBrewer)
 area   = raster::area
 select = dplyr::select
 
@@ -57,9 +60,9 @@ s_bio_future_all <- get_gmbi_grpsmdl_prjres("groups00_2100", prjres) %>%
 rls_all <- get_gmbi_grpsmdl_prjres("groups00", prjres) %>% 
   subset("groups00_rls_all")
 
-r_fish_effort_log <- get_d_prjres("s_fish_gfw", prjres)%>%
-  subset("fishing_KWH") %>% 
-  rescale_raster(log=T)
+# r_fish_effort_log <- get_d_prjres("s_fish_gfw", prjres)%>%
+#   subset("fishing_KWH") %>% 
+#   rescale_raster(log=T)
 
 r_fish_effort <- get_d_prjres("s_fish_gfw", prjres)%>%
   subset("fishing_KWH")
@@ -68,6 +71,8 @@ r_fish_effort <- get_d_prjres("s_fish_gfw", prjres)%>%
 s_seamounts <- get_d_prjres("s_phys_seamounts",prjres)
 lu_seamounts <- c(lteq200m="0to200",gt200lteq800m="gt200to800",gt800m="gt800")
 lbls_seamounts <- sprintf("phys_seamounts_%sm", lu_seamounts[names(s_seamounts)])
+
+seamounts_all <- sum(s_seamounts)
 
 s_features <- stack(
   get_d_prjres("r_vgpm", prjres),
@@ -79,6 +84,7 @@ s_features <- stack(
   #    rescale_raster(inverse=T),
   #raster(s_fish_ubc, "mcp_2004"),
   s_seamounts,
+  seamounts_all,
   get_d_prjres("r_phys_vents",prjres),
   get_d_prjres("r_phys_scapes_hetero",prjres))
 
@@ -90,13 +96,14 @@ names(s_features) <- c(
   #"fish_profit.subs"
   #"fish_mcp.2004",
   lbls_seamounts,
+  "seamounts_all",
   "phys_vents",
   "scapes_hetero")
 
 ```
 
 ```{r}
-for (i in 1:nlayers(s_features)){  #i = 1
+for (i in 1:nlayers(s_features)){  #i = 8
   r <- raster(s_features, i)
   lyr <- names(s_features)[i]
   #plot(r)
@@ -164,4 +171,37 @@ for (i in 1:nlayers(s_features)){  #i = 1
     magick::image_write(map_png)
 
 ```
+
+
+
+```{r solution & ebsas}
+
+s04<-raster(here("inst/app/www/scenarios/s04a.biofish.alltime.mol50km_sol.tif"))
+
+ebsa_abnj<-read_sf(here("inst/scripts/data_overlays/ebsa_abnj.shp")) %>% 
+  st_transform(54009)
+
+map_png <- here("inst/scripts/map_overlays/s04ebsa.png")
+
+countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+  st_transform(54009)
+graticules <- st_graticule(countries)
+
+png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px', bg = "transparent")
+
+
+plot(s04, alpha=0.8, legend=F, axes=F, box=F)
+plot(st_geometry(ebsa_abnj), add=T, col=scales::alpha("blue", .3), border="transparent")
+plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+
+dev.off()
+
+map_png %>%
+  magick::image_read() %>% magick::image_trim() %>%
+  magick::image_write(map_png)
+
+
+```
+
 

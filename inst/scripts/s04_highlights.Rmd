@@ -1,0 +1,78 @@
+---
+title: "s04 highlights"
+output:
+  html_document:
+    code_folding: hide
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+```{r}
+devtools::load_all()
+library(raster)
+library(sf)
+library(tidyverse)
+library(glue)
+library(here)
+library(fs)
+library(knitr)
+library(formattable)
+library(mapview)
+library(DT)
+area   = raster::area
+select = dplyr::select
+```
+
+
+
+```{r interactive map}
+mapviewOptions(basemaps = c("Esri.OceanBasemap","Stamen.TonerLite"))
+
+s04_p<-read_sf(here("inst/app/www/scenarios/s04a.biofish.alltime.mol50km_sol_gcs.shp"))
+
+ebsa_abnj_p<-read_sf(here("inst/scripts/data_overlays/ebsa_abnj.shp"))
+
+highlights1<-read_sf(here("inst/scripts/highlights/s04highlights_group1.shp"))
+
+highlights2<-read_sf(here("inst/scripts/highlights/s04highlights_group2.shp"))
+
+mapview(s04_p, col.regions="green")+mapview(ebsa_abnj_p, col.regions="blue", alpha.regions=0.3)+mapview(highlights1, col.regions="red")+mapview(highlights2, col.regions="orange")
+
+
+```
+
+```{r}
+
+s04_r<-raster(here("inst/app/www/scenarios/s04a.biofish.alltime.mol50km_sol.tif"))
+
+highlights1<-read_sf(here("inst/scripts/highlights/s04highlights_group1.shp")) %>% 
+  st_transform(54009)
+
+map_png <- here("inst/scripts/highlights/s04highlights.png")
+
+countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+  st_transform(54009)
+graticules <- st_graticule(countries)
+
+png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px', bg = "transparent")
+
+
+plot(s04_r, alpha=0.8, legend=F, axes=F, box=F)
+plot(st_geometry(highlights1), add=T, col="#0061ffff", pch=16)
+plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+
+dev.off()
+
+map_png %>%
+  magick::image_read() %>% magick::image_trim() %>%
+  magick::image_write(map_png)
+
+
+```
+
+
