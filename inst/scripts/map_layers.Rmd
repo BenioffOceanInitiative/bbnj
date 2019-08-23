@@ -1,6 +1,8 @@
 ---
 title: "map layers"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -16,15 +18,22 @@ library(raster)
 library(sf)
 library(dplyr)
 library(readr)
+library(ggplot2)
 library(stringr)
 library(glue)
 library(here)
 library(fs)
+library(units)
 library(knitr)
 library(formattable)
 library(lwgeom)
+library(RColorBrewer)
 area   = raster::area
 select = dplyr::select
+
+# set rainbow color palette
+pal <- colorRampPalette(brewer.pal(11, "Spectral"))
+cols <- rev(pal(255))
 
 # variables ----
 prjres     <- "_mol50km" # prjres in: View(projections_tbl)
@@ -78,35 +87,166 @@ names(s_features) <- c(
 ```
 
 ```{r}
+dir_png <- here("inst/scripts/map_layers")
+redo    <- T
+  
+cell_km2 <- prod(res(r_pu)) %>% as_units("m2") %>% set_units("km2")
+hs_ncells  <- length(na.omit(values(r_pu_id)))
+hs_areakm2 <- hs_ncells * cell_km2
+
+countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+  st_transform(P$epsg)
+graticules <- st_graticule(countries)
+
+summary30pct_csv <- glue("{dir_png}/_summary30pct.csv")
+
+# TODO
 for (i in 1:nlayers(s_features)){ # i = 1
-  r <- raster(s_features, i)
+#for (i in 1:5){ # i = 1
+  
+  r   <- raster(s_features, i)
   lyr <- names(s_features)[i]
-  #plot(r)
-  dir_png <- here("inst/scripts/map_layers")
-  r_tif   <- glue("{dir_png}/{lyr}.tif")
-  map_png <- glue("{dir_png}/{lyr}_map.png")
   
-  writeRaster(r, r_tif)
+  r_tif      <- glue("{dir_png}/{lyr}.tif")
+  map_png    <- glue("{dir_png}/{lyr}_map.png")
+  map30_png  <- glue("{dir_png}/{lyr}_map30.png")
+  hist30_png <- glue("{dir_png}/{lyr}_hist30.png")
+  message(glue("{i}/{nlayers(s_features)}: {lyr}"))
   
-  P <- get_tif_projection(r_tif)
+  P   <- get_tif_projection(r_tif)
   
-  # area ----
+  # write raster ----
+  if (!file.exists(r_tif)){
+    message("  writeRaster")
+    writeRaster(r, r_tif)
+  }
+
+  # values ----
+  v     <- values(r) %>% na.omit() %>% sort(decreasing = T)
+  d <- tibble(v = v) %>% 
+    filter(v > 0) %>% 
+    mutate(
+      v_cumsum    = cumsum(v),
+      i           = 1:length(v),
+      cumarea_km2 = i * cell_km2 %>% drop_units(),
+      pct_totval  = v_cumsum/sum(v) * 100,
+      pct_hsarea  = cumarea_km2/hs_areakm2 %>% drop_units() * 100)
   
-  # plot ----
-  countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
-    st_transform(P$epsg)
-  graticules <- st_graticule(countries)
+  d_30 <- d %>% 
+    filter(v_cumsum <= sum(v)*.3)
   
-  png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px')
+  v_at30     <- min(d_30$v)
+  pcths_at30 <- max(d_30$pct_hsarea)
+  title  <- glue("{lyr} — 30%: {round(pcths_at30, digits=2)}% hs >= {signif(v_at30)}")
   
-  plot(r, legend=F, axes=F, box=F)
-  plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
-  plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+  D_i <- tibble(
+    lyr        = lyr,
+    v_at30     = v_at30,
+    pcths_at30 = pcths_at30)
   
-  dev.off()
-  map_png %>%
-    magick::image_read() %>% magick::image_trim() %>%
-    magick::image_write(map_png)
+  if (!file.exists(summary30pct_csv)){
+    write_csv(D_i, summary30pct_csv)
+  } else {
+    read_csv(summary30pct_csv) %>% 
+      filter(lyr != !!lyr) %>% 
+      bind_rows(D_i) %>% 
+      write_csv(summary30pct_csv)
+  }
+  
+  # hist ----
+  if (!file.exists(hist30_png) | redo){
+    message("  hist30_png")
+    #png(hist30_png, width=480*4, height = 480*4, res=300, units='px')
+    p <- ggplot(d, aes(x=pct_hsarea, y=pct_totval)) + 
+      geom_area(fill="gray70", color=NA) + 
+      geom_area(data=d_30, aes(x=pct_hsarea, y=pct_totval), fill="gray10", color=NA) + 
+      scale_fill_distiller("spectral") +
+      theme_light() + 
+      coord_cartesian(expand = F) +
+      #scale_x_continuous(labels = scales::percent_format()) %>% 
+      scale_x_continuous(labels = scales::percent_format(accuracy = 3)) %>% 
+      scale_y_continuous(labels = scales::percent_format()) %>% 
+      labs(
+        title = title, 
+        x="% high seas area", y="% total value")
+    ggsave(
+      hist30_png,
+      p, 
+      "png", width=6.4, height=6.4, dpi=300, units='in')
+    #dev.off()
+  }
+  
+  # map 30 ----
+  if (!file.exists(map30_png)){
+    message("  map30_png")
+    png(map30_png, width=480*4, height = 480*4, res=300, units='px')
+    
+    #plot(r)
+    r_v <- mask(r, r >= v_at30, maskvalue=0)
+    plot(r, col = scales::alpha(cols, 0.3), legend=F, axes=F, box=F, main=title)
+    plot(r_v, col = cols, add=T, legend=T)
+    plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+    plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+    
+    dev.off()
+    map30_png %>%
+      magick::image_read() %>% magick::image_trim() %>%
+      magick::image_write(map30_png)
+  }
+  
+  # map ----
+  if (!file.exists(map_png)){
+    message("  map_png")
+    png(map_png, width=480*4, height = 480*4, res=300, units='px')
+    
+    #table(values(r))
+    plot(r, col = cols, legend=T, axes=F, box=F, main=lyr)
+    plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+    plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+    
+    dev.off()
+    map_png %>%
+      magick::image_read() %>% magick::image_trim() %>%
+      magick::image_write(map_png)
+  }
 }
+```
+
+```{r}
+D <- read_csv(summary30pct_csv)
+
+if (exists("s_b")) rm(s_b)
+r_sol <- r_pu - 1 # plot(R_b)
+for (i in 1:nlayers(s_features)){ # i = 3
+  
+  r <- s_features[[i]]
+  lyr <- names(s_features)[i]
+  
+  v_at30 <- D %>% 
+    filter(lyr == !!lyr) %>% 
+    pull(v_at30)
+  
+  r_sol[r >= v_at30] <- 1
+  
+  sol_areakm2  <- sum(values(r_sol), na.rm = T) * cell_km2
+  pct_sol_hs <-  sol_areakm2 / hs_areakm2 * 100 # 84.47849 % high seas
+  title <- glue("{i}/{nlayers(s_features)}: +{lyr}, {round(pct_sol_hs, digits=2)}% hs")
+  
+  plot(r_sol, main = title)
+}
+sol30_tif <- glue("{dir_png}/sol30.tif")
+sol30_map_png <- glue("{dir_png}/sol30_map.png")
+
+writeRaster(r_sol, sol30_tif)
+
+png(sol30_map_png, width=480*4, height = 480*4, res=300, units='px')
+#table(values(r))
+plot(r_sol, legend=F, axes=F, box=F)
+plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+dev.off()
+sol30_map_png %>%
+  magick::image_read() %>% magick::image_trim() %>%
+  magick::image_write(sol30_map_png)
 ```
 

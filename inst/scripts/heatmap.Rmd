@@ -17,6 +17,9 @@ devtools::load_all() # setwd(here()); devtools::install_local(force=T)
 library(raster)
 library(sf)
 library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(viridis)
 library(readr)
 library(stringr)
 library(glue)
@@ -26,14 +29,16 @@ library(knitr)
 library(formattable)
 library(lwgeom)
 library(RColorBrewer)
+library(ggridges)
 select = dplyr::select
 
 
 # variables ----
-prjres  <- "_mol50km" # prjres in: View(projections_tbl)
-dir_out <- here("inst/scripts/heatmap"); 
-r_tif   <- glue("{dir_out}/heatmap_s01a.bio.rescale.now.mol50km.tif")
-map_png <- glue("{fs::path_ext_remove(r_tif)}.png")
+prjres   <- "_mol50km" # prjres in: View(projections_tbl)
+dir_out  <- here("inst/scripts/heatmap"); 
+r_tif    <- glue("{dir_out}/heatmap_s01a.bio.rescale.now.mol50km.tif")
+map_png  <- glue("{fs::path_ext_remove(r_tif)}.png")
+hist_png <- glue("{dir_out}/hist_s01a.bio.rescale.now.mol50km.png")
 
 # set rainbow color palette
 pal <- colorRampPalette(brewer.pal(11, "Spectral"))
@@ -94,6 +99,22 @@ names(s_features) <- c(
   "phys_vents",
   "scapes_hetero")
 
+# ridges ----
+
+d_features <- values(s_features) %>% as_tibble() %>% 
+  gather("layer", "value") %>% 
+  na.omit()
+
+png(hist_png, width=480*4, height = 480*4, res=300, units='px')
+ggplot(d_features, aes(x = value, y = layer, fill = ..x..)) +
+  #geom_density_ridges_gradient(scale = 3, rel_min_height = 0.01) +
+  geom_density_ridges_gradient() +
+  #scale_fill_viridis(name = "Temp. [F]", option = "C") #+
+  #scale_fill_distiller("spectral", name = "value") #+
+  scale_fill_gradientn(colors = cols, name = "value") #+
+#labs(title = 'Temperatures in Lincoln NE in 2016')
+dev.off()
+
 # calculate sum ----
 r <- sum(s_features, na.rm = T) %>% 
   mask(r_pu_id)
@@ -106,7 +127,7 @@ graticules <- st_graticule(countries)
 
 png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px')
 
-plot(r, col = cols, legend=F, axes=F, box=F)
+plot(r, col = cols, legend=T, axes=F, box=F)
 plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
 plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
 
