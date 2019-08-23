@@ -46,47 +46,70 @@ r_pu <- setValues(r_pu_id, 1) %>%
   mask(r_pu_id) # plot(r_pu)
 
 # input layers ----
+  eez<-get_d_prjres("p_eez_s05","_mol50km") %>% 
+  rasterize(r_pu_id, field=1)
 
-# biodiversity: now, not 2100 ----
-s_bio_gmbi <- get_gmbi_grpsmdl_prjres("groups02", prjres)
-  lyrs_bio_now <- names(s_bio_gmbi) %>% 
-  setdiff(str_subset(names(s_bio_gmbi), "rli")) %>% 
-  setdiff(str_subset(names(s_bio_gmbi), "rls"))
-s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
 
-  #add red list sum for all species as separate layer
+# biodiversity: now, for each taxonomic group ----
+# s_bio_gmbi <- get_gmbi_grpsmdl_prjres("groups02", prjres)
+#   lyrs_bio_now <- names(s_bio_gmbi) %>% 
+#   setdiff(str_subset(names(s_bio_gmbi), "rli")) %>% 
+#   setdiff(str_subset(names(s_bio_gmbi), "rls"))
+# s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
+
+s_bio_now_all <- get_gmbi_grpsmdl_prjres("groups00", prjres) %>% 
+  subset("groups00_nspp_all")
+
+s_bio_future_all <- get_gmbi_grpsmdl_prjres("groups00_2100", prjres) %>% 
+  subset("groups00_2100_nspp_all")
+
 rls_all <- get_gmbi_grpsmdl_prjres("groups00", prjres) %>% 
   subset("groups00_rls_all")
+
+# r_fish_effort_log <- get_d_prjres("s_fish_gfw", prjres)%>%
+#   subset("fishing_KWH") %>% 
+#   rescale_raster(log=T)
+
+r_fish_effort <- get_d_prjres("s_fish_gfw", prjres)%>%
+  subset("fishing_KWH")
 
 # features ----
 s_seamounts <- get_d_prjres("s_phys_seamounts",prjres)
 lu_seamounts <- c(lteq200m="0to200",gt200lteq800m="gt200to800",gt800m="gt800")
 lbls_seamounts <- sprintf("phys_seamounts_%sm", lu_seamounts[names(s_seamounts)])
 
+seamounts_all <- sum(s_seamounts)
+
 s_features <- stack(
   get_d_prjres("r_vgpm", prjres),
-  s_bio_now,
+  s_bio_now_all,
+  s_bio_future_all,
   rls_all,
   #raster(s_fish_gfw, "mean_scaled_profits_with_subsidies") %>%
   #    gap_fill_raster(r_mask=r_pu_id) %>%
   #    rescale_raster(inverse=T),
   #raster(s_fish_ubc, "mcp_2004"),
   s_seamounts,
+  seamounts_all,
   get_d_prjres("r_phys_vents",prjres),
   get_d_prjres("r_phys_scapes_hetero",prjres))
 
 names(s_features) <- c(
   "bio_vgpm",
-  gsub("^.*?_","",names(s_bio_now)),
+  "s_bio_now_all",
+  "s_bio_future_all",
   "rls_all",
   #"fish_profit.subs"
   #"fish_mcp.2004",
   lbls_seamounts,
+  "seamounts_all",
   "phys_vents",
   "scapes_hetero")
+
 ```
 
 ```{r}
+<<<<<<< HEAD
 dir_png <- here("inst/scripts/map_layers")
 redo    <- T
   
@@ -105,16 +128,25 @@ for (i in 1:nlayers(s_features)){ # i = 1
 #for (i in 1:5){ # i = 1
   
   r   <- raster(s_features, i)
+=======
+for (i in 1:nlayers(s_features)){  #i = 8
+  r <- raster(s_features, i)
+>>>>>>> 8da9a2fce096287b14d6782fdd0e69a3da402599
   lyr <- names(s_features)[i]
   
+<<<<<<< HEAD
   r_tif      <- glue("{dir_png}/{lyr}.tif")
   map_png    <- glue("{dir_png}/{lyr}_map.png")
   map30_png  <- glue("{dir_png}/{lyr}_map30.png")
   hist30_png <- glue("{dir_png}/{lyr}_hist30.png")
   message(glue("{i}/{nlayers(s_features)}: {lyr}"))
+=======
+  writeRaster(r, r_tif, overwrite=T)
+>>>>>>> 8da9a2fce096287b14d6782fdd0e69a3da402599
   
   P   <- get_tif_projection(r_tif)
   
+<<<<<<< HEAD
   # write raster ----
   if (!file.exists(r_tif)){
     message("  writeRaster")
@@ -138,12 +170,17 @@ for (i in 1:nlayers(s_features)){ # i = 1
   v_at30     <- min(d_30$v)
   pcths_at30 <- max(d_30$pct_hsarea)
   title  <- glue("{lyr} — 30%: {round(pcths_at30, digits=2)}% hs >= {signif(v_at30)}")
+=======
+  pal <- colorRampPalette(brewer.pal(11, "Spectral"))
+  cols <- rev(pal(255))
+>>>>>>> 8da9a2fce096287b14d6782fdd0e69a3da402599
   
   D_i <- tibble(
     lyr        = lyr,
     v_at30     = v_at30,
     pcths_at30 = pcths_at30)
   
+<<<<<<< HEAD
   if (!file.exists(summary30pct_csv)){
     write_csv(D_i, summary30pct_csv)
   } else {
@@ -175,6 +212,14 @@ for (i in 1:nlayers(s_features)){ # i = 1
       "png", width=6.4, height=6.4, dpi=300, units='in')
     #dev.off()
   }
+=======
+  png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px', bg = "transparent")
+  
+  plot(r, col=cols, legend=F, axes=F, box=F)
+  plot(eez, add=T, col=gray(0.9), legend=F)
+  plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+  plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+>>>>>>> 8da9a2fce096287b14d6782fdd0e69a3da402599
   
   # map 30 ----
   if (!file.exists(map30_png)){
@@ -212,6 +257,7 @@ for (i in 1:nlayers(s_features)){ # i = 1
 }
 ```
 
+<<<<<<< HEAD
 ```{r}
 D <- read_csv(summary30pct_csv)
 
@@ -250,3 +296,73 @@ sol30_map_png %>%
   magick::image_write(sol30_map_png)
 ```
 
+=======
+```{r fishing effort}
+
+  r <- r_fish_effort
+  lyr <- names(r_fish_effort)
+  #plot(r)
+  dir_png <- here("inst/scripts/map_layers")
+  r_tif   <- glue("{dir_png}/{lyr}.tif")
+  map_png <- glue("{dir_png}/{lyr}_map.png")
+  
+  writeRaster(r, r_tif, overwrite=T)
+  
+  P <- get_tif_projection(r_tif)
+  
+  pal <- colorRampPalette(brewer.pal(7, "YlOrRd"))
+  cols <- (pal(7))
+  
+  # plot ----
+  countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+    st_transform(P$epsg)
+  graticules <- st_graticule(countries)
+  
+  png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px', bg = "transparent")
+  
+  plot(r, breaks=c(0,10000,30000,100000,300000,1000000,5000000,108528675),col=cols, legend=F, axes=F, box=F)
+  plot(eez, add=T, col=gray(0.9), legend=F)
+  plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+  plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+  
+  dev.off()
+  map_png %>%
+    magick::image_read() %>% magick::image_trim() %>%
+    magick::image_write(map_png)
+
+```
+
+
+
+```{r solution & ebsas}
+
+s04<-raster(here("inst/app/www/scenarios/s04a.biofish.alltime.mol50km_sol.tif"))
+
+ebsa_abnj<-read_sf(here("inst/scripts/data_overlays/ebsa_abnj.shp")) %>% 
+  st_transform(54009)
+
+map_png <- here("inst/scripts/map_overlays/s04ebsa.png")
+
+countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+  st_transform(54009)
+graticules <- st_graticule(countries)
+
+png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px', bg = "transparent")
+
+
+plot(s04, alpha=0.8, legend=F, axes=F, box=F)
+plot(st_geometry(ebsa_abnj), add=T, col=scales::alpha("blue", .3), border="transparent")
+plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+
+dev.off()
+
+map_png %>%
+  magick::image_read() %>% magick::image_trim() %>%
+  magick::image_write(map_png)
+
+
+```
+
+
+>>>>>>> 8da9a2fce096287b14d6782fdd0e69a3da402599
