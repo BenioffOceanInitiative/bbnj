@@ -298,8 +298,8 @@ get_global_bb <- function(crs=4326){
         c(-180, -90)))), crs = 4326)))
   if (crs != 4326){
     # project
-    crs=54009
-    crs=3857
+    #crs=54009
+    #crs=3857
     #bb_gcs <- bb
     bb <- bb_gcs
     plot(bb)
