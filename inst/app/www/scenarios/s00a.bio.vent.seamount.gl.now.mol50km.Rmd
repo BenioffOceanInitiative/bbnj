@@ -7,7 +7,7 @@ editor_options:
 ---
 
 ```{r setup, include = FALSE}
-knitr::opts_chunk$set(echo=T, message=F)
+knitr::opts_chunk$set(echo=T, message=F, warning=F)
 library(prioritizr) # devtools::load_all("~/github/prioritizr")
 #library(bbnj)       # 
 devtools::load_all() # setwd(here()); devtools::install_local(force=T) 
@@ -70,6 +70,12 @@ if (!file.exists(tif) | redo){
   # rls_all <- get_d_prjres("s_bio_gmbi", prjres) %>% 
   #   subset(,subset="rls_all")
   
+    # features ----
+  s_seamounts <- get_d_prjres("s_phys_seamounts",prjres)
+  lu_seamounts <- c(lteq200m="0to200",gt200lteq800m="gt200to800",gt800m="gt800")
+  lbls_seamounts <- sprintf("phys_seamounts_%sm", lu_seamounts[names(s_seamounts)])
+  
+  
   # features ----
   s_features <- stack(
     # get_d_prjres("r_vgpm", prjres),
@@ -79,7 +85,7 @@ if (!file.exists(tif) | redo){
     #    gap_fill_raster() %>%
     #    rescale_raster(inverse=T),
     #raster(s_fish_ubc, "mcp_2004"),
-    get_d_prjres("s_phys_seamounts",prjres),
+    s_seamounts,
     get_d_prjres("r_phys_vents",prjres))
     # get_d_prjres("r_phys_scapes_hetero",prjres))
   
@@ -89,7 +95,7 @@ if (!file.exists(tif) | redo){
     # "rls_all",
     #"fish_profit.subs"
     #"fish_mcp.2004",
-    sprintf("phys_seamounts_%sm", c("0to200","gt200to800","gt800")),
+    lbls_seamounts,
     "phys_vents")
     # "scapes_hetero")
   
@@ -114,14 +120,9 @@ if (!file.exists(tif) | redo){
 
 - Feature targets:
     - `r rel_target*100`% of each input feature amount
-    - Biodiversity:
-        - `bio_vgpm`: Vertically Generalized Production Model
-        - `nspp_*`: number of species by 22 taxonomic group from AquaMaps [_now_]
-        - `rls_all`: Red List sum of extinction risk from AquaMaps for all species [_now_]
     - Physical:
         - `phys_vents`: hydrothermal vent count
         - `phys_seamounts`: seamounts count (3 depth classes)
-        - `phys_scapes_hetero`: benthic heterogeneity
   
 - Regionalization:
     - none, ie global

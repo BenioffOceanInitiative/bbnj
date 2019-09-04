@@ -75,4 +75,37 @@ map_png %>%
 
 ```
 
+```{r}
+s04_r<-raster(here("inst/app/www/scenarios/s04a.biofish.alltime.mol50km_sol.tif"))
+
+highlights1<-read_sf(here("inst/scripts/highlights/s04highlights_group1.shp")) %>% 
+  st_transform(54009)
+
+highlights2<-read_sf(here("inst/scripts/highlights/s04highlights_group2.shp"))%>% 
+  st_transform(54009)
+
+highlights3<-slice(highlights2,-6:-7)
+
+map_png <- here("inst/scripts/highlights/s04highlights2.png")
+
+countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+  st_transform(54009)
+graticules <- st_graticule(countries)
+
+png(map_png, width=480*4, height = 480*4, res=300, type="cairo", units='px', bg = "transparent")
+
+
+plot(s04_r, alpha=0.8, legend=F, axes=F, box=F)
+plot(st_geometry(highlights1), add=T, col="#0061ffff", pch=16)
+plot(st_geometry(highlights3), add=T, col="#0061ffff", pch=16)
+plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+
+dev.off()
+
+map_png %>%
+  magick::image_read() %>% magick::image_trim() %>%
+  magick::image_write(map_png)
+```
+
 
