@@ -56,14 +56,14 @@ ebsa_shp                 <- glue("{dir_data}/ebsa.shp")
 scapes_tif               <- sprintf("%s/class_11.tif", raw_phys_scapes_arcinfo %>% dirname() %>% dirname())
 
 # variables ----
-redo_eez  = F
-redo_abnj = F
-redo_ihor = F
-redo_gmbi = F
-redo_lyrs = F
-redo_project_polygons = F
-redo_project_pu_id_tifs = F
-redo_phys_scapes_hetero = F
+redo_eez  = T
+redo_abnj = T
+redo_ihor = T
+redo_gmbi = T
+redo_lyrs = T
+redo_project_polygons = T
+redo_project_pu_id_tifs = T
+redo_phys_scapes_hetero = T
 
 # helper functions ----
 
@@ -87,15 +87,15 @@ projections_lst <- list(
       epsg = 4326,
       res_num = list(
         "0.5d" = 0.5)),
-  mer  =
-    list(
-      default = F,
-      name = "Mercator",
-      proj = leaflet:::epsg3857,
-      epsg = 3857,
-      res_num = list(
-        #"56x16km" = c(55659.75, 156862.8))),
-        "36km" = 36000)), # split difference of original non-rectilinear cell resolution
+  # mer  =
+  #   list(
+  #     default = F,
+  #     name = "Mercator",
+  #     proj = leaflet:::epsg3857,
+  #     epsg = 3857,
+  #     res_num = list(
+  #       #"56x16km" = c(55659.75, 156862.8))),
+  #       "36km" = 36000)), # split difference of original non-rectilinear cell resolution
   mol =
     list(
       default = F,
@@ -127,6 +127,11 @@ if (!file.exists(eez_s05_shp) | redo_eez){
   #write_sf(p_eez, eez_shp)  # TOO BIG: 159.9 MB
   #use_data(p_eez, overwrite = TRUE) # TOO BIG: 121.8 MB
 
+  # TODO: remove Antarctica
+  p_eez <- p_eez %>%
+    filter(Territory1 != "Antarctica")
+  #View(p_eez %>% st_drop_geometry())
+
   p_eez_s05 <- p_eez %>%
     geojson_json() %>% # convert to geojson for faster ms_simplify; 69.6 sec
     ms_simplify(keep=0.05, keep_shapes=T)
@@ -140,10 +145,16 @@ if (!file.exists(eez_s05_shp) | redo_eez){
 # p_abnj, p_iho ----
 if (!file.exists(abnj_s05_shp) | redo_abnj){
   eez_iho <- read_sf(raw_eez_iho_shp)
+  # eez_iho %>%
+  #   filter(is.na(EEZ)) %>%
+  #   #st_drop_geometry() %>% View()
+  #   select(IHO_Sea)
+  # plot(eez_iho['IHO_Sea'])
 
   p_iho <- eez_iho %>%
-    filter(is.na(EEZ)) %>%
+    filter(is.na(EEZ) | Territory1 == "Antarctica") %>%
     select(fid, MarRegion, MRGID, IHO_Sea, IHO_MRGID, Longitude, Latitude, Area_km2)
+  # plot(p_iho['IHO_Sea'])
 
   abnj <- p_iho %>%
     mutate(name="Areas Beyond National Jurisdiction, i.e. High Seas") %>%
@@ -164,7 +175,7 @@ if (!file.exists(abnj_s05_shp) | redo_abnj){
   use_data(p_abnj, overwrite = TRUE)
 
   # TODO: clip iho to high seas
-  #p_iho <- st_intersection(p_iho, p_abnj)
+  p_iho <- st_intersection(p_iho, p_abnj)
   write_sf(p_iho, iho_shp)
   use_data(p_iho, overwrite = TRUE)
 
@@ -176,11 +187,10 @@ if (!file.exists(abnj_s05_shp) | redo_abnj){
   p_abnj_s05 <- rmapshaper::ms_simplify(p_abnj, keep = 0.05)
   use_data(p_abnj_s05, overwrite = TRUE)
   write_sf(p_abnj_s05, abnj_s05_shp)
-
-  p_abnj_s05 <- rmapshaper::ms_simplify(p_abnj, keep = 0.05)
-  use_data(p_abnj_s05, overwrite = TRUE)
-  write_sf(p_abnj_s05, abnj_s05_shp)
 }
+
+# https://github.com/jeffreyhanson/prepairr
+# remotes::install_github("jeffreyhanson/prepairr")
 
 # p_ihor, s_ihor ----
 # raster (and polygon) of IHO seas revised (ihor), ie 7 seas
@@ -249,6 +259,9 @@ if (!file.exists(ihor_s05_shp) | redo_ihor){
     r_ihor <- fasterize(p_ihor, r_pu_id, field="seaid") %>%
       mask(r_pu_id)
 
+
+    # plot(r_ihor==0)
+    # hist(r_ihor)
     s_ihor <- prioritizr::binary_stack(r_ihor)
     names(s_ihor) <- sea_keys
 
@@ -311,12 +324,15 @@ prjs <- projections_tbl %>%
   summarize(
     epsg = first(epsg))
 
+# TODO: bbest 2019-10-09 skipping b/c shps_gcs not defined
 if (redo_project_polygons){
-  for (i in 2:length(projections_lst)){ # i=3
+
+  for (i in 2:length(projections_lst)){ # i=2
     prj  <- names(projections_lst)[i]
     epsg <- projections_lst[[i]]$epsg
 
     # iterate over shapefiles
+
     for (j in 1:nrow(shps_gcs)){ # j=1
       s <- shps_tbl[j,]
 
@@ -353,7 +369,7 @@ if (!file.exists(pu_id_tif) | redo_lyrs){
 # pu_id_[prj][res].tif ----
 if (redo_project_pu_id_tifs){
 
-  for (prjres in projections_tbl$prjres){ # prjres = "" # _mer36km _mer36km
+  for (prjres in projections_tbl$prjres){ # prjres = "_mol50km" # _mer36km _mer36km
     P <- projections_tbl %>% filter(prjres == !!prjres)
     pu_id_pr_tif <- glue("{dir_data}/pu_id{prjres}.tif")
     message(glue("{prjres}: {pu_id_pr_tif}"))
@@ -376,6 +392,8 @@ if (redo_project_pu_id_tifs){
       use_data(r_pu_id, overwrite=T)
     }
 
+    #/Users/bbest/github/bbnj/inst/data/pu_id_mol50km.tif
+    #/Users/bbest/github/bbnj/inst/data/pu_id_mol50km.tif
     writeRaster(r_pu_id_pr, pu_id_pr_tif, overwrite=T)
   }
 }
@@ -392,7 +410,7 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
   gzs <- list.files(raw_vgpm_dir, ".gz", full.names=T)
   lapply(gzs, R.utils::gunzip)
 
-  # xyz to raster, in parallel
+  # xyz to raster, in parallel since time consuming
   source(here("data-raw/vgpm_func.R"))
   xyzs <- list.files(raw_vgpm_dir, ".xyz", full.names=T)
   library(furrr)
@@ -401,8 +419,11 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
   # vgpm.raster(file.path(raw_vgpm_dir, "vgpm.2019001.all.xyz"))
 
   tifs <- list.files(raw_vgpm_dir, ".*\\.tif$", full.names = T)
-  r_vgpm_0 <- stack(tifs) %>%
-    mean(na.rm=T) #%>%
+  s_vgpm_0 <- stack(tifs)
+  library(tictoc)
+  tic()
+  r_vgpm_0 <- calc(s_vgpm_0, mean, na.rm=T) #%>%
+  toc()
   #aggregate(fact=6) %>%
   #mask(r_pu_id)
   #plot(log(r_vgpm_0))
@@ -449,9 +470,9 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
 
   #redo_gmbi = T
   dir_pfx  <- here("../gmbi/inst/data/rasters")
-  #grpsmdls <- list.files(dir_pfx, "groups[0-9]+.*")
+  grpsmdls <- list.files(dir_pfx, "groups[0-9]+.*")
   #grpsmdls <- list.files(dir_pfx, "groups0[1-3].*")
-  grpsmdls <- list.files(dir_pfx, "groups00.*")
+  #grpsmdls <- list.files(dir_pfx, "groups00.*")
   #grpsmdls <- setdiff(grpsmdls, "groups04")
     #grps    = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\1"),
     #mdl     = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\2"))
@@ -919,7 +940,7 @@ if (!file.exists(mine_claims_tif) | redo_lyrs){
 
 
 # p_ebsas ----
-if (!file.exists(mine_claims_tif) | redo_lyrs){
+if (!file.exists(ebsa_shp) | redo_lyrs){
   #ebsa_shp                 <- glue("{dir_data}/ebsa.shp")
   #raw_ebsa_shp             <- glue("{dir_gdata}/raw/EBSAs/iobis_ebsa/data/Global_EBSAs_Automated_Final_1104_2016_WGS84/Global_EBSAs_Automated_Final_1104_2016_WGS84.shp")
 
