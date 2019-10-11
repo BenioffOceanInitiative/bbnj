@@ -156,6 +156,9 @@ if (!file.exists(abnj_s05_shp) | redo_abnj){
     select(fid, MarRegion, MRGID, IHO_Sea, IHO_MRGID, Longitude, Latitude, Area_km2)
   # plot(p_iho['IHO_Sea'])
 
+  # p_iho <- read_sf(iho_shp)
+  # mapview::mapview(p_iho)
+
   abnj <- p_iho %>%
     mutate(name="Areas Beyond National Jurisdiction, i.e. High Seas") %>%
     group_by(name) %>%
@@ -189,8 +192,6 @@ if (!file.exists(abnj_s05_shp) | redo_abnj){
   write_sf(p_abnj_s05, abnj_s05_shp)
 }
 
-# https://github.com/jeffreyhanson/prepairr
-# remotes::install_github("jeffreyhanson/prepairr")
 
 # p_ihor, s_ihor ----
 # raster (and polygon) of IHO seas revised (ihor), ie 7 seas
@@ -324,7 +325,6 @@ prjs <- projections_tbl %>%
   summarize(
     epsg = first(epsg))
 
-# TODO: bbest 2019-10-09 skipping b/c shps_gcs not defined
 if (redo_project_polygons){
 
   for (i in 2:length(projections_lst)){ # i=2
@@ -333,14 +333,31 @@ if (redo_project_polygons){
 
     # iterate over shapefiles
 
-    for (j in 1:nrow(shps_gcs)){ # j=1
+    for (j in 1:nrow(shps_tbl)){ # j=1
       s <- shps_tbl[j,]
 
       o_shp <- glue("{dirname(s$shp)}/{s$pfx}_{prj}.shp")
 
-      read_sf(s$shp, quiet=T) %>%
-        st_transform(o, crs = epsg) %>%
-        st_write(o_shp, delete_layer = T)
+      ply <- read_sf(s$shp, quiet=T) %>%
+        st_transform(o, crs = epsg)
+
+      if (!st_is_valid(ply)){
+        ply <- lwgeom::st_make_valid(ply) # 20 min
+      }
+      st_write(ply, o_shp, delete_layer = T)
+
+      # p_abnj_pr_0 <- get_d_prjres("p_abnj", prjres, debug = T)
+      #mapview::mapview(p_abnj_pr)
+      #Error in MtrxSet(x, dim, type = "POLYGON", needClosed = TRUE)
+      #st_is_valid(p_abnj_pr_0) # FALSE
+      # p_abnj_pr <- lwgeom::st_make_valid(p_abnj_pr) # 20 min
+      # st_is_valid(p_abnj_pr)
+      #st_geometry_type(p_abnj_pr) # GEOMETRYCOLLECTION # p_abnj_pr_1 <- p_abnj_pr
+      #p_abnj_pr <- p_abnj_pr %>%
+      #  mutate(geometry = st_collection_extract(geometry, "POLYGON"))
+      # st_write(p_abnj_pr, "/Users/bbest/github/bbnj/inst/data/abnj_mol.shp", delete_layer = T)
+      # st_is_valid(p_abnj_pr) # TRUE
+      # QGIS: Vector > Geometry > Check Validity; removed vertices around problematic point
     }
   }
 }
@@ -378,14 +395,17 @@ if (redo_project_pu_id_tifs){
       r_na, raster::projectExtent(r_na, crs = sp::CRS(P$proj)),
       res = P$res_num))
 
-    r_abnj_pr <- get_d_prjres("p_abnj", prjres) %>%
+    p_abnj_pr <- get_d_prjres("p_abnj", prjres, debug = T)
+    # mapview::mapview(p_abnj_pr) # plot(p_abnj_pr)
+    r_abnj_pr <- p_abnj_pr %>%
       fasterize(r_na_pr)     # rasterize() resulted in horizontal slivers
     crs(r_abnj_pr) <- P$proj # presume same projection for raster
+    # mapview::mapview(r_abnj_pr) # plot(r_abnj_pr)
 
     r_pu_id_pr <- r_na_pr %>%
       setValues(1:ncell(r_na_pr)) %>%
       mask(r_abnj_pr)
-    #mapview::mapview(r_pu_id_pr)
+    # mapview::mapview(r_pu_id_pr)
 
     if (prjres == ""){
       r_pu_id <- r_pu_id_pr
@@ -420,19 +440,20 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
 
   tifs <- list.files(raw_vgpm_dir, ".*\\.tif$", full.names = T)
   s_vgpm_0 <- stack(tifs)
-  library(tictoc)
-  tic()
-  r_vgpm_0 <- calc(s_vgpm_0, mean, na.rm=T) #%>%
-  toc()
+  #library(tictoc)
+  #tic()
+  r_vgpm_0 <- calc(s_vgpm_0, mean, na.rm=T) # 4.5 min
+  #toc()
   #aggregate(fact=6) %>%
   #mask(r_pu_id)
   #plot(log(r_vgpm_0))
 
   #for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
-  for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[4]
+  for (prjres in projections_tbl$prjres){ # prjres = projections_tbl$prjres[1]
 
     vgpm_tif   <- glue("{dir_data}/vgpm{prjres}.tif")
     r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
+    #mapview::mapview(r_pu_id_pr)
 
     if (prjres == ""){
       # gcs 0.5d works out to exactly 6 cells

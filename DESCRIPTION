@@ -22,7 +22,8 @@ Imports:
     stringr,
     magick,
     glue,
-    lwgeom
+    lwgeom,
+    dplyr
 RoxygenNote: 6.1.1
 Suggests: 
     knitr,
