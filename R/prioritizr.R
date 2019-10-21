@@ -167,6 +167,8 @@ tbl_target_representation <- function(csv = glue("{pfx}_rep.csv")){
 report_solution <- function(tif, fig_ht_in=2, redo=F){
   # tif <- "~/github/bbnj/inst/app/www/scenarios/s00a.bio.30pct.gl.gcs0.5d_sol.tif"
 
+  # tif; redo=redo_map; fig_ht_in=2
+
   pfx     <- str_replace(tif, "_sol.tif", "")
   sol_png <- glue("{pfx}_sol_map.png")
   #sol_pdf <- glue("{fs::path_ext_remove(tif)}_map.pdf")
@@ -180,24 +182,26 @@ report_solution <- function(tif, fig_ht_in=2, redo=F){
 
   # plot ----
   if (!file.exists(sol_png) | redo){
-    countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
-      st_transform(P$epsg)
-    graticules <- st_graticule(countries)
+    # countries <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+    #   st_transform(P$epsg)
+    # graticules <- st_graticule(countries)
 
-    map_sol <- function(){
-      #op <- par(mar = rep(0, 4))
-      #op <- par(bg=NA,mar=c(0,0,0,0),oma=c(0,0,0,0))
-      plot(r_sol, legend=F, axes=F, box=F)
-      plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
-      plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
-      #par(op)
-    }
-    png(sol_png, width=480*4, height = 480*4, res=300, type="cairo", units='px')
-    map_sol()
-    dev.off()
-    sol_png %>%
-      magick::image_read() %>% magick::image_trim() %>%
-      magick::image_write(sol_png)
+    map_r2png(r_sol, sol_png)
+
+    # map_sol <- function(){
+    #   #op <- par(mar = rep(0, 4))
+    #   #op <- par(bg=NA,mar=c(0,0,0,0),oma=c(0,0,0,0))
+    #   plot(r_sol, legend=F, axes=F, box=F)
+    #   plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+    #   plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+    #   #par(op)
+    # }
+    # png(sol_png, width=480*4, height = 480*4, res=300, type="cairo", units='px')
+    # map_sol()
+    # dev.off()
+    # sol_png %>%
+    #   magick::image_read() %>% magick::image_trim() %>%
+    #   magick::image_write(sol_png)
   }
   img <- magick::image_read(sol_png) %>%
     grid::grid.raster()
@@ -318,36 +322,93 @@ map_r2png <- function(r, png){
   # library(tidyverse)
   # library(glue)
   # library(here)
+  # scenarios_diff:  r <- rd   ; png <- png
+  # report_solution: r <- r_sol; png <- sol_png
+
+  col_hs <- ggplot2::alpha("lightblue", 0.3)
 
   # projection
   P <- get_r_projection(r)
 
-  # color palette
-  rng <- c(cellStats(r, "min"), cellStats(r, "max"))
-  if (identical(rng, c(-1,1))){
-    cols <- brewer.pal(5, "Set1")[1:3] # red, blue, green
-    pal <- colorRampPalette(cols)(3)
-  }
-  if (identical(rng, c(0, 1))){
-    cols <- terrain.colors(2) # gray, green
-    pal <- colorRampPalette(cols)(2)
-  }
-
   # overlays
   countries  <- rnaturalearth::ne_countries(returnclass = "sf") %>%
     st_transform(P$epsg)
-  graticules <- st_graticule(countries)
+  graticules <- st_graticule(
+    lon = seq(-180, 180, by = 20),
+    lat = seq(-80, 80, by = 20)) %>%
+    st_transform(P$epsg)
 
+  rng <- c(cellStats(r, "min"), cellStats(r, "max"))
+
+  lgnd_inset4png <- 0.21
+
+  plot_countries_graticules <- function(){
+    plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+    plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+  }
+
+  # begin plot
   png(png, width=480*4, height = 480*4, res=300, type="cairo", units='px')
-  plot(r, legend=F, axes=F, box=F, col=pal)
-  plot( st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
-  plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+
+  # plot difference
+  if (identical(rng, c(-1,1))){
+    #cols <- brewer.pal(5, "Set1")[1:3] # red, blue, green
+    # override with: http://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=3
+    cols <- c("#fc8d59", "#ffffbf", "#91bfdb")
+    pal <- colorRampPalette(cols)(3)
+
+    r_hs <- get_d_prjres("r_pu_id", P$prjres)
+    r_hs[!is.na(r_pu_id)] = 1
+
+    par(xpd = F)
+    plot(r_hs, legend=F, axes=F, box=F, col=col_hs)
+
+    plot(r, legend=F, axes=F, box=F, col=pal, add=T)
+
+    plot_countries_graticules()
+
+    par(xpd = T)
+    legend(
+      "bottom",
+      legend = c("Loss", "Same", "Gain", "High Seas"),
+      fill = c(cols, col_hs),
+      horiz = TRUE,
+      cex = 0.6,
+      inset = lgnd_inset4png)
+  }
+  # plot solution
+  if (identical(rng, c(0, 1))){
+    # cols <- terrain.colors(2) # gray, green
+    # override gray
+    col_sol <- ggplot2::alpha("darkgreen",0.7)
+    cols <- c(col_hs, col_sol) # lightblue, darkgreen
+    #pal <- colorRampPalette(cols)(2)
+
+    par(xpd = F)
+    plot(r, legend=F, axes=F, box=F, col=cols)
+
+    plot_countries_graticules()
+
+    par(xpd = T)
+    legend(
+      "bottom",
+      legend = c("High Seas", "Solution"),
+      fill = c(cols),
+      horiz = TRUE,
+      cex = 0.5,
+      inset = lgnd_inset4png)
+      #inset = -.0001)
+  }
+
+  # end plot
   dev.off()
+  #browseURL(png)
 
   png %>%
     magick::image_read() %>%
     magick::image_trim() %>%
     magick::image_write(png)
+  #browseURL(png)
 }
 
 #' calculate scenario difference
@@ -362,7 +423,7 @@ map_r2png <- function(r, png){
 #' @examples
 scenarios_diff <- function(scenarios, dir_scenarios, dir_diffs){
   # scenarios = scenarios[c("s1", "s2a")]
-
+  # scenarios = scenarios[c("s2a", "s4")]
   stopifnot(length(scenarios) == 2)
 
   d <- tibble(

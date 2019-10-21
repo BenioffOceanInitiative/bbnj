@@ -51,7 +51,8 @@ tif <- glue("{pfx}_sol.tif")
 # variables ----
 rel_target <- 0.3
 prjres     <- "_mol50km" # prjres in: View(projections_tbl)
-redo       <- T
+redo       <- F
+redo_map   <- T
 
 # problem & solution ----
 P <- projections_tbl %>% filter(prjres == !!prjres)
@@ -169,5 +170,5 @@ if (!file.exists(tif) | redo){
   
 
 ```{r report}
-report_solution(tif, redo=redo)
+report_solution(tif, redo=redo_map)
 ```
