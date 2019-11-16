@@ -370,7 +370,7 @@ map_r2png <- function(r, png){
     par(xpd = T)
     legend(
       "bottom",
-      legend = c("Loss", "Same", "Gain", "High Seas"),
+      legend = c("Loss", "Same", "Gain", "ABNJ"),
       fill = c(cols, col_hs),
       horiz = TRUE,
       cex = 0.6,
@@ -392,7 +392,7 @@ map_r2png <- function(r, png){
     par(xpd = T)
     legend(
       "bottom",
-      legend = c("High Seas", "Solution"),
+      legend = c("ABNJ", "Solution"),
       fill = c(cols),
       horiz = TRUE,
       cex = 0.5,
