@@ -171,6 +171,7 @@ report_solution <- function(tif, fig_ht_in=2, redo=F){
 
   pfx     <- str_replace(tif, "_sol.tif", "")
   sol_png <- glue("{pfx}_sol_map.png")
+  sol_pdf <- glue("{pfx}_sol_map.pdf")
   #sol_pdf <- glue("{fs::path_ext_remove(tif)}_map.pdf")
   r_sol   <- get_tif_solution(tif)
   P       <- get_tif_projection(tif)
@@ -202,9 +203,13 @@ report_solution <- function(tif, fig_ht_in=2, redo=F){
     # sol_png %>%
     #   magick::image_read() %>% magick::image_trim() %>%
     #   magick::image_write(sol_png)
+    img <- magick::image_read(sol_png) %>%
+      grid::grid.raster()
   }
-  img <- magick::image_read(sol_png) %>%
-    grid::grid.raster()
+
+  if (!file.exists(sol_pdf) | redo){
+    map_r2pdf(r_sol, sol_pdf)
+  }
 
   # table ----
   tbl_target_representation(glue("{pfx}_rep.csv"))
@@ -409,6 +414,106 @@ map_r2png <- function(r, png){
     magick::image_trim() %>%
     magick::image_write(png)
   #browseURL(png)
+}
+
+#' map raster to pdf
+#'
+#' @param r
+#' @param pdf
+#'
+#' @return
+#' @export
+#'
+#' @examples
+map_r2pdf <- function(r, pdf){
+  library(RColorBrewer)
+  library(sf)
+  library(raster)
+  library(magick)
+  # library(tidyverse)
+  # library(glue)
+  # library(here)
+  # scenarios_diff:  r <- rd   ; png <- png
+  # report_solution: r <- r_sol; png <- sol_png
+
+  col_hs <- ggplot2::alpha("lightblue", 0.3)
+
+  # projection
+  P <- get_r_projection(r)
+
+  # overlays
+  countries  <- rnaturalearth::ne_countries(returnclass = "sf") %>%
+    st_transform(P$epsg)
+  graticules <- st_graticule(
+    lon = seq(-180, 180, by = 20),
+    lat = seq(-80, 80, by = 20)) %>%
+    st_transform(P$epsg)
+
+  rng <- c(cellStats(r, "min"), cellStats(r, "max"))
+
+  lgnd_inset4png <- 0.21
+
+  plot_countries_graticules <- function(){
+    plot(st_geometry(countries), add=T, col=gray(0.8), border=gray(0.7), lwd=0.5)
+    plot(st_geometry(graticules), add=T, col=gray(0.6), lwd=0.5)
+  }
+
+  # begin plot
+  pdf(pdf, width=8.5, height = 11)
+
+  # plot difference
+  if (identical(rng, c(-1,1))){
+    #cols <- brewer.pal(5, "Set1")[1:3] # red, blue, green
+    # override with: http://colorbrewer2.org/#type=diverging&scheme=RdYlBu&n=3
+    cols <- c("#fc8d59", "#ffffbf", "#91bfdb")
+    pal <- colorRampPalette(cols)(3)
+
+    r_hs <- get_d_prjres("r_pu_id", P$prjres)
+    r_hs[!is.na(r_pu_id)] = 1
+
+    par(xpd = F)
+    plot(r_hs, legend=F, axes=F, box=F, col=col_hs)
+
+    plot(r, legend=F, axes=F, box=F, col=pal, add=T)
+
+    plot_countries_graticules()
+
+    par(xpd = T)
+    legend(
+      "bottom",
+      legend = c("Loss", "Same", "Gain", "High Seas"),
+      fill = c(cols, col_hs),
+      horiz = TRUE,
+      cex = 0.6,
+      inset = lgnd_inset4png)
+  }
+  # plot solution
+  if (identical(rng, c(0, 1))){
+    # cols <- terrain.colors(2) # gray, green
+    # override gray
+    col_sol <- ggplot2::alpha("darkgreen",0.7)
+    cols <- c(col_hs, col_sol) # lightblue, darkgreen
+    #pal <- colorRampPalette(cols)(2)
+
+    par(xpd = F)
+    plot(r, legend=F, axes=F, box=F, col=cols)
+
+    plot_countries_graticules()
+
+    par(xpd = T)
+    legend(
+      "bottom",
+      legend = c("High Seas", "Solution"),
+      fill = c(cols),
+      horiz = TRUE,
+      cex = 0.5,
+      inset = lgnd_inset4png)
+      #inset = -.0001)
+  }
+
+  # end plot
+  dev.off()
+  #browseURL(pdf)
 }
 
 #' calculate scenario difference

@@ -170,5 +170,23 @@ if (!file.exists(tif) | redo){
   
 
 ```{r report}
+# devtools::load_all()
 report_solution(tif, redo=redo_map)
 ```
+
+```{r}
+library(raster)
+library(rasterVis)
+library(here)
+
+tif <- here("inst/app/www/scenarios/s04a.biofish.alltime.mol50km_sol.tif")
+pdf <- here("inst/app/www/scenarios/s04a.biofish.alltime.mol50km_sol_levelplot.pdf")
+r <- raster(tif)
+
+#table(values(r))
+#plot(r)
+pdf(pdf)
+rasterVis::levelplot(r, margin = list(FUN = 'mean'))
+dev.off()
+```
+
