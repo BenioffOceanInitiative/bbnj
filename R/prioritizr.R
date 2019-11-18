@@ -392,7 +392,7 @@ map_r2png <- function(r, png){
     par(xpd = T)
     legend(
       "bottom",
-      legend = c("ABNJ", "Solution"),
+      legend = c("Areas Beyond National Jurisdiction", "Planning Analysis Solution"),
       fill = c(cols),
       horiz = TRUE,
       cex = 0.5,
