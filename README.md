@@ -1,14 +1,20 @@
 # bbnj
+
 Biodiversity conservation for areas beyond national jurisdiction, funded by Pew with Benioff for UN
 
 This repository is for storing code, including:
 
-- R package of functions
-- Shiny app for interactive display
+- [bbnj](https://benioffoceaninitiative.github.io/bbnj): R package of functions to import, analyze and visualize the conservation prioritization process
+  - NOTE (2019-11-26): The current documentation, particularly the vignette [Explore prioritizr](https://benioffoceaninitiative.github.io/bbnj/articles/prioritizr_explore.html), needs to be updated with the latest functions using `pkgdown::build_site()`.
+- [app](http://bbnj.ecoquants.com): Shiny app for interactive display of input layers and output solutions
+
+Please also see this repository:
+
+- [bbnj-scripts](https://github.com/BenioffOceanInitiative/bbnj-scripts): scripts to run various analyses, such as overlays between data layers and generation of manuscript figures.
 
 ## Install R package
 
-From R console (such as in RStudio IDE):
+From R console (e.g. RStudio IDE):
 
 ```r
 # install devtools if you need it
@@ -27,13 +33,12 @@ help(package="bbnj")
 ## Run Shiny app
 
 ```r
-run_app()
+bbnj::run_app()
 ```
 
 ## Scenario Building Notes
 
 The scenarios are located under the package's `inst/app/www/scenarios`, which you can access via the local copy of the repository (for editing) or the installed package (for viewing only; ).
-
 
 
 ## Developer Notes
