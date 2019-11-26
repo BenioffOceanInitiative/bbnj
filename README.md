@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3554536.svg)](https://doi.org/10.5281/zenodo.3554536)
+
 # bbnj
 
 Biodiversity conservation for areas beyond national jurisdiction, funded by Pew with Benioff for UN
