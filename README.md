@@ -7,6 +7,7 @@ This repository is for storing code, including:
 - [bbnj](https://benioffoceaninitiative.github.io/bbnj): R package of functions to import, analyze and visualize the conservation prioritization process
   - NOTE (2019-11-26): The current documentation, particularly the vignette [Explore prioritizr](https://benioffoceaninitiative.github.io/bbnj/articles/prioritizr_explore.html), needs to be updated with the latest functions using `pkgdown::build_site()`.
 - [app](http://bbnj.ecoquants.com): Shiny app for interactive display of input layers and output solutions
+  - NOTE (2019-11-26): This mapping application will be updated to use just one geographic projection (Mollweide) instead of three (geographic, web Mercator and Mollweide) and easily allow the selection of any input data layer and overlay with any output scenario.
 
 Please also see this repository:
 
