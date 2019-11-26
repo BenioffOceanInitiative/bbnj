@@ -41,6 +41,19 @@ bbnj::run_app()
 
 The scenarios are located under the package's `inst/app/www/scenarios`, which you can access via the local copy of the repository (for editing) or the installed package (for viewing only; ).
 
+## Acknowledgements
+
+### Funding
+
+This work has been funded by [Pew Charitable Trusts: Protecting Ocean Life on the High Seas](https://www.pewtrusts.org/en/projects/protecting-ocean-life-on-the-high-seas) with support by the [Benioff Ocean Initiative | UC Santa Barbara](https://boi.ucsb.edu/).
+
+### Algorithm
+
+Huge thanks to @jeffreyhanson for the excellent [prioritizr](https://prioritizr.net/) conservation prioritization R package that did the heavy lifting.
+
+### Data
+
+TODO: Many datasets to acknowledge here...
 
 ## Developer Notes
 
