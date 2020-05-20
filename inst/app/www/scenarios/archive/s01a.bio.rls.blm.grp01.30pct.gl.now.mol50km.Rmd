@@ -46,7 +46,7 @@ tif <- glue("{pfx}_sol.tif")
 # variables ----
 rel_target <- 0.3
 prjres     <- "_mol50km" # prjres in: View(projections_tbl)
-redo       <- F
+redo       <- T
 
 # problem & solution ----
 P <- projections_tbl %>% filter(prjres == !!prjres)
@@ -62,13 +62,14 @@ if (!file.exists(tif) | redo){
   #s_bio_gmbi <- get_d_prjres("s_bio_gmbi", prjres)
   #groups01: 1st taxonomic grouping
   s_bio_gmbi <- get_gmbi_grpsmdl_prjres("groups01", "_mol50km")
-    lyrs_bio_now <- names(s_bio_gmbi) %>% 
-    setdiff(str_subset(names(s_bio_gmbi), "rli"))
+  lyrs_bio_now <- names(s_bio_gmbi) %>% 
+    setdiff(str_subset(names(s_bio_gmbi), "rli")) %>% 
+    setdiff(str_subset(names(s_bio_gmbi), "rls"))
   s_bio_now <- subset(s_bio_gmbi, lyrs_bio_now)
-  
-    #add red list sum for all species as separate layer
-  rls_all <- get_d_prjres("s_bio_gmbi", prjres) %>% 
-    subset(,subset="rls_all")
+    
+  #add red list sum for all species as separate layer
+  rls_all <- get_gmbi_grpsmdl_prjres("groups00", prjres) %>%
+    subset("groups00_rls_all")
   
   # features ----
   s_features <- stack(
@@ -94,15 +95,96 @@ if (!file.exists(tif) | redo){
     "scapes_hetero")
   
   # problem ----
+  # r_pu_0 <- r_pu
+  #plot(r_pu)
+  #r_pu <- setValues(r_pu, 0.0000000000000000001) %>% 
+  r_pu <- setValues(r_pu, 1) %>% 
+    mask(r_pu)
+  
   p <- problem(r_pu, s_features) %>%
     add_min_set_objective() %>% 
     add_relative_targets(rel_target) %>% 
-    add_boundary_penalties(penalty = 0.00000000000000000001)
+    add_boundary_penalties(penalty = 0.0000000000000000001)
+  #                         works: = 0.00000000000000000001
   
-  # solve ----
-  tif <- solve_log(p, pfx, redo=redo)
+  print(presolve_check(p))
+  # range(r_pu): [0.0000000000000000001]
+  #   [1] TRUE
+  # range(r_pu): [0.0001,0.0001]
+  #   Warning in presolve_check.OptimizationProblem(compile(x)) :
+  #   planning units with (relatively) very high costs, note this may be a false positive
+  # range(r_pu): [1,1]
+  #   Warning in presolve_check.OptimizationProblem(compile(x)) :
+  #   planning units with (relatively) very high costs, note this may be a false positive
+  # [1] FALSE
+      
+  #presolve_check(p)
+  # range(r_pu): [0.0000000000000000001]
+  #   [1] TRUE
+  # range(r_pu): [0.0001,0.0001]
+  #   Warning in presolve_check.OptimizationProblem(compile(x)) :
+  #   planning units with (relatively) very high costs, note this may be a false positive
+  # range(r_pu): [1,1]
+  #   Warning in presolve_check.OptimizationProblem(compile(x)) :
+  #   planning units with (relatively) very high costs, note this may be a false positive
+  # [1] FALSE
+
+  
+    # solve ----
+  # redo=T
+  tif <- solve_log(p, pfx, redo=redo, run_checks=F)
 }
 ```
+
+```{r, eval=F}
+# debugging BLM w/ MV...
+r_pu <- setValues(r_pu_id, 1) %>% 
+  mask(r_pu_id)
+r_sol <- raster(tif)
+r1 <- r_pu
+r2 <- r_sol
+r_d  <- r2*10 - r1
+d_subs <- tribble(
+  ~old,   ~new,
+  0, -9999,
+  9,     0,
+  -1,    -1,
+  10,     1)
+r_ds   <- subs(r_d, d_subs, "old", "new")
+r_diff <- mask(r_ds, r_ds, maskvalue=-9999)
+
+# why are all these 0?
+# groups01_rls_crustaceans
+# groups01_rls_euphausiids
+# groups01_rls_gastropods
+# groups01_rls_hydrozoans
+# groups01_rls_seagrasses
+# AH, do not want rls*
+
+r <- raster(s_bio_now, "groups01_rls_seagrasses")
+r
+
+a_km2 <- prod(res(r_diff)) / (1000 * 1000)
+table(values(r_diff))
+
+tbl <- tibble(
+  value = na.omit(values(rd))) %>%
+  group_by(value) %>%
+  summarize(
+    ncells = n()) %>%
+  mutate(
+    label = recode(
+      value,
+      `-1` = "loss",
+      `0`  = "same",
+      `1`  = "gain"),
+    area_km2 = ncells * a_km2,
+    pct = area_km2 / sum(area_km2)) %>%
+  dplyr::select(value, label, ncells, area_km2, pct)
+
+map_r2png(rd, png)
+```
+
 
 # `r basename(pfx)`
 
