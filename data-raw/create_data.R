@@ -1,22 +1,28 @@
 # 1) use_data(). for lazy loading with library(bbnj). document datasets in R/data.R.
 # 2) write tifs. for use with other software external to R, eg QGIS
-library(tidyverse)
-library(xml2)
-library(purrr)
-library(raster)
-library(fasterize)
-library(rnaturalearth)
-library(usethis)
-library(sf)
-library(glue)
-library(here)
-library(rmapshaper)
-library(geojsonio)
-library(rlang)
+
+# libraries ----
+if (!require(librarian)){
+  #remotes::install_github("DesiQuintans/librarian")
+  install.packages("librarian")
+  library(librarian)
+}
+shelf(
+  # custom
+  marinebon/gmbi,
+  # spatial
+  fasterize, geojsonio, prioritizr, raster, sf, rmapshaper, rnaturalearth,
+  # package
+  usethis,
+  # tidyverse
+  glue, tidyverse,
+  # utility
+  formattable, furrr, glue, here, rlang, xml2)
 select = dplyr::select
 
-library(gmbi) #devtools::install_github("marinebon/gmbi", force=T) #devtools::install_local("~/github/gmbi")
-#remotes::install_local("~/github/gmbi", for)
+# devtools::install_github("", force=T) #devtools::install_local("~/github/gmbi")
+# remotes::install_local("~/github/gmbi")
+# remotes::install_local("marinebon/gmbi")
 
 #library(bbnj) #devtools::install_github("ecoquants/bbnj", force=T) #devtools::install_local("~/github/bbnj")
 devtools::load_all()
@@ -87,15 +93,15 @@ projections_lst <- list(
       epsg = 4326,
       res_num = list(
         "0.5d" = 0.5)),
-  # mer  =
-  #   list(
-  #     default = F,
-  #     name = "Mercator",
-  #     proj = leaflet:::epsg3857,
-  #     epsg = 3857,
-  #     res_num = list(
-  #       #"56x16km" = c(55659.75, 156862.8))),
-  #       "36km" = 36000)), # split difference of original non-rectilinear cell resolution
+  mer  =
+    list(
+      default = F,
+      name = "Mercator",
+      proj = leaflet:::epsg3857,
+      epsg = 3857,
+      res_num = list(
+        #"56x16km" = c(55659.75, 156862.8))),
+        "36km" = 36000)), # split difference of original non-rectilinear cell resolution
   mol =
     list(
       default = F,
@@ -104,8 +110,8 @@ projections_lst <- list(
       epsg = 54009,
       res_num  = list(
         "50km"  =  50000)))
-        #"10km"  =  10000,
-        #"100km" = 100000)))
+#"10km"  =  10000,
+#"100km" = 100000)))
 
 # table of projections, flattening nested resolutions
 projections_tbl <- map_df(
@@ -471,14 +477,14 @@ if (!file.exists(vgpm_tif) | redo_lyrs){
         mask(r_pu_id_pr)
       # TODO: check above since previously created int'l dateline gap when mapping in leaflet
       # preferred projectRaster():
-          # prjres <- "_mer36km"
-          # P <- projections_tbl %>% filter(prjres == !!prjres)
-          # r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
-          # s_features <- suppressWarnings(
-          #   raster::projectRaster(
-          #     s_features, raster::projectExtent(s_features, crs = sp::CRS(P$proj)),
-          #     res = P$res_num)) %>%
-          #   mask(r_pu_id_pr)
+      # prjres <- "_mer36km"
+      # P <- projections_tbl %>% filter(prjres == !!prjres)
+      # r_pu_id_pr <- get_d_prjres("r_pu_id", prjres)
+      # s_features <- suppressWarnings(
+      #   raster::projectRaster(
+      #     s_features, raster::projectExtent(s_features, crs = sp::CRS(P$proj)),
+      #     res = P$res_num)) %>%
+      #   mask(r_pu_id_pr)
     }
 
     # write gcs raster for general use
@@ -495,8 +501,8 @@ if (!dir.exists("inst/data/bio_gmbi") | redo_gmbi){
   #grpsmdls <- list.files(dir_pfx, "groups0[1-3].*")
   #grpsmdls <- list.files(dir_pfx, "groups00.*")
   #grpsmdls <- setdiff(grpsmdls, "groups04")
-    #grps    = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\1"),
-    #mdl     = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\2"))
+  #grps    = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\1"),
+  #mdl     = str_replace(grpsmdl, "(groups[0-9]+)(.*$)", "\\2"))
   #grpsmdls
   #cat(paste(grpsmdls, collapse = '", "'))
   # DONE:

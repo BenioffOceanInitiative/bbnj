@@ -31,3 +31,5 @@ Suggests:
 VignetteBuilder: knitr
 URL: https://github.com/ecoquants/bbnj
 BugReports: https://github.com/ecoquants/bbnj/issues
+Depends: 
+    R (>= 2.10)
