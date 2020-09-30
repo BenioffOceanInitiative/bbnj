@@ -13,8 +13,8 @@ knitr::opts_chunk$set(echo=T, message=F, warning = F)
 
 ```{r}
 library(prioritizr) # devtools::load_all("~/github/prioritizr")
-#library(bbnj)       # 
-devtools::load_all() # setwd(here()); devtools::install_local(force=T) 
+library(bbnj)       # 
+#devtools::load_all() # setwd(here()); devtools::install_local(force=T) 
 # devtools::install_github("ecoquants/bbnj")
 library(raster)
 library(sf)
@@ -51,7 +51,7 @@ tif <- glue("{pfx}_sol.tif")
 # variables ----
 rel_target <- 0.3
 prjres     <- "_mol50km" # prjres in: View(projections_tbl)
-redo       <- F
+redo       <- T
 redo_map   <- T
 
 # problem & solution ----
