@@ -1,23 +1,22 @@
-library(rgdal)
-library(raster)
-library(readr)
-library(purrr)
-library(dplyr)
-library(tidyr)
-library(stringr)
-library(sf)
-library(leaflet)
-library(mapview)
-library(leafem)
-library(here)
-library(glue)
-library(shiny)
-library(htmltools)
-library(shinydashboard)
-library(bbnj)
-#devtools::load_all() # devtools::install_local(force=T) # devtools::install_github("ecoquants/bbnj")
-library(bsplus)
+# libraries ----
+if (!require(librarian)){
+  #remotes::install_github("DesiQuintans/librarian")
+  install.packages("librarian")
+  library(librarian)
+}
+shelf(
+  # custom
+  BenioffOceanInitiative/bbnj,
+  # shiny
+  bsplus, htmltools, shiny, shinydashboard,
+  # tidyverse
+  dplyr, glue, here, purrr, readr, stringr, tidyr,
+  # spatial
+  leafem, leaflet, mapview, raster, rgdal, sf)
 select = dplyr::select
+
+# devtools::load_all() # devtools::install_local(force=T)
+# devtools::install_github("BenioffOceanInitiative/bbnj")
 
 # rsconnect::showLogs() # show log on shinyapps.io to debug
 

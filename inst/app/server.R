@@ -108,7 +108,9 @@ shinyServer(function(input, output, session) {
     P <- projections_tbl %>%
       filter(prjres == !!prjres)
 
-    #message(glue("output$map: post P; pre map"))
+    message(glue("output$map: post P; pre map; P$prj={P$prj}"))
+    # missing "_mer36km"
+    #browser()
     map <- switch(P$prj,
       "mer" =  get_map_mer(),
       "gcs" =  get_map_gcs(),
