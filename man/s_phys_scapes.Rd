@@ -5,7 +5,8 @@
 \alias{s_phys_scapes}
 \title{Raster stack for area (km2) of 1 thru 11 classes of benthic seascapes (Harris
 & Whiteway, 2009)}
-\format{A \code{\link[raster]{stack}} in which each layer represents area for given integer class id of benthic seascape corresponding to :
+\format{
+A \code{\link[raster]{stack}} in which each layer represents area for given integer class id of benthic seascape corresponding to :
  \enumerate{
   \item Abyssal, hilly plains, large (arched) uplifted structures, flat abyssal plains, flat, very low PP, very thin sediment (seascape 11)
   \item Abyssal, plains with slightly undulating seafloor, flat abyssal plains, continental rise, very flat, high DO, low PP, very cold (seascape 10)
@@ -20,7 +21,8 @@
   \item Lower Bathyal, island arcs, steep, high DO (seascape 5)
 }
 
-Note that seascape numbers differ from those in Harris & Whiteway 2009. Numbers in parenthesis correspond to numbers from Harris & Whiteway 2009.}
+Note that seascape numbers differ from those in Harris & Whiteway 2009. Numbers in parenthesis correspond to numbers from Harris & Whiteway 2009.
+}
 \usage{
 s_phys_scapes
 }

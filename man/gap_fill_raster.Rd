@@ -4,7 +4,7 @@
 \alias{gap_fill_raster}
 \title{Gap-fill rasters with value based on function and mask}
 \usage{
-gap_fill_raster(r, fxn = "min", r_mask = r_pu_id)
+gap_fill_raster(r, fxn = "min", r_mask = r_pu_id, debug = F)
 }
 \arguments{
 \item{r}{raster input}

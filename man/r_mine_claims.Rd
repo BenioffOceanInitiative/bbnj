@@ -4,7 +4,9 @@
 \name{r_mine_claims}
 \alias{r_mine_claims}
 \title{Raster for presence of mining claim (Interridge Vent Database v3.4)}
-\format{A \code{\link[raster]{raster}} presence (1 or 0) of mine claim in cell.}
+\format{
+A \code{\link[raster]{raster}} presence (1 or 0) of mine claim in cell.
+}
 \usage{
 r_mine_claims
 }

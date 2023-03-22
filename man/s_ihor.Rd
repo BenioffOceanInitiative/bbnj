@@ -4,9 +4,11 @@
 \name{s_ihor}
 \alias{s_ihor}
 \title{Stack of rasters describing presence of seven seas from IHO revised (IHOR)}
-\format{A \code{\link[raster]{stack}} of \code{seaid} [1-7] with raster
+\format{
+A \code{\link[raster]{stack}} of \code{seaid} [1-7] with raster
   attribute table providing \code{sea} and \code{area_km2} (see
-  \code{\link[raster]{factorValues}()}).}
+  \code{\link[raster]{factorValues}()}).
+}
 \usage{
 s_ihor
 }

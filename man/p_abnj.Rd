@@ -4,7 +4,9 @@
 \name{p_abnj}
 \alias{p_abnj}
 \title{Polygon of areas beyond national jurisdiction, ie high seas area}
-\format{A \code{\link[sf]{sf}} object of a polygon.}
+\format{
+A \code{\link[sf]{sf}} object of a polygon.
+}
 \usage{
 p_abnj
 }

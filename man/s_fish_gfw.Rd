@@ -5,7 +5,9 @@
 \alias{s_fish_gfw}
 \title{Raster stack from Global Fishing Watch analysis of high seas (Sala et al,
 2018)}
-\format{A \code{\link[raster]{stack}} with layers of results from analyses.}
+\format{
+A \code{\link[raster]{stack}} with layers of results from analyses.
+}
 \usage{
 s_fish_gfw
 }

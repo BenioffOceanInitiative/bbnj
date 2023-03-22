@@ -5,7 +5,9 @@
 \alias{p_ppow}
 \title{Polygon of Pelagic Provinces of the World (Spalding et al, 2012) for high
 seas}
-\format{A \code{\link[sf]{sf}} object of a polygon.}
+\format{
+A \code{\link[sf]{sf}} object of a polygon.
+}
 \usage{
 p_ppow
 }

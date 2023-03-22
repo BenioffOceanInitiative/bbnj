@@ -4,7 +4,7 @@
 \alias{solve_log}
 \title{Helper function to run prioritizr::solve() and log output and resulting raster}
 \usage{
-solve_log(p, pfx = deparse(substitute(p)), redo = F, debug = F)
+solve_log(p, pfx = deparse(substitute(p)), redo = F, debug = F, ...)
 }
 \arguments{
 \item{p}{\code{\link[prioritizr]{problem}} to feed into \code{\link[prioritizr]{solve}}}

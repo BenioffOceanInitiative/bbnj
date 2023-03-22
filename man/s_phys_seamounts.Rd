@@ -4,12 +4,14 @@
 \name{s_phys_seamounts}
 \alias{s_phys_seamounts}
 \title{Stack for count of seamounts (Kim & Wessel, 2011) based on depth bin}
-\format{A \code{\link[raster]{raster}} count of seamount features within cell based on depth of summit:
+\format{
+A \code{\link[raster]{raster}} count of seamount features within cell based on depth of summit:
 \enumerate{
   \item 0 - 200 m; <= 200 m: \code{lteq200m}
   \item 200 - 800 m; > 200 & <= 800 m: \code{gt200lteq800m}
   \item 800 - Inf m; > 800 m: \code{gt800m}
-}}
+}
+}
 \usage{
 s_phys_seamounts
 }

@@ -136,6 +136,15 @@ if (!file.exists(tif) | redo){
     "phys_vents",
     "scapes_hetero")
   
+  tibble(
+    
+  )
+  
+  lyrs_csv <- glue("{fs::path_ext_remove(rmd)}_layers.csv")
+  tibble(
+    layer = names(s_features)) %>% 
+    write.csv(lyrs_csv)
+  
   # problem ----
   p <- problem(r_pu, s_features) %>%
     add_min_set_objective() %>% 

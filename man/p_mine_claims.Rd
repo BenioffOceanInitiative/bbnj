@@ -4,7 +4,9 @@
 \name{p_mine_claims}
 \alias{p_mine_claims}
 \title{Polygons of mine claims (ISA)}
-\format{A \code{\link[sf]{sf}} object of mining claim polygons.}
+\format{
+A \code{\link[sf]{sf}} object of mining claim polygons.
+}
 \usage{
 p_mine_claims
 }

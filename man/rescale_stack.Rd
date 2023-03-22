@@ -4,8 +4,14 @@
 \alias{rescale_stack}
 \title{Rescale stack}
 \usage{
-rescale_stack(s, from_all = T, rescale = T, log = F, inverse = F,
-  multiply_area = F)
+rescale_stack(
+  s,
+  from_all = T,
+  rescale = T,
+  log = F,
+  inverse = F,
+  multiply_area = F
+)
 }
 \arguments{
 \item{s}{stack}

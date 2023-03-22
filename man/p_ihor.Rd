@@ -4,7 +4,9 @@
 \name{p_ihor}
 \alias{p_ihor}
 \title{Polygon of IHO Seas Revised, ie Seven Seas}
-\format{A \code{\link[sf]{sf}} object of a polygon.}
+\format{
+A \code{\link[sf]{sf}} object of a polygon.
+}
 \usage{
 p_ihor
 }

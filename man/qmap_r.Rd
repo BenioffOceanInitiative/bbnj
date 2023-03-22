@@ -4,8 +4,14 @@
 \alias{qmap_r}
 \title{Quick leaflet map of raster}
 \usage{
-qmap_r(r, r_title, na0 = T, method = "ngb",
-  boundary_shp = "~/Gdrive Ecoquants/projects/bbnj/data/derived/boundary/high_seas_s05.shp")
+qmap_r(
+  r,
+  r_title,
+  na0 = T,
+  method = "ngb",
+  boundary_shp =
+    "~/Gdrive Ecoquants/projects/bbnj/data/derived/boundary/high_seas_s05.shp"
+)
 }
 \arguments{
 \item{r}{raster}

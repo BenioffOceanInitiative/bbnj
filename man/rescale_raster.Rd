@@ -4,8 +4,7 @@
 \alias{rescale_raster}
 \title{Rescale raster}
 \usage{
-rescale_raster(r, rescale = T, log = F, inverse = F,
-  multiply_area = F)
+rescale_raster(r, rescale = T, log = F, inverse = F, multiply_area = F)
 }
 \arguments{
 \item{r}{input raster}

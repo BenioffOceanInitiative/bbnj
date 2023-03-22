@@ -4,7 +4,9 @@
 \name{p_eez_s05}
 \alias{p_eez_s05}
 \title{Simplified polygons of exclusive economic zones (EEZs)}
-\format{A \code{\link[sf]{sf}} object of a polygon.}
+\format{
+A \code{\link[sf]{sf}} object of a polygon.
+}
 \usage{
 p_eez_s05
 }

@@ -18,16 +18,31 @@ reference:
 - title: "Raster"
   desc: "raster operations"
   contents:
+  - gap_fill_raster
+  - get_d_prjres
+  - get_gmbi_grpsmdl_prjres
+  - get_grid
+  - get_r_projection
+  - get_tif_projection
+  - lyr_to_tif
+  - qmap_r
   - rescale_raster
   - rescale_stack
-  - gap_fill_raster
-  - get_grid
-  - qmap_r
+  - tif_to_shp_gcs
 - title: "Prioritization"
   desc: "prioritizr helper functions"
   contents:
-  - solve_log
+  - get_tif_area_stats
+  - get_tif_solution
+  - map_r2png
+  - map_r2pdf
   - problem_diagnostics
+  - r_diff
+  - report_solution
+  - run_app
+  - scenarios_diff
+  - solve_log
+  - tbl_target_representation
 - title: "Datasets"
   desc: "input data for high seas MPA scenarios"
   contents:

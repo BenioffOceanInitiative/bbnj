@@ -5,7 +5,9 @@
 \alias{r_phys_scapes_hetero}
 \title{Raster of heterogeneity of 1 thru 11 classes of benthic seascapes (Harris
 & Whiteway, 2009)}
-\format{An object of class \code{RasterLayer} of dimension 360 x 720 x 1.}
+\format{
+An object of class \code{RasterLayer} of dimension 360 x 720 x 1.
+}
 \usage{
 r_phys_scapes_hetero
 }

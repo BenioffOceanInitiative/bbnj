@@ -4,7 +4,9 @@
 \name{p_iho_s05}
 \alias{p_iho_s05}
 \title{Simplified polygon of IHO Seas}
-\format{A \code{\link[sf]{sf}} object of a polygon.}
+\format{
+A \code{\link[sf]{sf}} object of a polygon.
+}
 \usage{
 p_iho_s05
 }

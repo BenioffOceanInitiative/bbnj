@@ -4,7 +4,9 @@
 \name{r_vgpm}
 \alias{r_vgpm}
 \title{Raster for average Vertically Generalized Production Model (VGPM)}
-\format{A \code{\link[raster]{raster}} of half-degree cells}
+\format{
+A \code{\link[raster]{raster}} of half-degree cells
+}
 \usage{
 r_vgpm
 }

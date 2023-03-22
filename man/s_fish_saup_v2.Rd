@@ -5,7 +5,9 @@
 \alias{s_fish_saup_v2}
 \title{Raster stack version 2 from Sea Around Us Project at UBC (Cheung, Lam et al;
 in draft) of maximum catch potential}
-\format{A \code{\link[raster]{stack}} with layers of results from analyses.}
+\format{
+A \code{\link[raster]{stack}} with layers of results from analyses.
+}
 \usage{
 s_fish_saup_v2
 }

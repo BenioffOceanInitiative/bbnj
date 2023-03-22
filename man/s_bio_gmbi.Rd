@@ -4,7 +4,9 @@
 \name{s_bio_gmbi}
 \alias{s_bio_gmbi}
 \title{Raster stack of global marine biodiversity indicators from AquaMaps and IUCN}
-\format{A \code{\link[raster]{stack}} with indicator (\code{nspp_*} or \code{rls_*}) and taxonomic group or all taxa (\code{*_all}).}
+\format{
+A \code{\link[raster]{stack}} with indicator (\code{nspp_*} or \code{rls_*}) and taxonomic group or all taxa (\code{*_all}).
+}
 \source{
 \url{https://github.com/marinebon/bbnj}
 

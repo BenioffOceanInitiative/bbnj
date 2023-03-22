@@ -4,7 +4,9 @@
 \name{r_phys_vents}
 \alias{r_phys_vents}
 \title{Raster for count of hydrothermal vents (Interridge Vent Database v3.4)}
-\format{A \code{\link[raster]{raster}} count of hydrothermal vents features within cell.}
+\format{
+A \code{\link[raster]{raster}} count of hydrothermal vents features within cell.
+}
 \usage{
 r_phys_vents
 }

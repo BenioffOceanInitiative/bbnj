@@ -4,7 +4,9 @@
 \name{r_pu_id}
 \alias{r_pu_id}
 \title{Raster of planning unit id for high seas}
-\format{A \code{\link[raster]{raster}} with integer of id unique to cell.}
+\format{
+A \code{\link[raster]{raster}} with integer of id unique to cell.
+}
 \usage{
 r_pu_id
 }
