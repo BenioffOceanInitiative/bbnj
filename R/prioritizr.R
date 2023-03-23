@@ -527,8 +527,21 @@ map_r2pdf <- function(r, pdf){
 #'
 #' @examples
 scenarios_diff <- function(scenarios, dir_scenarios, dir_diffs){
-  # scenarios = scenarios[c("s1", "s2a")]
-  # scenarios = scenarios[c("s2a", "s4")]
+  # librarian::shelf(
+  #   glue, here, knitr, raster, tidyverse)
+  # devtools::load_all(here()) # devtools::install_local(force=T)
+  # dir_scenarios <- here("inst/app/www/scenarios")
+  # dir_diffs     <- here("inst/app/www/scenarios/diffs")
+  # scenarios_all <- list(
+  #   s1  = "s01a.bio.now.mol50km",
+  #   s2a = "s02a.bio.alltime.mol50km",
+  #   s2b = "s02b.bio.future.mol50km",
+  #   s3  = "s03a.biofish.now.mol50km",
+  #   s4  = "s04a.biofish.alltime.mol50km")
+  # scenarios = scenarios_all[c("s2a", "s4")] # fig 3
+  # fig 3: inst/app/www/scenarios/diffs/s04a.biofish.alltime.mol50km - s02a.bio.alltime.mol50km.tif
+  # scenarios = scenarios_all[c("s3", "s4")]  # fig 4
+  # fig 4: inst/app/www/scenarios/diffs/s04a.biofish.alltime.mol50km - s03a.biofish.now.mol50km.tif
   stopifnot(length(scenarios) == 2)
 
   d <- tibble(
@@ -539,11 +552,13 @@ scenarios_diff <- function(scenarios, dir_scenarios, dir_diffs){
   stopifnot(all(d$tif_exists))
 
   png <- glue("{dir_diffs}/{scenarios[2]} - {scenarios[1]}.png")
+  tif <- glue("{dir_diffs}/{scenarios[2]} - {scenarios[1]}.tif")
 
   r1 <- raster(d$tif[1])
   r2 <- raster(d$tif[2])
 
   rd <- r_diff(r1, r2)
+  raster::writeRaster(rd, tif, overwrite=T)
 
   a_km2 <- prod(res(rd)) / (1000 * 1000)
 
@@ -567,6 +582,7 @@ scenarios_diff <- function(scenarios, dir_scenarios, dir_diffs){
   map_r2png(rd, png)
 
   list(
+    rd  = rd,
     tbl = tbl,
     png = png)
 }

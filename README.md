@@ -46,7 +46,8 @@ Fig. 3. Influence of fishing effort as a cost in the prioritization process for 
 - [scenario_diffs.Rmd](https://github.com/BenioffOceanInitiative/bbnj-scripts/blob/master/scenario_diffs.Rmd)\
   source code to generate the figure
   * [`scenarios_diff()`](https://benioffoceaninitiative.github.io/bbnj/reference/scenarios_diff.html) ([source code](https://github.com/BenioffOceanInitiative/bbnj/blob/HEAD/R/prioritizr.R#L519-L572))\
-    function to calculate differences between scenarios
+  * [s04a.biofish.alltime.mol50km - s02a.bio.alltime.mol50km.tif](https://github.com/BenioffOceanInitiative/bbnj/blob/master/inst/app/www/scenarios/diffs/s04a.biofish.alltime.mol50km - s02a.bio.alltime.mol50km.tif)\
+  raw raster data of difference
 
 
 ### Figure 4
@@ -58,6 +59,8 @@ Fig. 4. Influence of climate-biodiversity forecast data as additional targets in
   source code to generate the figure
   * [`scenarios_diff()`](https://benioffoceaninitiative.github.io/bbnj/reference/scenarios_diff.html) ([source code](https://github.com/BenioffOceanInitiative/bbnj/blob/HEAD/R/prioritizr.R#L519-L572))\
     function to calculate differences between scenarios
+  * [s04a.biofish.alltime.mol50km - s03a.biofish.now.mol50km.tif](https://github.com/BenioffOceanInitiative/bbnj/blob/master/inst/app/www/scenarios/diffs/s04a.biofish.alltime.mol50km - s03a.biofish.now.mol50km.tif)\
+  raw raster data of difference
 
 ## Install R package
 
